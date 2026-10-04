@@ -1,0 +1,7 @@
+std = "lua54+test_env+nanos_world+lua53+lua54"
+exclude = ["tests/fixtures/loader/Shared/uses_global.lua"]
+
+[rules]
+global_usage = "allow"
+unused_variable = "deny"
+shadowing = "deny"

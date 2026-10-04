@@ -1,0 +1,46 @@
+name: Bug report
+description: Something in Foundation does not work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problems must not be reported here. Follow SECURITY.md instead.
+  - type: input
+    id: foundation-version
+    attributes:
+      label: Foundation version or commit
+    validations:
+      required: true
+  - type: input
+    id: server-version
+    attributes:
+      label: nanos world server version and operating system
+      placeholder: "1.156.0, Windows Server 2022"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Include the exact error lines from the server log (.logs/NanosWorldCore.log).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The smallest package or command sequence that shows the problem. Remove credentials and other secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: packages
+    attributes:
+      label: Other packages loaded
+      description: Game-mode and script packages from Config.toml, with versions if known.

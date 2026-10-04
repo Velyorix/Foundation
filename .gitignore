@@ -1,6 +1,13 @@
 .idea/
 internal-docs/
-tools/
+
+# Disposable integration servers and build output
+.tmp/
+dist/
+
+# Python bytecode
+__pycache__/
+*.pyc
 
 # Compiled Lua sources
 luac.out

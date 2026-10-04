@@ -1,0 +1,40 @@
+# selene definitions for nanos world scripting (server 1.156, Stable API).
+# Only engine globals Foundation uses are listed; add an entry when code starts using
+# another engine global, after checking it in the official API reference.
+# Functions the server disables without --enable_unsafe_libs are rejected by
+# scripts/check.py, not here: selene drops removals when standard libraries are combined.
+---
+name: nanos_world
+globals:
+  Package:
+    any: true
+  Events:
+    any: true
+  Timer:
+    any: true
+  Console:
+    any: true
+  Server:
+    any: true
+  Client:
+    any: true
+  Player:
+    any: true
+  Chat:
+    any: true
+  File:
+    any: true
+  JSON:
+    any: true
+  TOML:
+    any: true
+  Database:
+    any: true
+  DatabaseEngine:
+    any: true
+  Reliability:
+    any: true
+  PackageType:
+    any: true
+  LogType:
+    any: true

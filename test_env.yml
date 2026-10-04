@@ -1,0 +1,25 @@
+# selene definitions for test code: globals injected by tests/run.lua into spec files
+# and the global exported by the integration harness package.
+---
+name: test_env
+globals:
+  describe:
+    args:
+      - type: string
+      - type: function
+  it:
+    args:
+      - type: string
+      - type: function
+  before_each:
+    args:
+      - type: function
+  after_each:
+    args:
+      - type: function
+  expect:
+    any: true
+  Loader:
+    any: true
+  FoundationTest:
+    any: true

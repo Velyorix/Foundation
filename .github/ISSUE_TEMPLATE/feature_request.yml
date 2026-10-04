@@ -1,0 +1,30 @@
+name: Feature or extension point
+description: Propose an addition to the Foundation platform
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Foundation provides infrastructure for other packages. Gameplay and administration
+        features (economy, ranks, homes, warps, shops, admin panels, ...) belong in separate
+        packages. If such a package is blocked by something Foundation lacks, describe the
+        missing extension point.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What a package developer or server owner cannot do today, and why.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: The API or behavior you have in mind. Note server/client/shared context if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including whether this could live in a separate package.

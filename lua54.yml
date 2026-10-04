@@ -1,0 +1,50 @@
+# selene corrections that turn its bundled lua53 definition into Lua 5.4.
+#
+# selene combines "a+b+c" left to right, the accumulated library winning on
+# conflicts, while lua_versions comes from the last library that sets it. This file
+# is therefore listed first (so its definitions override lua53) and last (so the
+# parser accepts 5.4 syntax): std = "lua54+<project>+lua53+lua54".
+---
+name: lua54
+lua_versions:
+  - lua52
+  - lua53
+  - lua54
+globals:
+  load:
+    args:
+      - type: any
+      - required: false
+        type: string
+      - required: false
+        type: string
+      - required: false
+        type: table
+  math.type:
+    args:
+      - type: any
+  math.tointeger:
+    args:
+      - type: any
+  math.ult:
+    args:
+      - type: number
+      - type: number
+  math.maxinteger:
+    property: read-only
+  math.mininteger:
+    property: read-only
+  coroutine.close:
+    args:
+      - type: any
+  coroutine.isyieldable:
+    args: []
+  warn:
+    args:
+      - type: "..."
+  package.config:
+    any: true
+  io.stdout:
+    any: true
+  io.stderr:
+    any: true

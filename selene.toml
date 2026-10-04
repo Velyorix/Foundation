@@ -1,0 +1,7 @@
+std = "lua54+nanos_world+lua53+lua54"
+exclude = ["tests/**", ".tmp/**", "dist/**"]
+
+[rules]
+global_usage = "deny"
+unused_variable = "deny"
+shadowing = "deny"

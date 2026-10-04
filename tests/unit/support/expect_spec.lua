@@ -1,0 +1,42 @@
+describe("expect", function()
+	it("compares tables structurally with same", function()
+		expect.no_error(function()
+			expect.same({ a = { 1, 2 }, b = "x" }, { a = { 1, 2 }, b = "x" })
+		end)
+		local err = expect.raises(function()
+			expect.same({ a = { 1, 2 } }, { a = { 1, 3 } })
+		end)
+		expect.contains(tostring(err), 'value["a"][2]')
+	end)
+
+	it("detects keys missing from the actual table", function()
+		expect.raises(function()
+			expect.same({}, { extra = true })
+		end, '["extra"]')
+	end)
+
+	it("handles cyclic tables", function()
+		local a, b = {}, {}
+		a.self, b.self = a, b
+		expect.no_error(function()
+			expect.same(a, b)
+		end)
+	end)
+
+	it("reports the expected and actual values on equal", function()
+		expect.raises(function()
+			expect.equal(1, 2)
+		end, "expected 2, got 1")
+	end)
+
+	it("matches raised error messages as plain text", function()
+		expect.raises(function()
+			error("[foundation:invalid_argument] bad (x)")
+		end, "[foundation:invalid_argument] bad (x)")
+	end)
+
+	it("fails raises when nothing is raised", function()
+		local ok = pcall(expect.raises, function() end)
+		expect.falsy(ok)
+	end)
+end)

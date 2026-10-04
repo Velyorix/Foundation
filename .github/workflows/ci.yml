@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  STYLUA_VERSION: "2.5.2"
+  SELENE_VERSION: "0.31.0"
+
+jobs:
+  lint:
+    name: Format and lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Lua tools
+        id: tools-cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/bin/stylua
+            ~/.cargo/bin/selene
+          key: lua-tools-${{ runner.os }}-stylua-${{ env.STYLUA_VERSION }}-selene-${{ env.SELENE_VERSION }}-lua54
+
+      - name: Install StyLua and selene with Lua 5.4 grammar
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        run: |
+          cargo install --locked "stylua@${STYLUA_VERSION}" --features lua54
+          cargo install --locked "selene@${SELENE_VERSION}" --no-default-features \
+            --features "selene-lib/lua52,selene-lib/lua53,selene-lib/lua54,full_moon/lua52,full_moon/lua53,full_moon/lua54"
+
+      - name: Check formatting
+        run: stylua --check package tests
+
+      - name: Lint package
+        run: selene package
+
+      - name: Lint tests
+        run: selene --config tests/selene.toml tests
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Lua 5.4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+
+      - name: Run unit specs
+        run: lua5.4 tests/run.lua
+
+  repository:
+    name: Repository checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Repository checks
+        run: python3 scripts/check.py
+
+      - name: Tooling tests
+        run: python3 -m unittest discover -s tests/scripts -p "test_*.py"

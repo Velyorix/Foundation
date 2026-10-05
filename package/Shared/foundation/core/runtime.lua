@@ -169,6 +169,35 @@ local COMPONENTS = {
 			})
 			runtime.events = events
 			local packages = runtime.packages
+			local S = runtime.schema
+			local package_fields = { package = S:String(), version = S:Optional(S:String()) }
+			events:Define("foundation", "package_ready", { fields = package_fields }, "Runtime", 2)
+			events:Define("foundation", "package_failed", {
+				fields = { package = S:String(), version = S:Optional(S:String()), message = S:String() },
+			}, "Runtime", 2)
+			events:Define("foundation", "package_disabled", {
+				fields = {
+					package = S:String(),
+					version = S:Optional(S:String()),
+					reason = S:Enum({ "unload", "dependency_disabled", "dependency_failed", "foundation_stopping" }),
+				},
+			}, "Runtime", 2)
+			events:Define("foundation", "config_reloaded", {
+				fields = {
+					package = S:String(),
+					path = S:String(),
+					changed = S:List(S:String()),
+					pending = S:List(S:String()),
+				},
+			}, "Runtime", 2)
+			packages:Observe(function(kind, entry, details)
+				events:Emit("foundation", "package_" .. kind, {
+					package = entry.id,
+					version = entry.version,
+					message = details and kind == "failed" and details.reason or nil,
+					reason = details and kind == "disabled" and details.reason or nil,
+				}, "Runtime", 2)
+			end)
 			packages:ExtendContext("DefineEvent", function(context, entry, name, definition)
 				local key, release = events:Define(entry.id, name, definition, "context:DefineEvent", 3)
 				context:Track("event", release, { event = key })
@@ -274,15 +303,33 @@ function Runtime:ReloadConfig()
 		local changed, pending = self.config:Reload()
 		if changed then
 			self:ApplySettings(self.config:Values())
-			report.core = { changed = changed, pending = pending }
+			report.core = { changed = changed, pending = pending, path = self.config.spec.path }
 		else
-			report.core = { error = pending }
+			report.core = { error = pending, path = self.config.spec.path }
 		end
 	end
 	if self.package_configs then
 		report.packages = self.package_configs:ReloadAll()
 	end
+	self:announce_reload("foundation", report.core)
+	for _, owner in ipairs(self.package_configs and self.package_configs.order or {}) do
+		self:announce_reload(owner, report.packages[owner])
+	end
 	return report
+end
+
+function Runtime:announce_reload(owner, result)
+	if not result or result.error or not self.events then
+		return
+	end
+	self.invoker:Call({ owner = "foundation", kind = "config_event" }, function()
+		self.events:Emit("foundation", "config_reloaded", {
+			package = owner,
+			path = result.path,
+			changed = result.changed,
+			pending = result.pending,
+		}, "Runtime:ReloadConfig", 2)
+	end)
 end
 
 function Runtime:IsRunning()

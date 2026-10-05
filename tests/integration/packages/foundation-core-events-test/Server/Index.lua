@@ -24,7 +24,21 @@ context:Listen(EVENT, function()
 	calls[#calls + 1] = "monitor"
 end, { priority = "monitor", ignore_cancelled = true })
 
+local lifecycle = {}
+for _, name in ipairs({ "package_ready", "package_disabled" }) do
+	context:Listen("foundation:" .. name, function(event)
+		local data = event:GetData()
+		lifecycle[#lifecycle + 1] = name .. ":" .. data.package .. (data.reason and (":" .. data.reason) or "")
+	end)
+end
+
 local suite = FoundationTest.Suite("core-events")
+
+suite:Test("Foundation announces packages that become ready", function()
+	local text = table.concat(lifecycle, ",")
+	FoundationTest.True(text:find("package_ready:foundation-events-fixture", 1, true), text)
+	FoundationTest.True(text:find("package_ready:foundation-core-events-test", 1, true), text)
+end)
 
 suite:Test("listeners of another package run in priority order and change the event", function()
 	calls = {}
@@ -56,6 +70,7 @@ suite:Wait(300)
 
 suite:Test("unloading the defining package removes the event and its listeners", function()
 	FoundationTest.Equal(remaining:IsActive(), false)
+	FoundationTest.Equal(lifecycle[#lifecycle], "package_disabled:foundation-events-fixture:unload")
 	FoundationTest.Raises(function()
 		context:Listen(EVENT, function() end)
 	end, "is not a defined event")

@@ -8,7 +8,7 @@ Audit.OUTCOMES = { "success", "denied", "failure" }
 
 local ACTION_PATTERN = "^([a-z0-9][a-z0-9_-]*):[a-z0-9][a-z0-9_./-]*$"
 
--- files: { Open(path, truncate) -> File, Exists(path), CreateDirectory(path), IsDirectory(path) }
+-- files: a core/files.lua instance.
 function Audit.new(options)
 	return setmetatable({
 		files = options.files,
@@ -25,45 +25,6 @@ end
 
 function Audit:PathFor(seconds)
 	return self.directory .. "/audit-" .. os.date("!%Y-%m-%d", seconds) .. ".log"
-end
-
-function Audit:ensure_directory()
-	if self.files.IsDirectory(self.directory) then
-		return true
-	end
-	-- Raises when a file already occupies the path (server 1.156).
-	local ok, err = pcall(self.files.CreateDirectory, self.directory)
-	if self.files.IsDirectory(self.directory) then
-		return true
-	end
-	return false, ok and self.directory or tostring(err)
-end
-
-function Audit:append(path, line)
-	local ready, reason = self:ensure_directory()
-	if not ready then
-		return false, reason
-	end
-	local ok, result = pcall(function()
-		local file = self.files.Open(path, false)
-		if not file:IsGood() then
-			file:Close()
-			return false
-		end
-		file:Seek(file:Size())
-		file:Write(line .. "\n")
-		file:Flush()
-		local good = not file:HasFailed()
-		file:Close()
-		return good
-	end)
-	if not ok then
-		return false, tostring(result)
-	end
-	if not result then
-		return false, path
-	end
-	return true
 end
 
 function Audit:Record(owner, action, entry)
@@ -109,7 +70,7 @@ function Audit:Record(owner, action, entry)
 	end
 
 	local path = self:PathFor(seconds)
-	local ok, failure = self:append(path, line)
+	local ok, failure = self.files:Append(path, line .. "\n")
 	if ok then
 		self.written = self.written + 1
 		return true

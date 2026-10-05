@@ -17,6 +17,7 @@ Errors.CODES = {
 	incompatible_api = "developer",
 	invalid_key = "user",
 	validation_failed = "user",
+	config_invalid = "configuration",
 }
 
 local ErrorValue = {}

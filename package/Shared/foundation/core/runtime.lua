@@ -93,6 +93,17 @@ local COMPONENTS = {
 		end,
 	},
 	{
+		name = "config",
+		required = false,
+		create = function(runtime)
+			if not runtime.env.create_config then
+				return "absent"
+			end
+			runtime.config = runtime.env.create_config(runtime)
+			runtime:ApplySettings(runtime.config:Load())
+		end,
+	},
+	{
 		name = "audit",
 		required = false,
 		create = function(runtime)
@@ -139,6 +150,28 @@ function Runtime:Start()
 	self.started_at = self.env.now()
 	self.log:Info("runtime.started", { version = self.env.version, api = self.env.api_version, side = self.env.side })
 	return true
+end
+
+function Runtime:ApplySettings(values)
+	self.i18n:SetServerLocale(values.language)
+	self.log:SetLevel(values.log.level)
+	self.log:SetDebugCategories(values.log.debug_categories)
+end
+
+-- Returns the changed and restart-pending setting paths, or nil and an error.
+function Runtime:ReloadConfig()
+	if not self.config then
+		return nil,
+			self.errors:New("invalid_state", {
+				api = "Runtime:ReloadConfig",
+				reason = self.messages:Format("reason.config_absent"),
+			})
+	end
+	local changed, pending = self.config:Reload()
+	if changed then
+		self:ApplySettings(self.config:Values())
+	end
+	return changed, pending
 end
 
 function Runtime:IsRunning()
@@ -203,6 +236,8 @@ function Runtime:Snapshot()
 		resources = self.ownership and self.ownership:Snapshot() or nil,
 		callbacks = self.invoker and self.invoker:Snapshot() or nil,
 		audit = self.audit and self.audit:Snapshot() or nil,
+		config = self.config and self.config:Snapshot() or nil,
+		locale = self.i18n and self.i18n:GetServerLocale() or nil,
 	}
 end
 

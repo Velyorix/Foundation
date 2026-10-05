@@ -175,5 +175,30 @@
     "expected_log_lines": [
       "\\[foundation\\] WARN  foundation-core-i18n-test/i18n: missing translation for 'foundation-core-i18n-test:missing\\.key'"
     ]
+  },
+  "core-config": {
+    "description": "foundation/config.toml is created, read with the engine TOML parser, validated and applied",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-config-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/config: "
+    ],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation/config: created foundation/config\\.toml with the default settings",
+      "\\[foundation\\] INFO  foundation/core: Foundation \\d+\\.\\d+\\.\\d+ started \\(API [\\d.]+, server\\)",
+      "\\[foundation\\] INFO  foundation/config: loaded foundation/config\\.toml",
+      "\\[foundation\\] INFO  foundation/core: Foundation \\d+\\.\\d+\\.\\d+ démarré \\(API [\\d.]+, server\\)",
+      "\\[foundation\\] ERROR foundation/config: foundation/config\\.toml is invalid \\(3 problem\\(s\\)\\)",
+      "foundation/config\\.toml: \\$\\.language: ",
+      "foundation/config\\.toml: \\$\\.log\\.level: must be one of debug, info, warning, error",
+      "foundation/config\\.toml: \\$\\.log\\.extra: is not an allowed field",
+      "\\[foundation\\] ERROR foundation/config: foundation/config\\.toml is not used",
+      "\\[foundation\\] INFO  foundation/core: Foundation \\d+\\.\\d+\\.\\d+ started \\(API [\\d.]+, server\\)",
+      "\\[foundation\\] ERROR foundation/config: could not read foundation/config\\.toml: .*TOML\\.Parse"
+    ]
   }
 }

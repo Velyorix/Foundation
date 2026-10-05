@@ -29,6 +29,11 @@ local function fake_engine()
 			error("no file system in unit tests")
 		end,
 	})
+	engine.TOML = {
+		Parse = function()
+			error("no TOML parser in unit tests")
+		end,
+	}
 	engine.package = {
 		Export = function(name, value)
 			engine.exports[name] = value
@@ -44,7 +49,7 @@ local function boot()
 	local engine = fake_engine()
 	local loader = Loader.new({
 		side = "Server",
-		globals = { Console = engine.Console, Server = engine.Server, File = engine.File },
+		globals = { Console = engine.Console, Server = engine.Server, File = engine.File, TOML = engine.TOML },
 		package = engine.package,
 	})
 	loader:run("../Shared/Index.lua")

@@ -2,19 +2,23 @@ local Runtime = Package.Require("foundation/core/runtime.lua")
 local Facade = Package.Require("foundation/core/facade.lua")
 local Log = Package.Require("foundation/core/log.lua")
 local Audit = Package.Require("foundation/core/audit.lua")
+local Files = Package.Require("foundation/core/files.lua")
+local Config = Package.Require("foundation/core/config.lua")
+local Settings = Package.Require("foundation/core/settings.lua")
 local version = Package.Require("foundation/version.lua")
 
 local Bootstrap = {}
 
 local function engine_files()
-	return {
+	return Files.new({
 		Open = function(path, truncate)
 			return File(path, truncate)
 		end,
 		Exists = File.Exists,
 		CreateDirectory = File.CreateDirectory,
 		IsDirectory = File.IsDirectory,
-	}
+		Rename = File.Rename,
+	})
 end
 
 local function now()
@@ -35,6 +39,16 @@ function Bootstrap.Start()
 			return Server.GetTime() / 1000
 		end,
 		now = now,
+		create_config = function(rt)
+			return Config.new({
+				spec = Settings(rt.schema, rt.messages),
+				files = engine_files(),
+				parse = TOML.Parse,
+				schema = rt.schema,
+				log = rt.log:For("foundation", "config"),
+				errors = rt.errors,
+			})
+		end,
 		create_audit = function(rt)
 			return Audit.new({ files = engine_files(), now = now, check = rt.check, log = rt.log })
 		end,

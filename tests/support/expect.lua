@@ -1,6 +1,3 @@
--- Assertions for unit tests. Every failure raises a string error at the caller's level
--- so the runner reports the spec line, not this file.
-
 local expect = {}
 
 local function describe_value(value)
@@ -56,7 +53,6 @@ function expect.not_equal(actual, unexpected, message)
 	end
 end
 
---- Deep structural equality for tables; plain equality otherwise.
 function expect.same(actual, expected, message)
 	local ok, path, left, right = deep_equal(actual, expected, "value")
 	if not ok then
@@ -93,7 +89,6 @@ function expect.type(value, type_name, message)
 	end
 end
 
---- Asserts that `text` contains `fragment` as a plain substring.
 function expect.contains(text, fragment, message)
 	if type(text) ~= "string" or not text:find(fragment, 1, true) then
 		fail(
@@ -105,8 +100,6 @@ function expect.contains(text, fragment, message)
 	end
 end
 
---- Asserts that `fn` raises. When `fragment` is given, the error message must contain
--- it as a plain substring. Returns the raised value.
 function expect.raises(fn, fragment, message)
 	local ok, err = pcall(fn)
 	if ok then

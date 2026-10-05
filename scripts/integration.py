@@ -1,16 +1,8 @@
 #!/usr/bin/env python3
-"""Run Foundation integration suites on disposable nanos world servers.
+"""Runs integration suites on throwaway copies of a nanos world server.
 
-Each suite gets a fresh server folder under .tmp/integration/<suite>/ containing a
-copy of the server binaries, the Foundation package and the suite's test packages.
-The server is started with command-line overrides only (no Config.toml edits), bound
-to 127.0.0.1 on free ports, unannounced, with the built-in blank map. The suite stops
-the server itself; the runner then reads the result lines from the server log.
-
-Usage:
-    python scripts/integration.py --server-dir "C:/path/to/Server" [--suite smoke] [--keep]
-
-The server folder can also be given through the NANOS_SERVER_DIR environment variable.
+Usage: python scripts/integration.py --server-dir PATH [--suite NAME] [--keep] [--tracy]
+(or set NANOS_SERVER_DIR)
 """
 
 from __future__ import annotations
@@ -18,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import re
 import shutil
 import socket
@@ -32,11 +25,11 @@ TEST_PACKAGES_DIR = REPO_ROOT / "tests" / "integration" / "packages"
 SUITES_FILE = REPO_ROOT / "tests" / "integration" / "suites.json"
 WORK_ROOT = REPO_ROOT / ".tmp" / "integration"
 
-# Server folder entries that must not be copied into a disposable server.
 SKIPPED_SERVER_ENTRIES = {"Packages", "Assets", "Config.toml", ".logs", ".sentry-native", "foundation"}
 
 RESULT_LINE = re.compile(r"\[FOUNDATION-TEST\] (?P<suite>\S+) (?P<kind>PASS|FAIL|DONE)(?: (?P<rest>.*))?$")
-ENGINE_ERROR = re.compile(r"^\S+ \S+\s+ERROR\s+(?P<message>.*)$")
+# S_ERR is how the server tags lines written with Console.Error.
+ENGINE_ERROR = re.compile(r"^\S+ \S+\s+(ERROR|S_ERR)\s+(?P<message>.*)$")
 LUA_ERROR = re.compile(r"Lua Error", re.IGNORECASE)
 
 
@@ -47,13 +40,23 @@ class SuiteResult:
     failed: list[tuple[str, str]] = field(default_factory=list)
     done: bool = False
     engine_errors: list[str] = field(default_factory=list)
+    missing_log_lines: list[str] = field(default_factory=list)
+    broken_sequence: str | None = None
     timed_out: bool = False
     exit_code: int | None = None
     log_path: Path | None = None
 
     @property
     def ok(self) -> bool:
-        return self.done and not self.failed and not self.engine_errors and not self.timed_out and bool(self.passed)
+        return (
+            self.done
+            and bool(self.passed)
+            and not self.failed
+            and not self.engine_errors
+            and not self.missing_log_lines
+            and self.broken_sequence is None
+            and not self.timed_out
+        )
 
 
 def load_suites() -> dict:
@@ -71,23 +74,26 @@ def server_executable(server_dir: Path, tracy: bool) -> list[str]:
     return command
 
 
-def free_port_pair() -> int:
-    """Returns a port P such that P and P+1 are free for TCP and UDP right now."""
-    for _ in range(50):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
-            probe.bind(("127.0.0.1", 0))
-            port = probe.getsockname()[1]
-        if port >= 65534:
-            continue
+# Below the dynamic range: Hyper-V/WSL reserve UDP blocks there on Windows.
+PORT_RANGE = (20000, 29998)
+
+
+def port_is_free(port: int) -> bool:
+    for kind in (socket.SOCK_STREAM, socket.SOCK_DGRAM):
         try:
-            for candidate in (port, port + 1):
-                for kind in (socket.SOCK_STREAM, socket.SOCK_DGRAM):
-                    with socket.socket(socket.AF_INET, kind) as check:
-                        check.bind(("127.0.0.1", candidate))
-            return port
+            with socket.socket(socket.AF_INET, kind) as check:
+                check.bind(("127.0.0.1", port))
         except OSError:
-            continue
-    raise RuntimeError("could not find two consecutive free ports")
+            return False
+    return True
+
+
+def free_port_pair() -> int:
+    for _ in range(200):
+        port = random.randint(*PORT_RANGE)
+        if port_is_free(port) and port_is_free(port + 1):
+            return port
+    raise RuntimeError(f"no two consecutive free ports found in {PORT_RANGE[0]}-{PORT_RANGE[1] + 1}")
 
 
 def prepare_server(server_dir: Path, work_dir: Path, packages: list[str]) -> None:
@@ -111,13 +117,28 @@ def prepare_server(server_dir: Path, work_dir: Path, packages: list[str]) -> Non
         shutil.copytree(source, packages_dir / name)
 
 
-def parse_log(result: SuiteResult, log_path: Path, allowed_errors: list[str]) -> None:
+def parse_log(
+    result: SuiteResult,
+    log_path: Path,
+    allowed_errors: list[str],
+    expected_lines: list[str] | None = None,
+    expected_sequence: list[str] | None = None,
+) -> None:
     allowed = [re.compile(pattern) for pattern in allowed_errors]
+    expected = {pattern: re.compile(pattern) for pattern in expected_lines or []}
+    seen: set[str] = set()
+    sequence = [re.compile(pattern) for pattern in expected_sequence or []]
+    position = 0
     result.log_path = log_path
     if not log_path.is_file():
         result.engine_errors.append(f"server log not found: {log_path}")
         return
     for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        for pattern, compiled in expected.items():
+            if pattern not in seen and compiled.search(line):
+                seen.add(pattern)
+        if position < len(sequence) and sequence[position].search(line):
+            position += 1
         match = RESULT_LINE.search(line)
         if match and match.group("suite") == result.name:
             kind, rest = match.group("kind"), match.group("rest") or ""
@@ -132,6 +153,9 @@ def parse_log(result: SuiteResult, log_path: Path, allowed_errors: list[str]) ->
         error = ENGINE_ERROR.match(line)
         if (error or LUA_ERROR.search(line)) and not any(pattern.search(line) for pattern in allowed):
             result.engine_errors.append(line.strip())
+    result.missing_log_lines = [pattern for pattern in expected if pattern not in seen]
+    if position < len(sequence):
+        result.broken_sequence = sequence[position].pattern
 
 
 def run_suite(name: str, suite: dict, server_dir: Path, tracy: bool, keep: bool) -> SuiteResult:
@@ -158,7 +182,13 @@ def run_suite(name: str, suite: dict, server_dir: Path, tracy: bool, keep: bool)
             result.timed_out = True
             process.kill()
             process.wait()
-    parse_log(result, work_dir / ".logs" / "NanosWorldCore.log", suite.get("allowed_errors", []))
+    parse_log(
+        result,
+        work_dir / ".logs" / "NanosWorldCore.log",
+        suite.get("allowed_errors", []),
+        suite.get("expected_log_lines", []),
+        suite.get("expected_log_sequence", []),
+    )
     if result.ok and not keep:
         shutil.rmtree(work_dir, ignore_errors=True)
     return result
@@ -179,6 +209,10 @@ def report(result: SuiteResult) -> None:
         print("  suite reported no passing test")
     for line in result.engine_errors:
         print(f"  engine error: {line}")
+    for pattern in result.missing_log_lines:
+        print(f"  expected log line not found: {pattern}")
+    if result.broken_sequence is not None:
+        print(f"  log sequence stops before: {result.broken_sequence}")
     if not result.ok and result.log_path:
         print(f"  log: {result.log_path}")
 

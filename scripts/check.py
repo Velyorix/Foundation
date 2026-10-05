@@ -1,19 +1,5 @@
 #!/usr/bin/env python3
-"""Repository consistency checks for Foundation.
-
-Checks:
-  docs-parity       docs/en and docs/fr contain the same pages
-  links             relative links and heading anchors in public Markdown resolve
-  public-wording    public documents do not reference internal material
-  unsafe-lua        shipped Lua does not use functions the server disables by default
-  client-secrets    Client/ and Shared/ files contain no credentials or database access
-  secrets           no private keys or provider tokens anywhere in the repository
-  todo-markers      shipped code contains no TODO/FIXME/XXX/HACK markers
-  versions          Package.toml, version.lua and CHANGELOG.md agree
-
-Usage: python scripts/check.py [--only NAME ...] [--root PATH]
-Exit status is 1 when any check reports a problem.
-"""
+"""Repository checks. Usage: python scripts/check.py [--only NAME ...]"""
 
 from __future__ import annotations
 
@@ -87,7 +73,6 @@ def rel(root: Path, path: Path) -> str:
 
 
 def strip_lua_comments(line: str) -> str:
-    """Removes a trailing `--` comment that is not inside a string literal."""
     quote = None
     index = 0
     while index < len(line):
@@ -107,7 +92,6 @@ def strip_lua_comments(line: str) -> str:
 
 
 def lua_code_only(line: str) -> str:
-    """Removes the comment and blanks string literal contents, keeping the quotes."""
     result = []
     quote = None
     index = 0
@@ -290,6 +274,43 @@ def check_versions(root: Path) -> list[Problem]:
     return problems
 
 
+EXAMPLE_MARKER = re.compile(r"^<!--\s*example:\s*(\S+)\s*-->\s*$")
+
+
+def normalized(text: str) -> str:
+    lines = text.replace("\r\n", "\n").strip("\n").split("\n")
+    return "\n".join(line.rstrip() for line in lines)
+
+
+def check_doc_examples(root: Path) -> list[Problem]:
+    problems: list[Problem] = []
+    for path in public_markdown_files(root):
+        lines = read_text(path).splitlines()
+        for index, line in enumerate(lines):
+            marker = EXAMPLE_MARKER.match(line.strip())
+            if not marker:
+                continue
+            where = f"{rel(root, path)}:{index + 1}"
+            source = root / marker.group(1)
+            if not source.is_file():
+                problems.append(f"{where}: example source '{marker.group(1)}' does not exist")
+                continue
+            start = index + 1
+            while start < len(lines) and not lines[start].strip():
+                start += 1
+            if start >= len(lines) or not lines[start].lstrip().startswith("```"):
+                problems.append(f"{where}: example marker is not followed by a code block")
+                continue
+            end = start + 1
+            while end < len(lines) and not lines[end].lstrip().startswith("```"):
+                end += 1
+            block = "\n".join(lines[start + 1 : end])
+            documented = normalized(re.sub(r"(?m)^((?:    )+)", lambda m: "\t" * (len(m.group(1)) // 4), block))
+            if documented != normalized(read_text(source)):
+                problems.append(f"{where}: code block differs from {marker.group(1)}")
+    return problems
+
+
 CHECKS: dict[str, Callable[[Path], list[Problem]]] = {
     "docs-parity": check_docs_parity,
     "links": check_links,
@@ -299,6 +320,7 @@ CHECKS: dict[str, Callable[[Path], list[Problem]]] = {
     "secrets": check_secrets,
     "todo-markers": check_todo_markers,
     "versions": check_versions,
+    "doc-examples": check_doc_examples,
 }
 
 

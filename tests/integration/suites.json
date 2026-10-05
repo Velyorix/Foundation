@@ -1,8 +1,153 @@
 {
   "smoke": {
     "description": "Foundation installs and loads on a real server",
-    "packages": ["foundation", "foundation-test-harness", "foundation-smoke-test"],
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-smoke-test"
+    ],
     "timeout_seconds": 90,
     "allowed_errors": []
+  },
+  "core-log": {
+    "description": "Logger lines reach the server console intact",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-log-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation-core-log-test/levels: core-log marker level=error"
+    ],
+    "expected_log_lines": [
+      "\\[foundation\\] DEBUG foundation-core-log-test/levels: core-log marker level=debug$",
+      "\\[foundation\\] INFO  foundation-core-log-test/levels: core-log marker level=info$",
+      "\\[foundation\\] WARN  foundation-core-log-test/levels: core-log marker level=warning$",
+      "\\[foundation\\] ERROR foundation-core-log-test/levels: core-log marker level=error$",
+      "\\[foundation\\] INFO  foundation/core: progress 100% done %s %d note=\\*\\*\\* password=\\*\\*\\*$",
+      "\\[foundation\\] WARN  foundation-core-log-test/repeat: previous message repeated 2 more time\\(s\\)$"
+    ]
+  },
+  "core-audit": {
+    "description": "Audit records are appended to daily files through the real File API",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-audit-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: audit record could not be written to foundation/blocked\\.txt/"
+    ],
+    "expected_log_lines": [
+      "\\[foundation\\] ERROR foundation/core: audit record could not be written to foundation/blocked\\.txt/audit-\\d{4}-\\d{2}-\\d{2}\\.log; record kept in this log line reason=.*Cannot create a file.* record=.*foundation:fallback_marker"
+    ]
+  },
+  "core-packages": {
+    "description": "Package registration follows the real Load/Unload events across reload and unload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-packages-test",
+      "foundation-packages-fixture"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/core: registered foundation-packages-fixture 0\\.1\\.0 \\(API 0\\.1\\)",
+      "\\[foundation\\] INFO  foundation/core: foundation-packages-fixture is ready",
+      "\\[foundation\\] INFO  foundation/core: foundation-packages-fixture disabled: package unloaded"
+    ]
+  },
+  "core-runtime": {
+    "description": "Foundation boots, exports its read-only global and disables packages at server stop",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-runtime-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/core: Foundation \\d+\\.\\d+\\.\\d+ started \\(API \\d+\\.\\d+, server\\)",
+      "\\[foundation\\] INFO  foundation/core: foundation-core-runtime-test disabled: Foundation is stopping",
+      "\\[foundation\\] INFO  foundation/core: Foundation stopped"
+    ]
+  },
+  "core-runtime-reload": {
+    "description": "Reloading Foundation alone is reported with a recovery command",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-runtime-reload-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] WARN  foundation/core: Foundation was unloaded while 1 package\\(s\\) still use it \\(foundation-core-runtime-reload-test\\).*Run 'package reload foundation-core-runtime-reload-test' or restart the server"
+    ]
+  },
+  "core-lifecycle": {
+    "description": "Reloading a dependent or a dependency through the real Foundation global",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-lifecycle-probe",
+      "foundation-lifecycle-alpha",
+      "foundation-lifecycle-beta",
+      "foundation-core-lifecycle-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/core: foundation-lifecycle-beta disabled: a dependency was disabled"
+    ]
+  },
+  "core-shutdown": {
+    "description": "At server stop, packages are disabled newest first, dependents before dependencies",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-lifecycle-probe",
+      "foundation-lifecycle-alpha",
+      "foundation-lifecycle-beta",
+      "foundation-lifecycle-gamma",
+      "foundation-core-shutdown-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_sequence": [
+      "\\[LIFECYCLE\\] gamma:disabled",
+      "\\[LIFECYCLE\\] gamma:released",
+      "foundation-lifecycle-gamma disabled: Foundation is stopping",
+      "\\[LIFECYCLE\\] beta:disabled",
+      "\\[LIFECYCLE\\] beta:released",
+      "foundation-lifecycle-beta disabled: Foundation is stopping",
+      "\\[LIFECYCLE\\] alpha:disabled",
+      "\\[LIFECYCLE\\] alpha:released",
+      "foundation-lifecycle-alpha disabled: Foundation is stopping",
+      "\\[foundation\\] INFO  foundation/core: Foundation stopped"
+    ]
+  },
+  "docs-examples": {
+    "description": "Examples shown in the public documentation run as documented",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-example-greeter",
+      "foundation-docs-examples-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation/core: registered foundation-example-greeter 0\\.1\\.0 \\(API 0\\.1\\)",
+      "Greeter is ready",
+      "\\[foundation\\] INFO  foundation/core: foundation-example-greeter is ready",
+      "pong for docs",
+      "Greeter is shutting down",
+      "\\[foundation\\] INFO  foundation/core: foundation-example-greeter disabled: Foundation is stopping",
+      "\\[foundation\\] INFO  foundation/core: Foundation stopped"
+    ]
   }
 }

@@ -11,6 +11,11 @@ lua_versions:
   - lua53
   - lua54
 globals:
+  error:
+    args:
+      - type: any
+      - required: false
+        type: number
   load:
     args:
       - type: any

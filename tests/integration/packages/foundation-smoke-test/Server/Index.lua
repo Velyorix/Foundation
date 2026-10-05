@@ -1,5 +1,3 @@
--- Smoke suite: the Foundation package installs and loads on a real server.
-
 local suite = FoundationTest.Suite("smoke")
 
 local function find_package(name)

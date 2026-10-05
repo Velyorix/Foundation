@@ -33,6 +33,7 @@
 
    ```
    Package 'foundation' (0.1.0) loaded.
+   [foundation] INFO  foundation/core: Foundation 0.1.0 started (API 0.1, server)
    ```
 
 ## Mettre à jour

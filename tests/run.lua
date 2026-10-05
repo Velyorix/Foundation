@@ -1,46 +1,15 @@
--- Unit test entry point. Run from the repository root with a Lua 5.4 interpreter:
---
---   lua tests/run.lua                 run every tests/unit/**/*_spec.lua
---   lua tests/run.lua scheduler keys  run spec files whose path contains a filter
+-- lua tests/run.lua [filter ...]
 
 package.path = "./?.lua;./?/init.lua;" .. package.path
 
 local Runner = require("tests.support.runner")
 local expect = require("tests.support.expect")
 local Loader = require("tests.support.loader")
-
-local function read_command(command)
-	local pipe = assert(io.popen(command, "r"))
-	local lines = {}
-	for line in pipe:lines() do
-		lines[#lines + 1] = line
-	end
-	pipe:close()
-	return lines
-end
-
-local function list_specs()
-	local windows = package.config:sub(1, 1) == "\\"
-	local cwd = Loader.normalize(read_command(windows and "cd" or "pwd")[1] or "")
-	local found = read_command(
-		windows and 'dir /b /s /a-d "tests\\unit\\*_spec.lua" 2>nul'
-			or "find tests/unit -type f -name '*_spec.lua' 2>/dev/null"
-	)
-	local specs = {}
-	for _, line in ipairs(found) do
-		local path = Loader.normalize(line)
-		if cwd ~= "" and path:sub(1, #cwd + 1) == cwd .. "/" then
-			path = path:sub(#cwd + 2)
-		end
-		specs[#specs + 1] = path
-	end
-	table.sort(specs)
-	return specs
-end
+local files = require("tests.support.files")
 
 local filters = { ... }
 local specs = {}
-for _, path in ipairs(list_specs()) do
+for _, path in ipairs(files.list("tests/unit", "*_spec.lua")) do
 	local selected = #filters == 0
 	for _, filter in ipairs(filters) do
 		if path:find(filter, 1, true) then

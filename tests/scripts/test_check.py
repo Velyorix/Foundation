@@ -155,6 +155,32 @@ class VersionsTest(CheckTestCase):
         self.assertIn("is not X.Y.Z", check.check_versions(self.repo.root)[0])
 
 
+class DocExamplesTest(CheckTestCase):
+    def setUp(self):
+        super().setUp()
+        self.repo.write("tests/example/Index.lua", "local a = 1\nif a then\n\tprint(a)\nend\n")
+
+    def test_accepts_identical_blocks_with_spaces_for_tabs(self):
+        self.repo.write(
+            "docs/en/page.md",
+            "<!-- example: tests/example/Index.lua -->\n```lua\nlocal a = 1\nif a then\n    print(a)\nend\n```\n",
+        )
+        self.assertEqual(check.check_doc_examples(self.repo.root), [])
+
+    def test_reports_differences_and_missing_sources(self):
+        self.repo.write(
+            "docs/en/page.md",
+            "<!-- example: tests/example/Index.lua -->\n```lua\nlocal a = 2\n```\n"
+            "<!-- example: tests/missing.lua -->\n```lua\n```\n"
+            "<!-- example: tests/example/Index.lua -->\nno block here\n",
+        )
+        problems = check.check_doc_examples(self.repo.root)
+        self.assertEqual(len(problems), 3, problems)
+        self.assertIn("differs from tests/example/Index.lua", problems[0])
+        self.assertIn("does not exist", problems[1])
+        self.assertIn("not followed by a code block", problems[2])
+
+
 class StripLuaCommentsTest(unittest.TestCase):
     def test_keeps_strings_containing_dashes(self):
         self.assertEqual(check.strip_lua_comments('local a = "--x" -- note'), 'local a = "--x" ')

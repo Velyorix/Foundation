@@ -1,14 +1,4 @@
--- Loads package files the way nanos world's Package.Require does, so modules can be
--- unit tested on a standalone Lua 5.4 interpreter.
---
--- Resolution order for Package.Require(path), from the nanos world loading guide:
---   1. relative to the file currently executing
---   2. relative to <root>/<side>/
---   3. relative to <root>/Shared/
---   4. relative to <root>/
--- Each loader owns one environment shared by every file it executes, like a package.
--- The environment only exposes the standard library and the globals passed in, so a
--- module that reads an undeclared global fails in tests instead of on a server.
+-- Search order of Package.Require: current file, <side>/, Shared/, package root.
 
 local Loader = {}
 Loader.__index = Loader
@@ -81,11 +71,6 @@ local function read_file(path)
 	return content
 end
 
---- Creates a loader.
--- options.root     package directory (default "package")
--- options.side     "Server" or "Client" (default "Server")
--- options.globals  table of extra globals (engine fakes) placed in the environment
--- options.name     package name reported by Package.GetName() (default "foundation")
 function Loader.new(options)
 	options = options or {}
 	local self = setmetatable({
@@ -126,7 +111,6 @@ function Loader.new(options)
 	return self
 end
 
---- Returns the resolved file path for a Package.Require argument, or nil.
 function Loader:resolve(path)
 	if type(path) ~= "string" or path == "" then
 		error("Package.Require expects a non-empty string path", 3)
@@ -148,7 +132,6 @@ function Loader:resolve(path)
 	return nil
 end
 
---- Executes a file once (cached by resolved path) and returns its results.
 function Loader:require(path, force_load)
 	local resolved = self:resolve(path)
 	if not resolved then
@@ -177,7 +160,6 @@ function Loader:require(path, force_load)
 	return table.unpack(values, 1, values.n)
 end
 
---- Runs a side entry point (for example "Index.lua") through the same resolution.
 function Loader:run(path)
 	return self:require(path, true)
 end

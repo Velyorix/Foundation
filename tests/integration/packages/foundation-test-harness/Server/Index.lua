@@ -1,11 +1,5 @@
--- In-server harness for Foundation integration suites. Suites are ordinary script
--- packages that require this package; scripts/integration.py starts a disposable
--- server, waits for it to stop and reads the result lines from the server log.
---
--- Output protocol, one line per event:
---   [FOUNDATION-TEST] <suite> PASS <test name>
---   [FOUNDATION-TEST] <suite> FAIL <test name> :: <reason>
---   [FOUNDATION-TEST] <suite> DONE passed=<n> failed=<n>
+-- Result lines read by scripts/integration.py:
+-- [FOUNDATION-TEST] <suite> PASS <name> | FAIL <name> :: <reason> | DONE passed=<n> failed=<n>
 
 local PREFIX = "[FOUNDATION-TEST]"
 local STEP_GAP_MS = 100
@@ -57,9 +51,6 @@ end
 local Suite = {}
 Suite.__index = Suite
 
---- Creates a suite. Steps run in declaration order after the server `Start` event,
--- each on its own timer tick so that engine work deferred by a step (package
--- reloads, timers) happens before the next one.
 function FoundationTest.Suite(name)
 	return setmetatable({ name = name, steps = {}, passed = 0, failed = 0, finished = false }, Suite)
 end
@@ -68,23 +59,18 @@ function Suite:emit(format, ...)
 	Console.Log(PREFIX .. " " .. self.name .. " " .. string.format(format, ...))
 end
 
---- Synchronous test: passes unless `fn` raises.
 function Suite:Test(name, fn)
 	self.steps[#self.steps + 1] = { kind = "test", name = name, fn = fn }
 end
 
---- Asynchronous test: `fn(done)` must call `done()` on success or `done(reason)` on
--- failure within `timeout_ms`.
 function Suite:Async(name, timeout_ms, fn)
 	self.steps[#self.steps + 1] = { kind = "async", name = name, fn = fn, timeout_ms = timeout_ms }
 end
 
---- Action without a verdict, for setup that takes effect after the call returns.
 function Suite:Do(fn)
 	self.steps[#self.steps + 1] = { kind = "action", fn = fn }
 end
 
---- Pause between steps.
 function Suite:Wait(milliseconds)
 	self.steps[#self.steps + 1] = { kind = "wait", milliseconds = milliseconds }
 end
@@ -156,7 +142,6 @@ function Suite:run_step(index)
 	end
 end
 
---- Starts the suite once the server has started.
 function Suite:Run()
 	Server.Subscribe("Start", function()
 		self:run_step(1)

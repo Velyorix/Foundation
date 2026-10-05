@@ -187,7 +187,7 @@ describe("Foundation facade", function()
 	it("is read-only and hides its metatable", function()
 		expect.raises(function()
 			facade.Register = nil
-		end, "[foundation:invalid_state] Foundation.Register: the Foundation table is read-only")
+		end, "[foundation:invalid_state] Foundation.Register: Foundation is read-only")
 		expect.raises(function()
 			facade.Extra = 1
 		end, "read-only")

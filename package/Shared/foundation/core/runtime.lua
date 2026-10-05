@@ -5,6 +5,7 @@ local Log = Package.Require("log.lua")
 local Invoker = Package.Require("invoke.lua")
 local Ownership = Package.Require("ownership.lua")
 local Registry = Package.Require("packages.lua")
+local Keys = Package.Require("keys.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -19,6 +20,7 @@ function Runtime.new(env)
 		messages = messages,
 		errors = errors,
 		check = Check.new(errors),
+		keys = Keys.new(errors),
 		state = "created",
 		components = {},
 	}, Runtime)

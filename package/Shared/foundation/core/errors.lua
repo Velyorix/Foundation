@@ -15,6 +15,7 @@ Errors.CODES = {
 	invalid_state = "developer",
 	audit_write_failed = "infrastructure",
 	incompatible_api = "developer",
+	invalid_key = "user",
 }
 
 local ErrorValue = {}

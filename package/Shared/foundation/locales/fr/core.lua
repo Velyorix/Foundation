@@ -43,10 +43,16 @@ return {
 
 	["reason.runtime_already_started"] = "Foundation a déjà été démarré",
 	["reason.runtime_not_running"] = "Foundation n'est pas en fonctionnement (état : {state})",
-	["reason.read_only"] = "la table Foundation est en lecture seule",
+	["reason.read_only"] = "{name} est en lecture seule",
 	["runtime.started"] = "Foundation {version} démarré (API {api}, {side})",
 	["runtime.stopped"] = "Foundation arrêté",
 	["runtime.component_failed"] = "Foundation n'a pas pu démarrer : le composant '{component}' a échoué : {reason}",
 	["runtime.optional_unavailable"] = "le composant '{component}' est indisponible : {reason}",
 	["runtime.unloaded_with_dependents"] = "Foundation a été déchargé alors que {count} package(s) l'utilisent encore ({ids}) ; ils gardent des références vers l'instance arrêtée. Exécutez '{command}' ou redémarrez le serveur",
+
+	["error.invalid_key"] = "'{key}' n'est pas une clé valide : {reason}",
+	["reason.key_format"] = "format attendu '<espace>:<chemin>' avec des minuscules, des chiffres, '_', '-', '.' et, dans le chemin, '/'",
+	["reason.key_missing_namespace"] = "l'espace de noms est absent ('<espace>:<chemin>')",
+	["reason.key_length"] = "plus de {max} caractères",
+	["reason.key_owner"] = "doit appartenir à l'espace de noms '{owner}'",
 }

@@ -43,10 +43,16 @@ return {
 
 	["reason.runtime_already_started"] = "Foundation has already been started",
 	["reason.runtime_not_running"] = "Foundation is not running (state: {state})",
-	["reason.read_only"] = "the Foundation table is read-only",
+	["reason.read_only"] = "{name} is read-only",
 	["runtime.started"] = "Foundation {version} started (API {api}, {side})",
 	["runtime.stopped"] = "Foundation stopped",
 	["runtime.component_failed"] = "Foundation could not start: component '{component}' failed: {reason}",
 	["runtime.optional_unavailable"] = "component '{component}' is unavailable: {reason}",
 	["runtime.unloaded_with_dependents"] = "Foundation was unloaded while {count} package(s) still use it ({ids}); they keep references to the stopped instance. Run '{command}' or restart the server",
+
+	["error.invalid_key"] = "'{key}' is not a valid key: {reason}",
+	["reason.key_format"] = "expected '<namespace>:<path>' with lowercase letters, digits, '_', '-', '.' and, in the path, '/'",
+	["reason.key_missing_namespace"] = "the namespace is missing ('<namespace>:<path>')",
+	["reason.key_length"] = "longer than {max} characters",
+	["reason.key_owner"] = "must be in the '{owner}' namespace",
 }

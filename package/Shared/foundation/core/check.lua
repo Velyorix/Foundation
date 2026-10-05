@@ -1,4 +1,5 @@
 -- `level` as for error(), seen from the public function doing the check (default 2).
+-- Do not tail-call these checks: that removes the public function's frame.
 
 local Check = {}
 Check.__index = Check

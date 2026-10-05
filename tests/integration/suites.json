@@ -273,5 +273,21 @@
       "Failed to execute Select query: 'SELECT \\* FROM missing_table'",
       "SQL Error: .*missing_table"
     ]
+  },
+  "core-events": {
+    "description": "Events defined, emitted and listened to across packages on a real server, with cleanup on unload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-events-fixture",
+      "foundation-core-events-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: event_listener callback of foundation-core-events-test failed"
+    ],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/core: foundation-events-fixture disabled: package unloaded"
+    ]
   }
 }

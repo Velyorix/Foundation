@@ -10,6 +10,7 @@ local Schema = Package.Require("schema.lua")
 local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
+local Events = Package.Require("events.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -152,6 +153,34 @@ local COMPONENTS = {
 			runtime.packages:ExtendContext("All", function(_, entry, list)
 				local future = futures:All(entry.id, list, "context:All", 3)
 				return future
+			end)
+		end,
+	},
+	{
+		name = "events",
+		required = true,
+		create = function(runtime)
+			local events = Events.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				schema = runtime.schema,
+				invoker = runtime.invoker,
+				ownership = runtime.ownership,
+			})
+			runtime.events = events
+			local packages = runtime.packages
+			packages:ExtendContext("DefineEvent", function(context, entry, name, definition)
+				local key, release = events:Define(entry.id, name, definition, "context:DefineEvent", 3)
+				context:Track("event", release, { event = key })
+				return key
+			end)
+			packages:ExtendContext("Listen", function(_, entry, name, fn, options)
+				local handle = events:Listen(entry.id, name, fn, options, "context:Listen", 3)
+				return handle
+			end)
+			packages:ExtendContext("Emit", function(_, entry, name, payload)
+				local event = events:Emit(entry.id, name, payload, "context:Emit", 3)
+				return event
 			end)
 		end,
 	},

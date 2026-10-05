@@ -140,4 +140,16 @@ return {
 	["error.async_failed"] = "un callback d'une opération asynchrone a échoué",
 	["error.timeout"] = "aucun résultat après {milliseconds} ms",
 	["reason.no_scheduler"] = "les délais maximaux nécessitent le scheduler, indisponible de ce côté",
+
+	["reason.event_defined"] = "'{name}' est déjà défini par {owner}",
+	["reason.event_unknown"] = "'{name}' n'est pas un événement défini",
+	["reason.event_duplicate"] = "cette fonction écoute déjà '{name}'",
+	["reason.event_mutable_unknown"] = "'{field}' ne fait pas partie des champs",
+	["reason.event_payload"] = "ne respecte pas la définition de '{name}' : {problem}",
+	["reason.event_depth"] = "les événements sont imbriqués sur plus de {max} niveaux",
+	["reason.event_field_unknown"] = "'{field}' n'est pas un champ de '{name}'",
+	["reason.event_field_immutable"] = "les écouteurs ne peuvent pas modifier '{field}' de '{name}'",
+	["reason.event_finished"] = "'{name}' ne peut être modifié que par ses écouteurs pendant sa diffusion",
+	["reason.event_monitor"] = "les écouteurs de priorité monitor ne peuvent pas modifier l'événement",
+	["reason.event_not_cancellable"] = "'{name}' ne peut pas être annulé",
 }

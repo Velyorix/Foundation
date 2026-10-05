@@ -33,3 +33,5 @@ globals:
     any: true
   SchedulerFixture:
     any: true
+  EventsFixture:
+    any: true

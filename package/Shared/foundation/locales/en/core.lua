@@ -140,4 +140,16 @@ return {
 	["error.async_failed"] = "a callback of an asynchronous operation failed",
 	["error.timeout"] = "no result after {milliseconds} ms",
 	["reason.no_scheduler"] = "timeouts need the scheduler, which is not available on this side",
+
+	["reason.event_defined"] = "'{name}' is already defined by {owner}",
+	["reason.event_unknown"] = "'{name}' is not a defined event",
+	["reason.event_duplicate"] = "this function already listens to '{name}'",
+	["reason.event_mutable_unknown"] = "'{field}' is not one of the fields",
+	["reason.event_payload"] = "does not match the definition of '{name}': {problem}",
+	["reason.event_depth"] = "events are nested more than {max} levels deep",
+	["reason.event_field_unknown"] = "'{field}' is not a field of '{name}'",
+	["reason.event_field_immutable"] = "listeners cannot change '{field}' of '{name}'",
+	["reason.event_finished"] = "'{name}' can only be changed by its listeners while it is dispatched",
+	["reason.event_monitor"] = "monitor listeners cannot change the event",
+	["reason.event_not_cancellable"] = "'{name}' cannot be cancelled",
 }

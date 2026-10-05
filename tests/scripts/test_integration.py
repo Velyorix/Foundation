@@ -58,6 +58,16 @@ class ParseLogTest(unittest.TestCase):
         self.assertEqual(result.missing_log_lines, ["never written"])
         self.assertFalse(result.ok)
 
+    def test_sequence_must_appear_in_order(self):
+        allowed = ["Lua Error", "Known noisy", "Console.Error"]
+        in_order = integration.SuiteResult(name="demo")
+        integration.parse_log(in_order, self.log, allowed, [], [r"demo PASS first", r"demo FAIL second", r"demo DONE"])
+        self.assertIsNone(in_order.broken_sequence)
+        reversed_order = integration.SuiteResult(name="demo")
+        integration.parse_log(reversed_order, self.log, allowed, [], [r"demo DONE", r"demo PASS first"])
+        self.assertEqual(reversed_order.broken_sequence, "demo PASS first")
+        self.assertFalse(reversed_order.ok)
+
     def test_missing_log_is_an_error(self):
         result = integration.SuiteResult(name="demo")
         integration.parse_log(result, self.log.with_name("absent.log"), [])

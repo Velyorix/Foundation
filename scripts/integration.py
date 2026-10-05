@@ -41,6 +41,7 @@ class SuiteResult:
     done: bool = False
     engine_errors: list[str] = field(default_factory=list)
     missing_log_lines: list[str] = field(default_factory=list)
+    broken_sequence: str | None = None
     timed_out: bool = False
     exit_code: int | None = None
     log_path: Path | None = None
@@ -53,6 +54,7 @@ class SuiteResult:
             and not self.failed
             and not self.engine_errors
             and not self.missing_log_lines
+            and self.broken_sequence is None
             and not self.timed_out
         )
 
@@ -116,11 +118,17 @@ def prepare_server(server_dir: Path, work_dir: Path, packages: list[str]) -> Non
 
 
 def parse_log(
-    result: SuiteResult, log_path: Path, allowed_errors: list[str], expected_lines: list[str] | None = None
+    result: SuiteResult,
+    log_path: Path,
+    allowed_errors: list[str],
+    expected_lines: list[str] | None = None,
+    expected_sequence: list[str] | None = None,
 ) -> None:
     allowed = [re.compile(pattern) for pattern in allowed_errors]
     expected = {pattern: re.compile(pattern) for pattern in expected_lines or []}
     seen: set[str] = set()
+    sequence = [re.compile(pattern) for pattern in expected_sequence or []]
+    position = 0
     result.log_path = log_path
     if not log_path.is_file():
         result.engine_errors.append(f"server log not found: {log_path}")
@@ -129,6 +137,8 @@ def parse_log(
         for pattern, compiled in expected.items():
             if pattern not in seen and compiled.search(line):
                 seen.add(pattern)
+        if position < len(sequence) and sequence[position].search(line):
+            position += 1
         match = RESULT_LINE.search(line)
         if match and match.group("suite") == result.name:
             kind, rest = match.group("kind"), match.group("rest") or ""
@@ -144,6 +154,8 @@ def parse_log(
         if (error or LUA_ERROR.search(line)) and not any(pattern.search(line) for pattern in allowed):
             result.engine_errors.append(line.strip())
     result.missing_log_lines = [pattern for pattern in expected if pattern not in seen]
+    if position < len(sequence):
+        result.broken_sequence = sequence[position].pattern
 
 
 def run_suite(name: str, suite: dict, server_dir: Path, tracy: bool, keep: bool) -> SuiteResult:
@@ -175,6 +187,7 @@ def run_suite(name: str, suite: dict, server_dir: Path, tracy: bool, keep: bool)
         work_dir / ".logs" / "NanosWorldCore.log",
         suite.get("allowed_errors", []),
         suite.get("expected_log_lines", []),
+        suite.get("expected_log_sequence", []),
     )
     if result.ok and not keep:
         shutil.rmtree(work_dir, ignore_errors=True)
@@ -198,6 +211,8 @@ def report(result: SuiteResult) -> None:
         print(f"  engine error: {line}")
     for pattern in result.missing_log_lines:
         print(f"  expected log line not found: {pattern}")
+    if result.broken_sequence is not None:
+        print(f"  log sequence stops before: {result.broken_sequence}")
     if not result.ok and result.log_path:
         print(f"  log: {result.log_path}")
 

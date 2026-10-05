@@ -87,5 +87,47 @@
     "expected_log_lines": [
       "\\[foundation\\] WARN  foundation/core: Foundation was unloaded while 1 package\\(s\\) still use it \\(foundation-core-runtime-reload-test\\).*Run 'package reload foundation-core-runtime-reload-test' or restart the server"
     ]
+  },
+  "core-lifecycle": {
+    "description": "Reloading a dependent or a dependency through the real Foundation global",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-lifecycle-probe",
+      "foundation-lifecycle-alpha",
+      "foundation-lifecycle-beta",
+      "foundation-core-lifecycle-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/core: foundation-lifecycle-beta disabled: a dependency was disabled"
+    ]
+  },
+  "core-shutdown": {
+    "description": "At server stop, packages are disabled newest first, dependents before dependencies",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-lifecycle-probe",
+      "foundation-lifecycle-alpha",
+      "foundation-lifecycle-beta",
+      "foundation-lifecycle-gamma",
+      "foundation-core-shutdown-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_sequence": [
+      "\\[LIFECYCLE\\] gamma:disabled",
+      "\\[LIFECYCLE\\] gamma:released",
+      "foundation-lifecycle-gamma disabled: Foundation is stopping",
+      "\\[LIFECYCLE\\] beta:disabled",
+      "\\[LIFECYCLE\\] beta:released",
+      "foundation-lifecycle-beta disabled: Foundation is stopping",
+      "\\[LIFECYCLE\\] alpha:disabled",
+      "\\[LIFECYCLE\\] alpha:released",
+      "foundation-lifecycle-alpha disabled: Foundation is stopping",
+      "\\[foundation\\] INFO  foundation/core: Foundation stopped"
+    ]
   }
 }

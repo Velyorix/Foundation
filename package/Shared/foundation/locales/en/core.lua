@@ -8,4 +8,6 @@ return {
 	["reason.not_one_of"] = "expected one of {allowed}",
 	["reason.unsupported_type"] = "unsupported type '{type}'",
 	["reason.empty_string"] = "must not be empty",
+
+	["log.repeated"] = "previous message repeated {count} more time(s)",
 }

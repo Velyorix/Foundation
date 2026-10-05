@@ -1,8 +1,32 @@
 {
   "smoke": {
     "description": "Foundation installs and loads on a real server",
-    "packages": ["foundation", "foundation-test-harness", "foundation-smoke-test"],
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-smoke-test"
+    ],
     "timeout_seconds": 90,
     "allowed_errors": []
+  },
+  "core-log": {
+    "description": "Logger lines reach the server console intact",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-log-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation-core-log-test/levels: core-log marker level=error"
+    ],
+    "expected_log_lines": [
+      "\\[foundation\\] DEBUG foundation-core-log-test/levels: core-log marker level=debug$",
+      "\\[foundation\\] INFO  foundation-core-log-test/levels: core-log marker level=info$",
+      "\\[foundation\\] WARN  foundation-core-log-test/levels: core-log marker level=warning$",
+      "\\[foundation\\] ERROR foundation-core-log-test/levels: core-log marker level=error$",
+      "\\[foundation\\] INFO  foundation/core: progress 100% done %s %d note=\\*\\*\\* password=\\*\\*\\*$",
+      "\\[foundation\\] INFO  foundation-core-log-test/repeat: previous message repeated 2 more time\\(s\\)$"
+    ]
   }
 }

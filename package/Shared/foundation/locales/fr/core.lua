@@ -8,4 +8,6 @@ return {
 	["reason.not_one_of"] = "valeurs acceptées : {allowed}",
 	["reason.unsupported_type"] = "type non pris en charge '{type}'",
 	["reason.empty_string"] = "ne doit pas être vide",
+
+	["log.repeated"] = "message précédent répété {count} fois de plus",
 }

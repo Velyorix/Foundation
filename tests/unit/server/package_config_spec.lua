@@ -156,6 +156,20 @@ describe("package configuration", function()
 		)
 	end)
 
+	it("writes array defaults, including empty and nested ones", function()
+		context:Config({
+			fields = {
+				{ key = "kits", schema = S:List(S:String()), default = { "starter", "vip" } },
+				{ key = "banned", schema = S:List(S:String()), default = {} },
+				{ key = "zones", schema = S:List(S:List(S:Integer())), default = { { 1, 2 }, { 3 } } },
+			},
+		})
+		local written = raw.contents["foundation/config/shop.toml"]
+		expect.contains(written, 'kits = ["starter", "vip"]')
+		expect.contains(written, "banned = []")
+		expect.contains(written, "zones = [[1, 2], [3]]")
+	end)
+
 	it("loads existing values and masks secrets in the snapshot", function()
 		parsed.FILE = { limits = { max_homes = 7 }, database = { password = "hunter2-long" } }
 		raw.contents["foundation/config/shop.toml"] = "FILE"
@@ -223,6 +237,19 @@ describe("package configuration", function()
 				{ fields = { { key = "a", schema = S:Integer({ max = 5 }), default = 9 } } },
 				"the default value does not match its schema: $: must be at most 5"
 			)
+			rejects(
+				{ fields = { { key = "a", schema = S:Map(S:String(), S:Integer()), default = { x = 1 } } } },
+				"'spec.fields[1].default' is invalid: must be a string, number, boolean or an array"
+			)
+			rejects({
+				fields = {
+					{
+						key = "a",
+						schema = S:List(S:Record({ n = S:Integer() })),
+						default = { { n = 1 } },
+					},
+				},
+			}, "tables with named keys cannot be written")
 			rejects(
 				{ fields = { { key = "a", schema = S:Integer(), default = 1, reload = "live" } } },
 				"expected one of hot, restart"

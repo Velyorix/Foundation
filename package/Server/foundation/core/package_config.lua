@@ -10,6 +10,23 @@ local FIELD_KEY = "^[%a_][%w_]*$"
 local SPEC_FIELDS = { version = true, fields = true, migrations = true }
 local FIELD_FIELDS = { key = true, schema = true, default = true, description = true, reload = true, secret = true }
 
+-- The file template can only write scalars and (nested) arrays of them.
+local function writable(value)
+	if type(value) ~= "table" then
+		return true
+	end
+	local count = 0
+	for _ in pairs(value) do
+		count = count + 1
+	end
+	for index = 1, count do
+		if value[index] == nil or not writable(value[index]) then
+			return false
+		end
+	end
+	return true
+end
+
 local function copy(value)
 	if type(value) ~= "table" then
 		return value
@@ -106,6 +123,9 @@ function PackageConfigs:check_spec(spec, api, level)
 			self:invalid(api, name .. ".default", "reason.config_default", {
 				problem = err.details.problems[1] and err.details.problems[1].message or err.message,
 			}, level)
+		end
+		if not writable(field.default) then
+			self:invalid(api, name .. ".default", "reason.config_default_table", nil, level)
 		end
 		check:Argument(api, 1, name .. ".description", field.description, "string?", level)
 		check:Argument(api, 1, name .. ".secret", field.secret, "boolean?", level)

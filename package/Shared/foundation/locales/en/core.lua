@@ -131,6 +131,7 @@ return {
 	["reason.config_duplicate"] = "'{key}' is declared twice",
 	["reason.config_section_conflict"] = "'{key}' is used both as a setting and as a section",
 	["reason.config_default"] = "the default value does not match its schema: {problem}",
+	["reason.config_default_table"] = "must be a string, number, boolean or an array of those; tables with named keys cannot be written to the file",
 	["reason.config_unknown_key"] = "'{key}' is not a declared setting",
 
 	["reason.delay_range"] = "must be between {min} and {max} milliseconds",

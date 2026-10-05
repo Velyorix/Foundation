@@ -131,6 +131,7 @@ return {
 	["reason.config_duplicate"] = "'{key}' est déclaré deux fois",
 	["reason.config_section_conflict"] = "'{key}' est utilisé à la fois comme réglage et comme section",
 	["reason.config_default"] = "la valeur par défaut ne respecte pas son schéma : {problem}",
+	["reason.config_default_table"] = "doit être une chaîne, un nombre, un booléen ou un tableau de ces valeurs ; les tables à clés nommées ne peuvent pas être écrites dans le fichier",
 	["reason.config_unknown_key"] = "'{key}' n'est pas un réglage déclaré",
 
 	["reason.delay_range"] = "doit être compris entre {min} et {max} millisecondes",

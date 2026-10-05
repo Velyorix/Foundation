@@ -30,8 +30,25 @@ serveur : celui-ci ajoute donc ses propres lignes de pile après eux et les marq
 | `<kind> callback of my-package failed` | Une fonction fournie par le package a levé une erreur |
 | `Foundation was unloaded while ...` | Foundation a été rechargé seul ; suivez la commande indiquée dans le message |
 | `Foundation stopped` | Foundation a terminé son arrêt |
+| `created foundation/config/my-package.toml with the default settings` | Un fichier de configuration manquait et vient d'être écrit |
+| `loaded foundation/config/my-package.toml` | Un fichier de configuration a été lu et accepté |
+| `foundation/config/my-package.toml is not used; ...` | Le fichier est invalide ; les lignes précédentes listent les problèmes (voir [Configuration](configuration.md#modifier-un-fichier-sans-risque)) |
+| `missing translation for 'my-package:some.key'` | Un package a demandé un texte qu'aucun de ses catalogues ne contient (journalisé une fois par clé) |
+| `repeating task of my-package stopped after 3 consecutive failures` | Une tâche répétée a échoué plusieurs fois de suite et a été arrêtée |
 
-Les messages sont actuellement écrits en anglais.
+Ces lignes sont données en anglais, la langue par défaut. Avec `language = "fr"`, elles sont
+écrites en français.
+
+## Niveau et langue
+
+La section `[log]` de `foundation/config.toml` fixe le niveau minimum (`info` par défaut) et
+les domaines dont les lignes de débogage sont toujours écrites. Le réglage `language` choisit
+la langue des messages : l'anglais (`en`) et le français (`fr`) sont disponibles, les autres
+langues utilisent l'anglais. Les lignes écrites pendant la lecture de
+`foundation/config.toml` lui-même sont en anglais. Voir [Configuration](configuration.md).
+
+Ces réglages s'appliquent aux lignes écrites par Foundation, quel que soit le package
+concerné. Ils ne modifient pas le `log_level` propre au serveur.
 
 ## Secrets
 

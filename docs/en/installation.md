@@ -32,14 +32,20 @@
 4. Start the server and check the log for:
 
    ```
-   Package 'foundation' (0.1.0) loaded.
+   [foundation] INFO  foundation/config: created foundation/config.toml with the default settings
    [foundation] INFO  foundation/core: Foundation 0.1.0 started (API 0.1, server)
+   Package 'foundation' (0.1.0) loaded.
    ```
+
+   On the first start, Foundation creates its settings file, `foundation/config.toml`, next to
+   the server executable; later starts log `loaded foundation/config.toml` instead. See
+   [Configuration](configuration.md).
 
 ## Update
 
 Stop the server, replace the `Packages/foundation/` folder with the new version and start the
-server again. The package folder contains no server data, so replacing it loses nothing.
+server again. The package folder contains no server data, so replacing it loses nothing:
+settings are kept in the `foundation/` folder next to the server executable.
 
 Read the [changelog](../../CHANGELOG.md) before updating: it lists changes that need action
 from server owners or package developers.
@@ -47,4 +53,5 @@ from server owners or package developers.
 ## Remove
 
 Remove `foundation` from `packages` in `Config.toml` and delete `Packages/foundation/`. Packages
-that require Foundation will no longer load.
+that require Foundation will no longer load. Delete the `foundation/` folder next to the server
+executable as well if you do not want to keep the settings.

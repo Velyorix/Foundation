@@ -38,9 +38,20 @@ Lève, à la ligne de l'appelant :
 | `incompatible_api` | `manifest.api` n'est pas compatible avec `Foundation.API_VERSION` |
 | `invalid_state` | Déjà enregistré ; une entrée de `depends` est absente ou inactive ; Foundation n'est pas en fonctionnement |
 
+### `Foundation.Keys` et `Foundation.Schema`
+
+Voir [Clés et schémas](validation.md).
+
 ## Contexte de package
 
-Renvoyé par `Foundation.Register`. Les méthodes s'appellent avec `:`.
+Renvoyé par `Foundation.Register`. Les méthodes s'appellent avec `:`. Cette page décrit les
+méthodes du cycle de vie ; le contexte fournit aussi :
+
+| Méthodes | Référence |
+| --- | --- |
+| `RegisterCatalog`, `Translate` | [Localisation](localization.md) |
+| `Config` | [Réglages d'un package](configuration.md) |
+| `NextTick`, `Delay`, `Repeat`, `Debounce`, `Throttle`, `Future`, `All` | [Minuteries et futures](scheduling.md) |
 
 ### `context:GetId()`
 
@@ -104,7 +115,10 @@ contexte n'est plus actif.
 
 ## Erreurs
 
-Les erreurs dues à un appel incorrect sont levées sous forme de chaînes :
+Foundation signale deux sortes d'erreurs.
+
+Les **appels incorrects** (une erreur de programmation dans le code appelant) sont levés sous
+forme de chaînes, à la ligne de l'appel :
 
 ```
 [foundation:<code>] <fonction>: <explication>
@@ -116,3 +130,26 @@ Les erreurs dues à un appel incorrect sont levées sous forme de chaînes :
 | `invalid_value` | Un argument a le bon type mais une valeur inutilisable |
 | `invalid_state` | L'appel n'est pas possible dans l'état actuel |
 | `incompatible_api` | Le package requiert une version d'API que ce Foundation ne fournit pas |
+
+Les **échecs prévisibles** (entrée invalide, délai dépassé) sont renvoyés, pas levés : la
+fonction renvoie `nil` et une valeur d'erreur, ou une future est rejetée avec une valeur
+d'erreur. Une valeur d'erreur est une table :
+
+| Champ | Description |
+| --- | --- |
+| `code` | Identifiant stable, voir plus bas |
+| `category` | `"developer"`, `"user"`, `"configuration"` ou `"infrastructure"` |
+| `message` | Explication dans la langue du serveur |
+| `params` | Valeurs utilisées dans le message |
+| `details` | Données supplémentaires pour certains codes, par exemple les problèmes de `validation_failed` |
+| `cause` | Erreur d'origine, quand celle-ci en enveloppe une autre |
+
+`tostring(err)` donne `[foundation:<code>] <message>`. Comparez `err.code`, jamais le message,
+qui dépend de la langue.
+
+| Code | Catégorie | Renvoyé par |
+| --- | --- | --- |
+| `invalid_key` | user | [`Foundation.Keys.Parse`](validation.md#foundationkeysparsetext-default_namespace) |
+| `validation_failed` | user | [`Foundation.Schema.Validate`](validation.md#foundationschemavalidateschema-value-limits) |
+| `async_failed` | developer | Une [future](scheduling.md#futures) dont l'exécuteur ou une fonction a levé une erreur |
+| `timeout` | infrastructure | [`future:Timeout`](scheduling.md#méthodes-des-futures) |

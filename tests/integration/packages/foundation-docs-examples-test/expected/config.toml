@@ -1,0 +1,15 @@
+# Foundation configuration.
+# Read when Foundation starts. Delete this file to recreate it with the default values.
+
+# Format version of this file. Do not change it.
+config_version = 1
+
+# Language of Foundation's own messages, for example 'en' or 'fr'. Languages without a translation use English.
+language = "en"
+
+[log]
+# Minimum level of Foundation's log lines: 'debug', 'info', 'warning' or 'error'.
+level = "info"
+
+# Parts of Foundation whose debug lines are written even when the level is above 'debug', for example ['config'].
+debug_categories = []

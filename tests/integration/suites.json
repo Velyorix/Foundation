@@ -139,6 +139,11 @@
       "foundation",
       "foundation-test-harness",
       "foundation-example-greeter",
+      "foundation-example-kits",
+      "foundation-example-welcome",
+      "foundation-example-rewards",
+      "foundation-example-announcer",
+      "foundation-example-autosave",
       "foundation-docs-examples-test"
     ],
     "timeout_seconds": 90,
@@ -148,9 +153,29 @@
       "Greeter is ready",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter is ready",
       "pong for docs",
+      "saved 3 change\\(s\\)",
       "Greeter is shutting down",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter disabled: Foundation is stopping",
       "\\[foundation\\] INFO  foundation/core: Foundation stopped"
+    ],
+    "expected_log_lines": [
+      "defined foundation-example-kits:starter, cooldown 300 s",
+      "rejected: invalid value \\(2 problem\\(s\\)\\): \\$\\.items\\[2\\]: expected string, got integer",
+      "- \\$\\.items\\[2\\]: expected string, got integer",
+      "- \\$\\.name: must have at least 1 characters",
+      "rejected: 'Bad Kit' is not a valid key: ",
+      "Welcome, Alex!",
+      "You have 1 home\\.",
+      "Bienvenue, Alex !",
+      "Vous avez 0 maison\\.",
+      "Vous avez 3 maisons\\.",
+      "\\[foundation\\] INFO  foundation-example-rewards/config: created foundation/config/foundation-example-rewards\\.toml",
+      "daily reward: 250 \\(Here is your daily reward!\\)",
+      "loaded 3 announcements",
+      "announcement: Welcome to the server!",
+      "announcement: Read the rules with /rules\\.",
+      "announcement: Have fun!",
+      "unsaved changes: 1"
     ]
   },
   "core-json": {

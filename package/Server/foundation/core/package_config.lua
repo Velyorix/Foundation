@@ -1,5 +1,4 @@
 local Config = Package.Require("config.lua")
-local Schema = Package.Require("../../../Shared/foundation/core/schema.lua")
 
 local PackageConfigs = {}
 PackageConfigs.__index = PackageConfigs
@@ -93,7 +92,7 @@ function PackageConfigs:check_spec(spec, api, level)
 			self:invalid(api, name .. ".key", "reason.config_duplicate", { key = field.key }, level)
 		end
 		seen[field.key] = true
-		if not Schema.IsSchema(field.schema) then
+		if not self.S.IsSchema(field.schema) then
 			self.errors:Raise("invalid_argument", {
 				api = api,
 				index = 1,

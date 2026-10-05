@@ -1,6 +1,3 @@
-local Json = Package.Require("../../../Shared/foundation/core/json.lua")
-local Sensitive = Package.Require("../../../Shared/foundation/core/sensitive.lua")
-
 local Audit = {}
 Audit.__index = Audit
 
@@ -8,10 +5,12 @@ Audit.OUTCOMES = { "success", "denied", "failure" }
 
 local ACTION_PATTERN = "^([a-z0-9][a-z0-9_-]*):[a-z0-9][a-z0-9_./-]*$"
 
--- files: a core/files.lua instance.
+-- files: core/files.lua instance; json and sensitive: the shared core modules.
 function Audit.new(options)
 	return setmetatable({
 		files = options.files,
+		json = options.json,
+		sensitive = options.sensitive,
 		now = options.now,
 		check = options.check,
 		errors = options.check.errors,
@@ -57,9 +56,9 @@ function Audit:Record(owner, action, entry)
 		actor = entry.actor,
 		target = entry.target,
 		outcome = entry.outcome or "success",
-		details = Sensitive.MaskFields(entry.details),
+		details = self.sensitive.MaskFields(entry.details),
 	}
-	local line, reason, params = Json.Encode(record)
+	local line, reason, params = self.json.Encode(record)
 	if not line then
 		self.errors:Raise("invalid_value", {
 			api = "Audit:Record",

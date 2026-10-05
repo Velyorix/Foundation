@@ -61,6 +61,8 @@ local function setup()
 	local Log = loader:require("foundation/core/log.lua")
 	local Audit = loader:require("foundation/core/audit.lua")
 	local Files = loader:require("foundation/core/files.lua")
+	local Json = loader:require("foundation/core/json.lua")
+	local Sensitive = loader:require("foundation/core/sensitive.lua")
 	local messages = Messages.new({ en = loader:require("foundation/locales/en/core.lua") })
 	local state = { now = 1759679465, lines = {} }
 	local errors = Errors.new(messages)
@@ -76,6 +78,8 @@ local function setup()
 	local files = memory_files()
 	local audit = Audit.new({
 		files = Files.new(files),
+		json = Json,
+		sensitive = Sensitive,
 		now = function()
 			return state.now
 		end,

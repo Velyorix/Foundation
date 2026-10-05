@@ -3,6 +3,9 @@ local Facade = Package.Require("foundation/core/facade.lua")
 local Log = Package.Require("foundation/core/log.lua")
 local Audit = Package.Require("foundation/core/audit.lua")
 local Files = Package.Require("foundation/core/files.lua")
+local Json = Package.Require("foundation/core/json.lua")
+local Sensitive = Package.Require("foundation/core/sensitive.lua")
+local I18n = Package.Require("foundation/core/i18n.lua")
 local Config = Package.Require("foundation/core/config.lua")
 local Settings = Package.Require("foundation/core/settings.lua")
 local PackageConfigs = Package.Require("foundation/core/package_config.lua")
@@ -46,12 +49,13 @@ function Bootstrap.Start()
 		timer = Timer,
 		create_config = function(rt)
 			return Config.new({
-				spec = Settings(rt.schema, rt.messages),
+				spec = Settings(rt.schema, rt.messages, I18n.IsLocale),
 				files = engine_files(),
 				parse = TOML.Parse,
 				schema = rt.schema,
 				log = rt.log:For("foundation", "config"),
 				errors = rt.errors,
+				mask = Sensitive.MASK,
 			})
 		end,
 		create_package_configs = function(rt)
@@ -65,7 +69,14 @@ function Bootstrap.Start()
 			})
 		end,
 		create_audit = function(rt)
-			return Audit.new({ files = engine_files(), now = now, check = rt.check, log = rt.log })
+			return Audit.new({
+				files = engine_files(),
+				json = Json,
+				sensitive = Sensitive,
+				now = now,
+				check = rt.check,
+				log = rt.log,
+			})
 		end,
 	})
 	runtime:Start()

@@ -1,5 +1,3 @@
-local Sensitive = Package.Require("../../../Shared/foundation/core/sensitive.lua")
-
 local Config = {}
 Config.__index = Config
 
@@ -60,10 +58,11 @@ end
 --         sections = { { name = nil|"section", fields = { { key, schema, default,
 --         reload = "hot"|"restart", secret, comment_key or comment } } } } }
 -- options: spec, files (core/files.lua), parse (TOML text -> table, raises), schema,
---          log, errors
+--          log, errors, mask (text shown instead of secret values)
 function Config.new(options)
 	local self = setmetatable({
 		spec = options.spec,
+		mask = options.mask or "***",
 		files = options.files,
 		parse = options.parse,
 		S = options.schema,
@@ -275,7 +274,7 @@ function Config:Snapshot()
 	local values = {}
 	for _, field in ipairs(self.fields) do
 		local value = self:get_path(self.values, field)
-		values[field.path] = field.secret and Sensitive.MASK or copy(value)
+		values[field.path] = field.secret and self.mask or copy(value)
 	end
 	return {
 		path = self.spec.path,

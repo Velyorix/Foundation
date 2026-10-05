@@ -274,6 +274,56 @@ def check_versions(root: Path) -> list[Problem]:
     return problems
 
 
+REQUIRE_CALL = re.compile(r"Package\.Require\(\s*\"([^\"]+)\"")
+
+
+def exact_case_file(root: Path, relative: str) -> str:
+    """Returns "exact", "case" (exists with different casing) or "missing"."""
+    current = root
+    exact = True
+    for part in relative.split("/"):
+        if not current.is_dir():
+            return "missing"
+        names = {entry.name: entry for entry in current.iterdir()}
+        if part in names:
+            current = names[part]
+            continue
+        folded = [entry for name, entry in names.items() if name.lower() == part.lower()]
+        if not folded:
+            return "missing"
+        exact = False
+        current = folded[0]
+    if not current.is_file():
+        return "missing"
+    return "exact" if exact else "case"
+
+
+def check_require_paths(root: Path) -> list[Problem]:
+    """Package.Require paths must resolve, with exact casing, without '..' (Linux servers)."""
+    problems: list[Problem] = []
+    package_root = root / "package"
+    for path in lua_files(root, "package"):
+        relative_file = path.relative_to(package_root).as_posix()
+        side = relative_file.split("/", 1)[0]
+        file_dir = path.parent.relative_to(package_root).as_posix()
+        for number, line in enumerate(read_text(path).splitlines(), start=1):
+            for target in REQUIRE_CALL.findall(strip_lua_comments(line)):
+                where = f"{rel(root, path)}:{number}"
+                if ".." in target.split("/") or "\\" in target or "//" in target:
+                    problems.append(f"{where}: '{target}' uses '..', '//' or '\\'; nanos warns and Linux servers may fail")
+                    continue
+                sides = ["Server", "Client"] if side == "Shared" else [side]
+                candidates = [f"{file_dir}/{target}"] + [f"{name}/{target}" for name in sides] + [f"Shared/{target}", target]
+                states = [exact_case_file(package_root, candidate) for candidate in candidates]
+                if "exact" in states:
+                    continue
+                if "case" in states:
+                    problems.append(f"{where}: '{target}' matches a file only with different casing (fails on Linux)")
+                else:
+                    problems.append(f"{where}: '{target}' does not resolve to a file")
+    return problems
+
+
 EXAMPLE_MARKER = re.compile(r"^<!--\s*example:\s*(\S+)\s*-->\s*$")
 
 
@@ -321,6 +371,7 @@ CHECKS: dict[str, Callable[[Path], list[Problem]]] = {
     "todo-markers": check_todo_markers,
     "versions": check_versions,
     "doc-examples": check_doc_examples,
+    "require-paths": check_require_paths,
 }
 
 

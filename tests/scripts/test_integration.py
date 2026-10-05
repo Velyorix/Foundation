@@ -18,6 +18,7 @@ SAMPLE_LOG = """\
 2026-10-04 21:01:52   ERROR  Known noisy engine message
 2026-10-04 21:01:52   S_ERR  [some-package] script called Console.Error
 2026-10-04 21:01:52  S_WARN  [some-package] script called Console.Warn
+2026-10-04 21:01:52 WARNING  Found Package file with wrong casing. This will not work under Unix (Linux) systems!
 2026-10-04 21:01:53  SCRIPT  [foundation-test-harness] [FOUNDATION-TEST] demo DONE passed=1 failed=1
 """
 
@@ -42,9 +43,11 @@ class ParseLogTest(unittest.TestCase):
 
     def test_engine_errors_fail_the_suite_unless_allowed(self):
         result = self.parse()
-        self.assertEqual(len(result.engine_errors), 3)
+        self.assertEqual(len(result.engine_errors), 4)
         self.assertFalse(result.ok)
-        allowed = self.parse(allowed=["Known noisy engine message", "User Defined Event: 'zz'", "Console.Error"])
+        allowed = self.parse(
+            allowed=["Known noisy engine message", "User Defined Event: 'zz'", "Console.Error", "wrong casing"]
+        )
         self.assertEqual(allowed.engine_errors, [])
 
     def test_expected_lines_must_all_appear(self):
@@ -52,14 +55,14 @@ class ParseLogTest(unittest.TestCase):
         integration.parse_log(
             result,
             self.log,
-            ["Lua Error", "Known noisy", "Console.Error"],
+            ["Lua Error", "Known noisy", "Console.Error", "wrong casing"],
             [r"Loading Package 'foundation'", r"never written"],
         )
         self.assertEqual(result.missing_log_lines, ["never written"])
         self.assertFalse(result.ok)
 
     def test_sequence_must_appear_in_order(self):
-        allowed = ["Lua Error", "Known noisy", "Console.Error"]
+        allowed = ["Lua Error", "Known noisy", "Console.Error", "wrong casing"]
         in_order = integration.SuiteResult(name="demo")
         integration.parse_log(in_order, self.log, allowed, [], [r"demo PASS first", r"demo FAIL second", r"demo DONE"])
         self.assertIsNone(in_order.broken_sequence)

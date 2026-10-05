@@ -1,7 +1,5 @@
--- Specification of foundation/config.toml.
-local I18n = Package.Require("../../../Shared/foundation/core/i18n.lua")
-
-return function(S, messages)
+-- Specification of foundation/config.toml. is_locale: core/i18n.lua IsLocale.
+return function(S, messages, is_locale)
 	return {
 		path = "foundation/config.toml",
 		version = 1,
@@ -13,7 +11,7 @@ return function(S, messages)
 					{
 						key = "language",
 						schema = S:Custom("foundation:locale", function(value)
-							if I18n.IsLocale(value) then
+							if is_locale(value) then
 								return true
 							end
 							return false, messages:Format("reason.locale_format")

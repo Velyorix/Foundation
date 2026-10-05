@@ -177,7 +177,10 @@ that run during gameplay.
 - Every public API change updates the English and French reference pages in the same
   change. `scripts/check.py` fails when a page exists in one language only.
 - Examples must use the real API, state whether they are server, client or shared code, and
-  be exercised by a test or an integration suite.
+  be exercised by a test or an integration suite. Put a complete example in a package under
+  `tests/integration/packages/`, run it from a suite, and precede the code block in the page
+  with `<!-- example: <path to the file> -->`: `scripts/check.py` then fails whenever the page
+  and the tested file differ.
 - Public pages stand on their own: no references to internal planning material.
 - Write for server administrators and package developers: direct, specific, no filler.
 

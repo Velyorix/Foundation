@@ -9,5 +9,19 @@ their own heading inside each release.
 
 ### Added
 
-- Installable `foundation` script package (manifest and entry points, no public API yet).
-- English and French documentation: introduction, requirements, installation, compatibility.
+- Installable `foundation` script package.
+- English and French documentation: introduction, requirements, installation, compatibility,
+  package integration, lifecycle, logging, API reference.
+- Structured console logging with masked secret fields and suppression of repeated warnings
+  and errors.
+
+### API
+
+- `Foundation` global (read-only) with `VERSION`, `API_VERSION` (`0.1`) and
+  `Register(package, manifest)`.
+- Package contexts: `GetId`, `GetName`, `GetVersion`, `GetState`, `IsActive`, `OnReady`,
+  `OnDisable`, `Track`.
+- Package states `initializing`, `ready`, `failed`, `disabled`; dependents are disabled before
+  their dependencies; all packages are disabled when Foundation stops.
+- Errors raised as `[foundation:<code>] ...` with the codes `invalid_argument`,
+  `invalid_value`, `invalid_state`, `incompatible_api`.

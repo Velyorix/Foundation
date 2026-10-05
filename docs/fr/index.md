@@ -11,9 +11,9 @@ fonctionnalités comme l'économie, les grades, les homes, les warps ou les bout
 fournies par des packages séparés qui utilisent Foundation. Chacun de ces packages peut être
 remplacé sans modifier Foundation.
 
-> Foundation est en début de développement (0.1.0, non publiée). Le package s'installe et se
-> charge, mais l'API publique n'est pas encore disponible. Ces pages décrivent uniquement ce
-> qui existe dans la version actuelle.
+> Foundation est en début de développement (0.1.0, non publiée). Disponible aujourd'hui :
+> l'enregistrement des packages, leur cycle de vie et le suivi des ressources. Ces pages
+> décrivent uniquement ce qui existe dans la version actuelle, et l'API peut changer avant la 1.0.
 
 *English version: [Foundation documentation](../en/index.md)*
 
@@ -22,9 +22,10 @@ remplacé sans modifier Foundation.
 - [Prérequis](requirements.md)
 - [Installation et mises à jour](installation.md)
 - [Compatibilité](compatibility.md)
+- [Journalisation](logging.md)
 
 ## Développeurs de packages
 
-Les guides de développement et la référence de l'API sont ajoutés au fur et à mesure que
-chaque partie de l'API devient disponible. Commencez par les [Prérequis](requirements.md) et
-[Installation et mises à jour](installation.md) pour préparer un serveur de développement.
+- [Intégration d'un package](package-integration.md)
+- [Cycle de vie](lifecycle.md)
+- [Référence de l'API : Foundation et contextes de package](reference/foundation.md)

@@ -9,9 +9,9 @@ Foundation does not contain gameplay. A server keeps its own game-mode, and feat
 economy, ranks, homes, warps or shops are provided by separate packages that use Foundation.
 Any of those packages can be replaced without modifying Foundation.
 
-> Foundation is in early development (0.1.0, unreleased). The package installs and loads, but
-> the public API is not available yet. These pages describe only what exists in the current
-> version.
+> Foundation is in early development (0.1.0, unreleased). Available today: package
+> registration, lifecycle and resource tracking. These pages describe only what exists in the
+> current version, and the API may change before 1.0.
 
 *Version française : [Documentation Foundation](../fr/index.md)*
 
@@ -20,9 +20,10 @@ Any of those packages can be replaced without modifying Foundation.
 - [Requirements](requirements.md)
 - [Installation and updates](installation.md)
 - [Compatibility](compatibility.md)
+- [Logging](logging.md)
 
 ## Package developers
 
-The developer guides and API reference are added as each part of the API becomes available.
-Start with [Requirements](requirements.md) and [Installation and updates](installation.md) to
-set up a development server.
+- [Package integration](package-integration.md)
+- [Lifecycle](lifecycle.md)
+- [API reference: Foundation and package contexts](reference/foundation.md)

@@ -21,4 +21,23 @@ return {
 
 	["reason.owner_closed"] = "'{owner}' est désactivé et ne peut plus enregistrer de ressources",
 	["invoke.failed"] = "le callback {kind} de {owner} a échoué",
+
+	["error.incompatible_api"] = "{id} requiert l'API Foundation {required} ; ce serveur fournit l'API {current}",
+	["reason.package_id_format"] = "ne doit contenir que des minuscules, des chiffres et '-' ({max} caractères au plus)",
+	["reason.manifest_unknown_field"] = "champ inconnu '{field}'",
+	["reason.manifest_id_mismatch"] = "'{manifest_id}' ne correspond pas au nom du dossier du package '{id}'",
+	["reason.api_format"] = "doit être de la forme '<majeure>' ou '<majeure>.<mineure>'",
+	["reason.package_already_registered"] = "'{id}' est déjà enregistré ({state})",
+	["reason.missing_dependency"] = "'{id}' requiert '{dependency}', qui n'est pas enregistré ou pas actif",
+	["reason.ready_hook_failed"] = "un hook de démarrage de '{id}' a échoué",
+	["reason.context_inactive"] = "le contexte de '{id}' est {state} et ne peut plus être utilisé",
+	["reason.already_ready"] = "'{id}' a déjà terminé son initialisation",
+	["package.registered"] = "{id} {version} enregistré (API {api})",
+	["package.ready"] = "{id} est prêt",
+	["package.failed"] = "{id} a échoué : {reason}",
+	["package.disabled"] = "{id} désactivé : {reason}",
+	["disable_reason.unload"] = "package déchargé",
+	["disable_reason.dependency_disabled"] = "une dépendance a été désactivée",
+	["disable_reason.dependency_failed"] = "une dépendance a échoué",
+	["disable_reason.foundation_stopping"] = "arrêt de Foundation",
 }

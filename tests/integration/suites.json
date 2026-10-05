@@ -26,7 +26,7 @@
       "\\[foundation\\] WARN  foundation-core-log-test/levels: core-log marker level=warning$",
       "\\[foundation\\] ERROR foundation-core-log-test/levels: core-log marker level=error$",
       "\\[foundation\\] INFO  foundation/core: progress 100% done %s %d note=\\*\\*\\* password=\\*\\*\\*$",
-      "\\[foundation\\] INFO  foundation-core-log-test/repeat: previous message repeated 2 more time\\(s\\)$"
+      "\\[foundation\\] WARN  foundation-core-log-test/repeat: previous message repeated 2 more time\\(s\\)$"
     ]
   },
   "core-audit": {
@@ -42,6 +42,22 @@
     ],
     "expected_log_lines": [
       "\\[foundation\\] ERROR foundation/core: audit record could not be written to foundation/blocked\\.txt/audit-\\d{4}-\\d{2}-\\d{2}\\.log; record kept in this log line reason=.*Cannot create a file.* record=.*foundation:fallback_marker"
+    ]
+  },
+  "core-packages": {
+    "description": "Package registration follows the real Load/Unload events across reload and unload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-packages-test",
+      "foundation-packages-fixture"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/core: registered foundation-packages-fixture 0\\.1\\.0 \\(API 0\\.1\\)",
+      "\\[foundation\\] INFO  foundation/core: foundation-packages-fixture is ready",
+      "\\[foundation\\] INFO  foundation/core: foundation-packages-fixture disabled: package unloaded"
     ]
   }
 }

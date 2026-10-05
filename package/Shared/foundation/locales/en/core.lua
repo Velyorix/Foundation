@@ -21,4 +21,23 @@ return {
 
 	["reason.owner_closed"] = "'{owner}' is disabled and cannot register new resources",
 	["invoke.failed"] = "{kind} callback of {owner} failed",
+
+	["error.incompatible_api"] = "{id} requires Foundation API {required}; this server runs API {current}",
+	["reason.package_id_format"] = "must contain only lowercase letters, digits and '-' (at most {max} characters)",
+	["reason.manifest_unknown_field"] = "unknown field '{field}'",
+	["reason.manifest_id_mismatch"] = "'{manifest_id}' does not match the package folder name '{id}'",
+	["reason.api_format"] = "must be '<major>' or '<major>.<minor>'",
+	["reason.package_already_registered"] = "'{id}' is already registered ({state})",
+	["reason.missing_dependency"] = "'{id}' requires '{dependency}', which is not registered or not active",
+	["reason.ready_hook_failed"] = "a ready hook of '{id}' failed",
+	["reason.context_inactive"] = "the context of '{id}' is {state} and can no longer be used",
+	["reason.already_ready"] = "'{id}' has already finished initializing",
+	["package.registered"] = "registered {id} {version} (API {api})",
+	["package.ready"] = "{id} is ready",
+	["package.failed"] = "{id} failed: {reason}",
+	["package.disabled"] = "{id} disabled: {reason}",
+	["disable_reason.unload"] = "package unloaded",
+	["disable_reason.dependency_disabled"] = "a dependency was disabled",
+	["disable_reason.dependency_failed"] = "a dependency failed",
+	["disable_reason.foundation_stopping"] = "Foundation is stopping",
 }

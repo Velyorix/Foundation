@@ -18,6 +18,8 @@ Errors.CODES = {
 	invalid_key = "user",
 	validation_failed = "user",
 	config_invalid = "configuration",
+	async_failed = "developer",
+	timeout = "infrastructure",
 }
 
 local ErrorValue = {}

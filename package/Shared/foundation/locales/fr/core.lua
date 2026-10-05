@@ -135,4 +135,8 @@ return {
 
 	["reason.delay_range"] = "doit être compris entre {min} et {max} millisecondes",
 	["scheduler.task_stopped"] = "la tâche répétée de {owner} a été arrêtée après {failures} échecs consécutifs",
+
+	["error.async_failed"] = "un callback d'une opération asynchrone a échoué",
+	["error.timeout"] = "aucun résultat après {milliseconds} ms",
+	["reason.no_scheduler"] = "les délais maximaux nécessitent le scheduler, indisponible de ce côté",
 }

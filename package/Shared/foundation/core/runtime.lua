@@ -9,6 +9,7 @@ local Keys = Package.Require("keys.lua")
 local Schema = Package.Require("schema.lua")
 local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
+local Futures = Package.Require("future.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -130,6 +131,27 @@ local COMPONENTS = {
 			packages:ExtendContext("Throttle", function(_, entry, milliseconds, fn)
 				local throttled = scheduler:Throttle(entry.id, milliseconds, fn, "context:Throttle", 3)
 				return throttled
+			end)
+		end,
+	},
+	{
+		name = "future",
+		required = true,
+		create = function(runtime)
+			local futures = Futures.new({
+				invoker = runtime.invoker,
+				ownership = runtime.ownership,
+				scheduler = runtime.scheduler,
+				check = runtime.check,
+			})
+			runtime.futures = futures
+			runtime.packages:ExtendContext("Future", function(_, entry, executor)
+				local future = futures:New(entry.id, executor, "context:Future", 3)
+				return future
+			end)
+			runtime.packages:ExtendContext("All", function(_, entry, list)
+				local future = futures:All(entry.id, list, "context:All", 3)
+				return future
 			end)
 		end,
 	},

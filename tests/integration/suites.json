@@ -235,5 +235,18 @@
     "expected_log_lines": [
       "\\[foundation\\] WARN  foundation-core-scheduler-test/scheduler: repeating task of foundation-core-scheduler-test stopped after 2 consecutive failures"
     ]
+  },
+  "core-future": {
+    "description": "Futures over native async database queries and real timers",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-future-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "Failed to execute Select query: 'SELECT \\* FROM missing_table'",
+      "SQL Error: .*missing_table"
+    ]
   }
 }

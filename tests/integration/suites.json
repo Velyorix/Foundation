@@ -200,5 +200,23 @@
       "\\[foundation\\] INFO  foundation/core: Foundation \\d+\\.\\d+\\.\\d+ started \\(API [\\d.]+, server\\)",
       "\\[foundation\\] ERROR foundation/config: could not read foundation/config\\.toml: .*TOML\\.Parse"
     ]
+  },
+  "core-package-config": {
+    "description": "Package configuration files through the real Foundation global and engine TOML parser",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-config-fixture",
+      "foundation-core-package-config-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation-config-fixture/config: "
+    ],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation-config-fixture/config: created foundation/config/foundation-config-fixture\\.toml",
+      "\\[foundation\\] INFO  foundation-config-fixture/config: loaded foundation/config/foundation-config-fixture\\.toml",
+      "\\[foundation\\] ERROR foundation-config-fixture/config: foundation/config/foundation-config-fixture\\.toml: \\$\\.motd: must have at most 32 characters"
+    ]
   }
 }

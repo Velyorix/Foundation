@@ -56,9 +56,9 @@ local function same(a, b)
 	return true
 end
 
--- spec: { path, version, migrations = { [from] = fn(data) -> data }, header_key,
+-- spec: { path, version, migrations = { [from] = fn(data) -> data }, header_key or header,
 --         sections = { { name = nil|"section", fields = { { key, schema, default,
---         reload = "hot"|"restart", secret, comment_key } } } } }
+--         reload = "hot"|"restart", secret, comment_key or comment } } } } }
 -- options: spec, files (core/files.lua), parse (TOML text -> table, raises), schema,
 --          log, errors
 function Config.new(options)
@@ -127,14 +127,14 @@ end
 
 function Config:Template()
 	local lines = {}
-	local function comment(key)
-		for line in self.messages:Format(key):gmatch("[^\n]+") do
+	local function comment(text)
+		for line in (text or ""):gmatch("[^\n]+") do
 			lines[#lines + 1] = "# " .. line
 		end
 	end
-	comment(self.spec.header_key)
+	comment(self.spec.header or self.messages:Format(self.spec.header_key))
 	lines[#lines + 1] = ""
-	comment("config.template.version")
+	comment(self.messages:Format("config.template.version"))
 	lines[#lines + 1] = "config_version = " .. self.spec.version
 	for _, section in ipairs(self.spec.sections) do
 		if section.name then
@@ -145,7 +145,7 @@ function Config:Template()
 			if not (section.name and index == 1) then
 				lines[#lines + 1] = ""
 			end
-			comment(field.comment_key)
+			comment(field.comment or (field.comment_key and self.messages:Format(field.comment_key)))
 			lines[#lines + 1] = field.key .. " = " .. toml_value(field.default)
 		end
 	end

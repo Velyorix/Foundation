@@ -5,6 +5,7 @@ local Audit = Package.Require("foundation/core/audit.lua")
 local Files = Package.Require("foundation/core/files.lua")
 local Config = Package.Require("foundation/core/config.lua")
 local Settings = Package.Require("foundation/core/settings.lua")
+local PackageConfigs = Package.Require("foundation/core/package_config.lua")
 local version = Package.Require("foundation/version.lua")
 
 local Bootstrap = {}
@@ -47,6 +48,16 @@ function Bootstrap.Start()
 				schema = rt.schema,
 				log = rt.log:For("foundation", "config"),
 				errors = rt.errors,
+			})
+		end,
+		create_package_configs = function(rt)
+			return PackageConfigs.new({
+				files = engine_files(),
+				parse = TOML.Parse,
+				schema = rt.schema,
+				check = rt.check,
+				log = rt.log,
+				invoker = rt.invoker,
 			})
 		end,
 		create_audit = function(rt)

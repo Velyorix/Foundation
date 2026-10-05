@@ -100,7 +100,6 @@ return {
 	["i18n.missing_key"] = "traduction manquante pour '{key}'",
 
 	["error.config_invalid"] = "le fichier de configuration {path} est invalide",
-	["reason.config_absent"] = "ce côté n'a pas de fichier de configuration",
 	["config.created"] = "{path} créé avec les réglages par défaut",
 	["config.loaded"] = "{path} chargé",
 	["config.unreadable"] = "impossible de lire {path} : {reason}",
@@ -123,4 +122,14 @@ return {
 		one = "configuration rechargée ({count} réglage modifié)",
 		other = "configuration rechargée ({count} réglages modifiés)",
 	},
+
+	["config.template.package_header"] = "Réglages de {name} ({id}).\nLus au démarrage du package. Supprimez ce fichier pour le recréer avec les valeurs par défaut.",
+	["reason.config_exists"] = "'{owner}' a déjà déclaré sa configuration",
+	["reason.config_version"] = "doit être au moins 1",
+	["reason.config_key"] = "doit être '<nom>' ou '<section>.<nom>' avec des lettres, des chiffres et '_'",
+	["reason.config_reserved"] = "'config_version' est réservé",
+	["reason.config_duplicate"] = "'{key}' est déclaré deux fois",
+	["reason.config_section_conflict"] = "'{key}' est utilisé à la fois comme réglage et comme section",
+	["reason.config_default"] = "la valeur par défaut ne respecte pas son schéma : {problem}",
+	["reason.config_unknown_key"] = "'{key}' n'est pas un réglage déclaré",
 }

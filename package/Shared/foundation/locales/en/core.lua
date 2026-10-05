@@ -100,7 +100,6 @@ return {
 	["i18n.missing_key"] = "missing translation for '{key}'",
 
 	["error.config_invalid"] = "configuration file {path} is invalid",
-	["reason.config_absent"] = "this side has no configuration file",
 	["config.created"] = "created {path} with the default settings",
 	["config.loaded"] = "loaded {path}",
 	["config.unreadable"] = "could not read {path}: {reason}",
@@ -123,4 +122,14 @@ return {
 		one = "configuration reloaded ({count} setting changed)",
 		other = "configuration reloaded ({count} settings changed)",
 	},
+
+	["config.template.package_header"] = "Settings of {name} ({id}).\nRead when the package starts. Delete this file to recreate it with the default values.",
+	["reason.config_exists"] = "'{owner}' already declared its configuration",
+	["reason.config_version"] = "must be at least 1",
+	["reason.config_key"] = "must be '<name>' or '<section>.<name>' with letters, digits and '_'",
+	["reason.config_reserved"] = "'config_version' is reserved",
+	["reason.config_duplicate"] = "'{key}' is declared twice",
+	["reason.config_section_conflict"] = "'{key}' is used both as a setting and as a section",
+	["reason.config_default"] = "the default value does not match its schema: {problem}",
+	["reason.config_unknown_key"] = "'{key}' is not a declared setting",
 }

@@ -104,6 +104,22 @@ local COMPONENTS = {
 		end,
 	},
 	{
+		name = "package_config",
+		required = false,
+		create = function(runtime)
+			if not runtime.env.create_package_configs then
+				return "absent"
+			end
+			local configs = runtime.env.create_package_configs(runtime)
+			runtime.package_configs = configs
+			runtime.packages:ExtendContext("Config", function(context, entry, spec)
+				local settings, release = configs:Create(entry.id, entry.name, spec, "context:Config", 3)
+				context:Track("config", release)
+				return settings
+			end)
+		end,
+	},
+	{
 		name = "audit",
 		required = false,
 		create = function(runtime)
@@ -158,20 +174,23 @@ function Runtime:ApplySettings(values)
 	self.log:SetDebugCategories(values.log.debug_categories)
 end
 
--- Returns the changed and restart-pending setting paths, or nil and an error.
+-- Reloads Foundation's file and every package file independently. Report:
+-- { core = { changed, pending } | { error } | nil, packages = { [owner] = ... } }
 function Runtime:ReloadConfig()
-	if not self.config then
-		return nil,
-			self.errors:New("invalid_state", {
-				api = "Runtime:ReloadConfig",
-				reason = self.messages:Format("reason.config_absent"),
-			})
+	local report = { packages = {} }
+	if self.config then
+		local changed, pending = self.config:Reload()
+		if changed then
+			self:ApplySettings(self.config:Values())
+			report.core = { changed = changed, pending = pending }
+		else
+			report.core = { error = pending }
+		end
 	end
-	local changed, pending = self.config:Reload()
-	if changed then
-		self:ApplySettings(self.config:Values())
+	if self.package_configs then
+		report.packages = self.package_configs:ReloadAll()
 	end
-	return changed, pending
+	return report
 end
 
 function Runtime:IsRunning()
@@ -237,6 +256,7 @@ function Runtime:Snapshot()
 		callbacks = self.invoker and self.invoker:Snapshot() or nil,
 		audit = self.audit and self.audit:Snapshot() or nil,
 		config = self.config and self.config:Snapshot() or nil,
+		package_configs = self.package_configs and self.package_configs:Snapshot() or nil,
 		locale = self.i18n and self.i18n:GetServerLocale() or nil,
 	}
 end

@@ -152,5 +152,15 @@
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter disabled: Foundation is stopping",
       "\\[foundation\\] INFO  foundation/core: Foundation stopped"
     ]
+  },
+  "core-json": {
+    "description": "Foundation JSON interoperates with the engine JSON library",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-json-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": []
   }
 }

@@ -80,4 +80,11 @@ return {
 	["validation.custom_failed"] = "la vérification '{name}' a échoué",
 	["reason.schema_bounds"] = "min doit être au moins 0 et ne pas dépasser max",
 	["reason.empty_list"] = "ne doit pas être vide",
+
+	["reason.json_syntax"] = "JSON invalide au caractère {position}",
+	["reason.json_too_large"] = "plus de {max} octets",
+	["reason.json_utf8"] = "n'est pas de l'UTF-8 valide",
+	["reason.json_decode_depth"] = "imbriqué sur plus de {max} niveaux au caractère {position}",
+	["reason.json_duplicate_key"] = "clé en double '{key}' au caractère {position}",
+	["reason.json_null_in_array"] = "null dans un tableau au caractère {position}",
 }

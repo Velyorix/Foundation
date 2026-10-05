@@ -1,8 +1,4 @@
--- core-log suite: the logger writes through the real nanos world Console. The runner
--- checks the resulting lines in the server log (see suites.json, expected_log_lines).
---
--- Modules are loaded from the installed foundation package through Package.Require's
--- "relative to Packages/" resolution; they run in this package's environment.
+-- The resulting console lines are checked by the runner (suites.json, expected_log_lines).
 
 local Messages = Package.Require("foundation/Shared/foundation/core/messages.lua")
 local Log = Package.Require("foundation/Shared/foundation/core/log.lua")

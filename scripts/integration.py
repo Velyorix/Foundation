@@ -1,16 +1,8 @@
 #!/usr/bin/env python3
-"""Run Foundation integration suites on disposable nanos world servers.
+"""Runs integration suites on throwaway copies of a nanos world server.
 
-Each suite gets a fresh server folder under .tmp/integration/<suite>/ containing a
-copy of the server binaries, the Foundation package and the suite's test packages.
-The server is started with command-line overrides only (no Config.toml edits), bound
-to 127.0.0.1 on free ports, unannounced, with the built-in blank map. The suite stops
-the server itself; the runner then reads the result lines from the server log.
-
-Usage:
-    python scripts/integration.py --server-dir "C:/path/to/Server" [--suite smoke] [--keep]
-
-The server folder can also be given through the NANOS_SERVER_DIR environment variable.
+Usage: python scripts/integration.py --server-dir PATH [--suite NAME] [--keep] [--tracy]
+(or set NANOS_SERVER_DIR)
 """
 
 from __future__ import annotations
@@ -33,11 +25,10 @@ TEST_PACKAGES_DIR = REPO_ROOT / "tests" / "integration" / "packages"
 SUITES_FILE = REPO_ROOT / "tests" / "integration" / "suites.json"
 WORK_ROOT = REPO_ROOT / ".tmp" / "integration"
 
-# Server folder entries that must not be copied into a disposable server.
 SKIPPED_SERVER_ENTRIES = {"Packages", "Assets", "Config.toml", ".logs", ".sentry-native", "foundation"}
 
 RESULT_LINE = re.compile(r"\[FOUNDATION-TEST\] (?P<suite>\S+) (?P<kind>PASS|FAIL|DONE)(?: (?P<rest>.*))?$")
-# ERROR: engine and Lua runtime errors; S_ERR: lines written with Console.Error by scripts.
+# S_ERR is how the server tags lines written with Console.Error.
 ENGINE_ERROR = re.compile(r"^\S+ \S+\s+(ERROR|S_ERR)\s+(?P<message>.*)$")
 LUA_ERROR = re.compile(r"Lua Error", re.IGNORECASE)
 
@@ -81,8 +72,7 @@ def server_executable(server_dir: Path, tracy: bool) -> list[str]:
     return command
 
 
-# Candidate ports sit below the OS dynamic range: on Windows, Hyper-V and WSL reserve
-# blocks of the dynamic range for UDP, so ephemeral TCP ports are often unusable there.
+# Below the dynamic range: Hyper-V/WSL reserve UDP blocks there on Windows.
 PORT_RANGE = (20000, 29998)
 
 
@@ -97,7 +87,6 @@ def port_is_free(port: int) -> bool:
 
 
 def free_port_pair() -> int:
-    """Returns a port P such that P and P+1 are free for TCP and UDP right now."""
     for _ in range(200):
         port = random.randint(*PORT_RANGE)
         if port_is_free(port) and port_is_free(port + 1):
@@ -129,11 +118,6 @@ def prepare_server(server_dir: Path, work_dir: Path, packages: list[str]) -> Non
 def parse_log(
     result: SuiteResult, log_path: Path, allowed_errors: list[str], expected_lines: list[str] | None = None
 ) -> None:
-    """Fills `result` from the server log.
-
-    allowed_errors  regexes for engine error lines the suite triggers on purpose
-    expected_lines  regexes that must each match at least one log line
-    """
     allowed = [re.compile(pattern) for pattern in allowed_errors]
     expected = {pattern: re.compile(pattern) for pattern in expected_lines or []}
     seen: set[str] = set()

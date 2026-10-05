@@ -1,9 +1,4 @@
--- Argument checks for public entry points. Each check raises an `invalid_argument` or
--- `invalid_value` programming error pointing at the caller of the public function.
---
--- `level` is optional and uses Lua's `error` convention from the point of view of the
--- public function performing the check: 2 (default) is that function's caller. Pass a
--- higher level when the check runs inside a helper of the public function.
+-- `level` as for error(), seen from the public function doing the check (default 2).
 
 local Check = {}
 Check.__index = Check
@@ -44,10 +39,6 @@ function Check.new(errors)
 	return setmetatable({ errors = errors }, Check)
 end
 
---- Checks that `value` has the expected type and returns it.
--- expected: a type name ("string", "number", "integer", "boolean", "table", "function",
--- "userdata", "any"), optionally suffixed with "?" to also accept nil. "integer"
--- accepts integral floats such as 2.0.
 function Check:Argument(api, index, name, value, expected, level)
 	local optional = expected:sub(-1) == "?"
 	local type_name = optional and expected:sub(1, -2) or expected
@@ -71,7 +62,6 @@ function Check:Argument(api, index, name, value, expected, level)
 	}, (level or 2) + 1)
 end
 
---- Checks that `value` is a string with at least one character and returns it.
 function Check:NonEmptyString(api, index, name, value, level)
 	self:Argument(api, index, name, value, "string", (level or 2) + 1)
 	if value == "" then
@@ -85,7 +75,6 @@ function Check:NonEmptyString(api, index, name, value, level)
 	return value
 end
 
---- Checks that `value` is one of `allowed` (an array) and returns it.
 function Check:OneOf(api, index, name, value, allowed, level)
 	for _, candidate in ipairs(allowed) do
 		if value == candidate then

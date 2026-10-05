@@ -1,6 +1,3 @@
--- Minimal spec runner: describe/it blocks, before_each/after_each hooks, plain-text
--- report and a non-zero exit status on failure.
-
 local Runner = {}
 Runner.__index = Runner
 
@@ -54,7 +51,6 @@ local function short_traceback(err)
 	return debug.traceback(tostring(err), 2)
 end
 
---- Loads one spec file and returns its root group, or nil and a load error.
 function Runner:collect(path, extra_globals)
 	local root = new_group(nil, nil)
 	local current = root

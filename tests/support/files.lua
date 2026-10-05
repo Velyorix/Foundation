@@ -1,6 +1,3 @@
--- File discovery for the test runner and specs, using the platform shell because
--- standalone Lua has no directory listing.
-
 local Loader = require("tests.support.loader")
 
 local files = {}
@@ -19,8 +16,6 @@ end
 
 local current_directory = Loader.normalize(read_command(WINDOWS and "cd" or "pwd")[1] or "")
 
---- Lists files under `directory` (relative to the repository root) whose name matches
--- the shell wildcard `name_pattern`, as sorted repository-relative paths.
 function files.list(directory, name_pattern)
 	local found
 	if WINDOWS then

@@ -1,17 +1,8 @@
--- Message catalogs for Foundation's own text. A catalog maps stable keys to templates;
--- `{name}` placeholders are replaced with the string form of the matching parameter.
--- Lookup falls back from the active locale to the fallback locale, then to the key
--- itself, so a missing translation never raises.
-
 local Messages = {}
 Messages.__index = Messages
 
 local PLACEHOLDER = "{([%a_][%w_]*)}"
 
---- Creates a message set.
--- catalogs  table locale -> { key -> template }
--- locale    active locale (default "en")
--- fallback  locale used when a key is missing in the active locale (default "en")
 function Messages.new(catalogs, locale, fallback)
 	return setmetatable({
 		catalogs = catalogs,
@@ -28,7 +19,6 @@ function Messages:GetLocale()
 	return self.locale
 end
 
---- Returns the raw template for `key`, or nil when no catalog defines it.
 function Messages:Template(key)
 	local active = self.catalogs[self.locale]
 	local template = active and active[key]
@@ -39,8 +29,6 @@ function Messages:Template(key)
 	return template
 end
 
---- Renders `key` with `params`. Unknown placeholders are left as written; values are
--- inserted literally (no pattern or format interpretation).
 function Messages:Format(key, params)
 	local template = self:Template(key)
 	if template == nil then
@@ -57,7 +45,6 @@ function Messages:Format(key, params)
 	)
 end
 
---- Placeholder names used by a template, in order of first appearance.
 function Messages.Placeholders(template)
 	local names, seen = {}, {}
 	for name in template:gmatch(PLACEHOLDER) do

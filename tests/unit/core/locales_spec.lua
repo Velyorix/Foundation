@@ -1,6 +1,3 @@
--- Every Foundation catalog exists in English and French with the same keys and the
--- same placeholders per key.
-
 local files = require("tests.support.files")
 
 local LOCALES_ROOT = "package/Shared/foundation/locales"

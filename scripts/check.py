@@ -1,19 +1,5 @@
 #!/usr/bin/env python3
-"""Repository consistency checks for Foundation.
-
-Checks:
-  docs-parity       docs/en and docs/fr contain the same pages
-  links             relative links and heading anchors in public Markdown resolve
-  public-wording    public documents do not reference internal material
-  unsafe-lua        shipped Lua does not use functions the server disables by default
-  client-secrets    Client/ and Shared/ files contain no credentials or database access
-  secrets           no private keys or provider tokens anywhere in the repository
-  todo-markers      shipped code contains no TODO/FIXME/XXX/HACK markers
-  versions          Package.toml, version.lua and CHANGELOG.md agree
-
-Usage: python scripts/check.py [--only NAME ...] [--root PATH]
-Exit status is 1 when any check reports a problem.
-"""
+"""Repository checks. Usage: python scripts/check.py [--only NAME ...]"""
 
 from __future__ import annotations
 
@@ -87,7 +73,6 @@ def rel(root: Path, path: Path) -> str:
 
 
 def strip_lua_comments(line: str) -> str:
-    """Removes a trailing `--` comment that is not inside a string literal."""
     quote = None
     index = 0
     while index < len(line):
@@ -107,7 +92,6 @@ def strip_lua_comments(line: str) -> str:
 
 
 def lua_code_only(line: str) -> str:
-    """Removes the comment and blanks string literal contents, keeping the quotes."""
     result = []
     quote = None
     index = 0

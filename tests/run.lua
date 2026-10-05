@@ -1,7 +1,4 @@
--- Unit test entry point. Run from the repository root with a Lua 5.4 interpreter:
---
---   lua tests/run.lua                 run every tests/unit/**/*_spec.lua
---   lua tests/run.lua scheduler keys  run spec files whose path contains a filter
+-- lua tests/run.lua [filter ...]
 
 package.path = "./?.lua;./?/init.lua;" .. package.path
 

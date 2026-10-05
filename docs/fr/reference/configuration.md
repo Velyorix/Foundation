@@ -28,7 +28,7 @@ Les champs inconnus sont refusés.
 | --- | --- | --- |
 | `key` | chaîne | `"nom"` ou `"section.nom"` ; chaque partie commence par une lettre ou `_` et contient des lettres, des chiffres et `_` |
 | `schema` | schéma | Construit avec [`Foundation.Schema`](validation.md#foundationschema) |
-| `default` | quelconque | Doit respecter `schema`. Obligatoire sauf si `schema` accepte `nil` |
+| `default` | chaîne, nombre, booléen ou tableau de ces valeurs | Doit respecter `schema`. Obligatoire sauf si `schema` accepte `nil`. Les tables à clés nommées sont refusées : elles ne peuvent pas être écrites dans le fichier |
 | `description` | chaîne, facultatif | Commentaire écrit au-dessus du réglage dans un fichier créé |
 | `reload` | chaîne, facultatif | `"restart"` (par défaut) ou `"hot"` |
 | `secret` | booléen, facultatif | Masque la valeur dans les journaux de Foundation |
@@ -51,7 +51,7 @@ Lève :
 | Code | Quand |
 | --- | --- |
 | `invalid_argument` | `spec`, une déclaration de réglage ou l'un de leurs champs a le mauvais type |
-| `invalid_value` | Champ inconnu, clé mal formée ou en double, clé réservée, valeur par défaut qui ne respecte pas son schéma, `version` ou `reload` invalide |
+| `invalid_value` | Champ inconnu, clé mal formée ou en double, clé réservée, valeur par défaut qui ne respecte pas son schéma ou qui est une table à clés nommées, `version` ou `reload` invalide |
 | `invalid_state` | Le package a déjà appelé `context:Config`, ou son contexte n'est plus actif |
 
 ## Objet de réglages

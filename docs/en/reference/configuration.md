@@ -28,7 +28,7 @@ Unknown fields are refused.
 | --- | --- | --- |
 | `key` | string | `"name"` or `"section.name"`; each part starts with a letter or `_` and contains letters, digits and `_` |
 | `schema` | schema | Built with [`Foundation.Schema`](validation.md#foundationschema) |
-| `default` | any | Must pass `schema`. Required unless `schema` accepts `nil` |
+| `default` | string, number, boolean or array of those | Must pass `schema`. Required unless `schema` accepts `nil`. Tables with named keys are refused: they cannot be written to the file |
 | `description` | string, optional | Comment written above the setting in a created file |
 | `reload` | string, optional | `"restart"` (default) or `"hot"` |
 | `secret` | boolean, optional | Hide the value in Foundation's logs |
@@ -50,7 +50,7 @@ Raises:
 | Code | When |
 | --- | --- |
 | `invalid_argument` | `spec`, a field declaration or one of their fields has the wrong type |
-| `invalid_value` | Unknown field, malformed or duplicate key, reserved key, default that does not pass its schema, invalid `version` or `reload` |
+| `invalid_value` | Unknown field, malformed or duplicate key, reserved key, default that does not pass its schema or is a table with named keys, invalid `version` or `reload` |
 | `invalid_state` | The package already called `context:Config`, or its context is no longer active |
 
 ## Settings object

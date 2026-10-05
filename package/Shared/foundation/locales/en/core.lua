@@ -40,4 +40,13 @@ return {
 	["disable_reason.dependency_disabled"] = "a dependency was disabled",
 	["disable_reason.dependency_failed"] = "a dependency failed",
 	["disable_reason.foundation_stopping"] = "Foundation is stopping",
+
+	["reason.runtime_already_started"] = "Foundation has already been started",
+	["reason.runtime_not_running"] = "Foundation is not running (state: {state})",
+	["reason.read_only"] = "the Foundation table is read-only",
+	["runtime.started"] = "Foundation {version} started (API {api}, {side})",
+	["runtime.stopped"] = "Foundation stopped",
+	["runtime.component_failed"] = "Foundation could not start: component '{component}' failed: {reason}",
+	["runtime.optional_unavailable"] = "component '{component}' is unavailable: {reason}",
+	["runtime.unloaded_with_dependents"] = "Foundation was unloaded while {count} package(s) still use it ({ids}); they keep references to the stopped instance. Run '{command}' or restart the server",
 }

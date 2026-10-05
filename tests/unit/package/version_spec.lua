@@ -19,7 +19,7 @@ describe("package version", function()
 
 	it("loads the shared entry point without engine globals beyond Package", function()
 		expect.no_error(function()
-			Loader.new():run("Index.lua")
+			Loader.new():run("../Shared/Index.lua")
 		end)
 	end)
 end)

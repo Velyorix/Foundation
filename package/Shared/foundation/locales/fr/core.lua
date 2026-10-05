@@ -40,4 +40,13 @@ return {
 	["disable_reason.dependency_disabled"] = "une dépendance a été désactivée",
 	["disable_reason.dependency_failed"] = "une dépendance a échoué",
 	["disable_reason.foundation_stopping"] = "arrêt de Foundation",
+
+	["reason.runtime_already_started"] = "Foundation a déjà été démarré",
+	["reason.runtime_not_running"] = "Foundation n'est pas en fonctionnement (état : {state})",
+	["reason.read_only"] = "la table Foundation est en lecture seule",
+	["runtime.started"] = "Foundation {version} démarré (API {api}, {side})",
+	["runtime.stopped"] = "Foundation arrêté",
+	["runtime.component_failed"] = "Foundation n'a pas pu démarrer : le composant '{component}' a échoué : {reason}",
+	["runtime.optional_unavailable"] = "le composant '{component}' est indisponible : {reason}",
+	["runtime.unloaded_with_dependents"] = "Foundation a été déchargé alors que {count} package(s) l'utilisent encore ({ids}) ; ils gardent des références vers l'instance arrêtée. Exécutez '{command}' ou redémarrez le serveur",
 }

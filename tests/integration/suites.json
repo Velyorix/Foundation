@@ -68,11 +68,14 @@
       "foundation-core-runtime-test"
     ],
     "timeout_seconds": 90,
-    "allowed_errors": [],
+    "allowed_errors": [
+      "validator callback of foundation-core-runtime-test failed"
+    ],
     "expected_log_lines": [
       "\\[foundation\\] INFO  foundation/core: Foundation \\d+\\.\\d+\\.\\d+ started \\(API \\d+\\.\\d+, server\\)",
       "\\[foundation\\] INFO  foundation/core: foundation-core-runtime-test disabled: Foundation is stopping",
-      "\\[foundation\\] INFO  foundation/core: Foundation stopped"
+      "\\[foundation\\] INFO  foundation/core: Foundation stopped",
+      "\\[foundation\\] ERROR foundation/core: validator callback of foundation-core-runtime-test failed validator=foundation-core-runtime-test:broken"
     ]
   },
   "core-runtime-reload": {

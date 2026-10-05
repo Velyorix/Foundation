@@ -66,4 +66,35 @@ suite:Test("Foundation.Keys is read-only and reports misuse at the caller", func
 	FoundationTest.True(tostring(err):find(SELF .. "/Server/Index.lua", 1, true) ~= nil, tostring(err))
 end)
 
+suite:Test("Foundation.Schema validates values and applies defaults", function()
+	local S = Foundation.Schema
+	local settings = S.Record({
+		language = S.Optional(S.Enum({ "en", "fr" }), "en"),
+		max_homes = S.Integer({ min = 0, max = 50 }),
+	})
+	local result = S.Validate(settings, { max_homes = 3 })
+	FoundationTest.Equal(result.language, "en")
+	FoundationTest.Equal(result.max_homes, 3)
+	local missing, err = S.Validate(settings, { max_homes = 99, extra = true })
+	FoundationTest.Equal(missing, nil)
+	FoundationTest.Equal(err.code, "validation_failed")
+	FoundationTest.Equal(err.details.problems[1].message, "$.max_homes: must be at most 50")
+	FoundationTest.Equal(err.details.problems[2].message, "$.extra: is not an allowed field")
+end)
+
+suite:Test("Foundation.Schema reports bad schemas at the caller", function()
+	local err = FoundationTest.Raises(function()
+		Foundation.Schema.Integer({ min = 2, max = 1 })
+	end, "min must be at least 0 and not greater than max")
+	FoundationTest.True(tostring(err):find(SELF .. "/Server/Index.lua", 1, true) ~= nil, tostring(err))
+end)
+
+suite:Test("a failing custom validator is reported for its package", function()
+	local broken = Foundation.Schema.Custom(SELF .. ":broken", function()
+		error("custom validator exploded")
+	end)
+	local _, err = Foundation.Schema.Validate(broken, 1)
+	FoundationTest.Equal(err.details.problems[1].message, "$: check '" .. SELF .. ":broken' failed")
+end)
+
 suite:Run()

@@ -63,10 +63,14 @@ describe("Runtime", function()
 		for index, component in ipairs(snapshot.components) do
 			names[index] = component.name .. ":" .. component.state
 		end
-		expect.same(
-			names,
-			{ "log:running", "invoker:running", "ownership:running", "packages:running", "audit:absent" }
-		)
+		expect.same(names, {
+			"log:running",
+			"invoker:running",
+			"schema:running",
+			"ownership:running",
+			"packages:running",
+			"audit:absent",
+		})
 		expect.equal(snapshot.state, "running")
 		expect.equal(snapshot.started_at, 1000)
 		expect.contains(text(lines), "Foundation 0.1.0 started (API 0.1, server)")
@@ -93,7 +97,7 @@ describe("Runtime", function()
 			end,
 		})
 		expect.truthy(runtime:Start())
-		local audit = runtime:Snapshot().components[5]
+		local audit = runtime:Snapshot().components[6]
 		expect.same(audit, { name = "audit", required = false, state = "unavailable" })
 		expect.contains(text(lines), "component 'audit' is unavailable")
 		expect.contains(text(lines), "disk unavailable")

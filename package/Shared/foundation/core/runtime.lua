@@ -6,6 +6,7 @@ local Invoker = Package.Require("invoke.lua")
 local Ownership = Package.Require("ownership.lua")
 local Registry = Package.Require("packages.lua")
 local Keys = Package.Require("keys.lua")
+local Schema = Package.Require("schema.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -40,6 +41,18 @@ local COMPONENTS = {
 		required = true,
 		create = function(runtime)
 			runtime.invoker = Invoker.new({ log = runtime.log, side = runtime.env.side })
+		end,
+	},
+	{
+		name = "schema",
+		required = true,
+		create = function(runtime)
+			runtime.schema = Schema.new({
+				errors = runtime.errors,
+				check = runtime.check,
+				keys = runtime.keys,
+				invoker = runtime.invoker,
+			})
 		end,
 	},
 	{

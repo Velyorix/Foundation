@@ -1,4 +1,5 @@
 local Keys = Package.Require("keys.lua")
+local Schema = Package.Require("schema.lua")
 
 local Facade = {}
 
@@ -33,6 +34,47 @@ function Facade.new(runtime)
 		end,
 		Split = Keys.Split,
 		IsReserved = Keys.IsReserved,
+	})
+
+	local schema = runtime.schema
+	api.Schema = read_only(runtime, "Foundation.Schema", {
+		String = function(options)
+			return schema:String(options)
+		end,
+		Number = function(options)
+			return schema:Number(options)
+		end,
+		Integer = function(options)
+			return schema:Integer(options)
+		end,
+		Boolean = function()
+			return schema:Boolean()
+		end,
+		Any = function()
+			return schema:Any()
+		end,
+		Enum = function(values)
+			return schema:Enum(values)
+		end,
+		Optional = function(inner, default)
+			return schema:Optional(inner, default)
+		end,
+		Record = function(fields, options)
+			return schema:Record(fields, options)
+		end,
+		List = function(inner, options)
+			return schema:List(inner, options)
+		end,
+		Map = function(key_schema, value_schema, options)
+			return schema:Map(key_schema, value_schema, options)
+		end,
+		Custom = function(key, fn)
+			return schema:Custom(key, fn)
+		end,
+		Validate = function(target, value, limits)
+			return schema:Validate(target, value, limits)
+		end,
+		IsSchema = Schema.IsSchema,
 	})
 
 	return read_only(runtime, "Foundation", api)

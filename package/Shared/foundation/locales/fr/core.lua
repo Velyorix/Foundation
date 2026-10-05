@@ -18,4 +18,7 @@ return {
 	["reason.json_depth"] = "{path} est imbriqué sur plus de {max} niveaux",
 	["reason.json_key_type"] = "{path} a une clé de type {type} ; seules les clés texte ou une séquence sont acceptées",
 	["reason.json_unsupported_type"] = "{path} a un type non pris en charge : {type}",
+
+	["reason.owner_closed"] = "'{owner}' est désactivé et ne peut plus enregistrer de ressources",
+	["ownership.release_failed"] = "la libération de {kind} n°{id} de {owner} a échoué",
 }

@@ -18,4 +18,7 @@ return {
 	["reason.json_depth"] = "{path} is nested deeper than {max} levels",
 	["reason.json_key_type"] = "{path} has a {type} key; only string keys or a sequence are supported",
 	["reason.json_unsupported_type"] = "{path} has unsupported type {type}",
+
+	["reason.owner_closed"] = "'{owner}' is disabled and cannot register new resources",
+	["ownership.release_failed"] = "releasing {kind} #{id} of {owner} failed",
 }

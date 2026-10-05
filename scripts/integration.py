@@ -31,6 +31,8 @@ RESULT_LINE = re.compile(r"\[FOUNDATION-TEST\] (?P<suite>\S+) (?P<kind>PASS|FAIL
 # S_ERR is how the server tags lines written with Console.Error.
 ENGINE_ERROR = re.compile(r"^\S+ \S+\s+(ERROR|S_ERR)\s+(?P<message>.*)$")
 LUA_ERROR = re.compile(r"Lua Error", re.IGNORECASE)
+# Only Linux servers report it, but the file then fails to load there.
+CASING_WARNING = re.compile(r"Found Package file with wrong casing")
 
 
 @dataclass
@@ -151,7 +153,8 @@ def parse_log(
                 result.done = True
             continue
         error = ENGINE_ERROR.match(line)
-        if (error or LUA_ERROR.search(line)) and not any(pattern.search(line) for pattern in allowed):
+        flagged = error or LUA_ERROR.search(line) or CASING_WARNING.search(line)
+        if flagged and not any(pattern.search(line) for pattern in allowed):
             result.engine_errors.append(line.strip())
     result.missing_log_lines = [pattern for pattern in expected if pattern not in seen]
     if position < len(sequence):

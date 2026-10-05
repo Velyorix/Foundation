@@ -3,6 +3,9 @@ local Errors = Package.Require("foundation/Shared/foundation/core/errors.lua")
 local Check = Package.Require("foundation/Shared/foundation/core/check.lua")
 local Log = Package.Require("foundation/Shared/foundation/core/log.lua")
 local Audit = Package.Require("foundation/Server/foundation/core/audit.lua")
+local Files = Package.Require("foundation/Server/foundation/core/files.lua")
+local Json = Package.Require("foundation/Shared/foundation/core/json.lua")
+local Sensitive = Package.Require("foundation/Shared/foundation/core/sensitive.lua")
 local en = Package.Require("foundation/Shared/foundation/locales/en/core.lua")
 
 local suite = FoundationTest.Suite("core-audit")
@@ -16,18 +19,21 @@ local log = Log.new({
 		return Server.GetTime() / 1000
 	end,
 })
-local engine_files = {
+local engine_files = Files.new({
 	Open = function(path, truncate)
 		return File(path, truncate)
 	end,
 	Exists = File.Exists,
 	CreateDirectory = File.CreateDirectory,
 	IsDirectory = File.IsDirectory,
-}
+	Rename = File.Rename,
+})
 
 local function new_audit(directory)
 	return Audit.new({
 		files = engine_files,
+		json = Json,
+		sensitive = Sensitive,
 		now = function()
 			return math.floor(Server.GetTime() / 1000)
 		end,

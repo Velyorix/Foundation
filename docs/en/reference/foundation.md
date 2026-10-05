@@ -38,9 +38,20 @@ Raises, at the caller's line:
 | `incompatible_api` | `manifest.api` is not compatible with `Foundation.API_VERSION` |
 | `invalid_state` | Already registered; a `depends` entry is missing or inactive; Foundation is not running |
 
+### `Foundation.Keys` and `Foundation.Schema`
+
+See [Keys and schemas](validation.md).
+
 ## Package context
 
-Returned by `Foundation.Register`. Methods are called with `:`.
+Returned by `Foundation.Register`. Methods are called with `:`. This page describes the
+lifecycle methods; the context also provides:
+
+| Methods | Reference |
+| --- | --- |
+| `RegisterCatalog`, `Translate` | [Localization](localization.md) |
+| `Config` | [Package settings](configuration.md) |
+| `NextTick`, `Delay`, `Repeat`, `Debounce`, `Throttle`, `Future`, `All` | [Timers and futures](scheduling.md) |
 
 ### `context:GetId()`
 
@@ -101,7 +112,10 @@ is no longer active.
 
 ## Errors
 
-Errors caused by a wrong call are raised as strings:
+Foundation reports two kinds of errors.
+
+**Wrong calls** (a programming error in the calling code) are raised as strings, at the line
+of the call:
 
 ```
 [foundation:<code>] <function>: <explanation>
@@ -113,3 +127,25 @@ Errors caused by a wrong call are raised as strings:
 | `invalid_value` | An argument has the right type but an unusable value |
 | `invalid_state` | The call is not possible in the current state |
 | `incompatible_api` | The package requires an API version this Foundation does not provide |
+
+**Expected failures** (invalid input, a timeout) are returned, not raised: the function returns
+`nil` and an error value, or a future is rejected with one. An error value is a table:
+
+| Field | Description |
+| --- | --- |
+| `code` | Stable identifier, see below |
+| `category` | `"developer"`, `"user"`, `"configuration"` or `"infrastructure"` |
+| `message` | Explanation in the server language |
+| `params` | Values used in the message |
+| `details` | Extra data for some codes, for example the problems of `validation_failed` |
+| `cause` | Original error, when this one wraps another |
+
+`tostring(err)` gives `[foundation:<code>] <message>`. Compare `err.code`, never the message,
+which depends on the language.
+
+| Code | Category | Returned by |
+| --- | --- | --- |
+| `invalid_key` | user | [`Foundation.Keys.Parse`](validation.md#foundationkeysparsetext-default_namespace) |
+| `validation_failed` | user | [`Foundation.Schema.Validate`](validation.md#foundationschemavalidateschema-value-limits) |
+| `async_failed` | developer | A [future](scheduling.md#futures) whose executor or handler raised an error |
+| `timeout` | infrastructure | [`future:Timeout`](scheduling.md#future-methods) |

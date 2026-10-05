@@ -29,3 +29,7 @@ globals:
     any: true
   PackagesProbe:
     any: true
+  ConfigFixture:
+    any: true
+  SchedulerFixture:
+    any: true

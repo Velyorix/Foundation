@@ -46,6 +46,25 @@ describe("Messages", function()
 		expect.equal(messages:Format("greeting", { name = "Ana" }), "Bonjour Ana")
 	end)
 
+	it("chooses plural forms with the rules of the catalog's locale", function()
+		local messages = Messages.new({
+			en = { apples = { one = "{count} apple", other = "{count} apples" } },
+			fr = { apples = { one = "{count} pomme", other = "{count} pommes" } },
+		}, "fr")
+		expect.equal(messages:Format("apples", { count = 0 }), "0 pomme")
+		expect.equal(messages:Format("apples", { count = 3 }), "3 pommes")
+		messages:SetLocale("en")
+		expect.equal(messages:Format("apples", { count = 0 }), "0 apples")
+		expect.equal(messages:Format("apples", { count = 1 }), "1 apple")
+	end)
+
+	it("lists placeholders of every plural form", function()
+		expect.same(
+			Messages.Placeholders({ other = "{count} {name}", one = "{count} {unit}" }),
+			{ "count", "unit", "name" }
+		)
+	end)
+
 	it("lists placeholders once in order of appearance", function()
 		expect.same(Messages.Placeholders("{b} and {a} and {b}"), { "b", "a" })
 	end)

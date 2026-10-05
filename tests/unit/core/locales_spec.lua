@@ -25,7 +25,12 @@ describe("core locale catalogs", function()
 			local en = loader:require("foundation/locales/en/" .. name)
 			local fr = loader:require("foundation/locales/fr/" .. name)
 			for key, template in pairs(en) do
-				expect.type(fr[key], "string", "French translation of " .. key)
+				expect.truthy(fr[key] ~= nil, "French translation of " .. key)
+				expect.equal(type(fr[key]), type(template), "same kind of text for " .. key)
+				if type(template) == "table" then
+					expect.type(template.other, "string", "English 'other' form of " .. key)
+					expect.type(fr[key].other, "string", "French 'other' form of " .. key)
+				end
 				local en_placeholders = Messages.Placeholders(template)
 				local fr_placeholders = Messages.Placeholders(fr[key])
 				table.sort(en_placeholders)
@@ -33,7 +38,7 @@ describe("core locale catalogs", function()
 				expect.same(fr_placeholders, en_placeholders, "placeholders of " .. key)
 			end
 			for key in pairs(fr) do
-				expect.type(en[key], "string", "English source of " .. key)
+				expect.truthy(en[key] ~= nil, "English source of " .. key)
 			end
 		end)
 	end

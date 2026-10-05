@@ -22,6 +22,11 @@
         "foundation-test-harness",
         "foundation",
         "foundation-example-greeter",
+        "foundation-example-kits",
+        "foundation-example-welcome",
+        "foundation-example-rewards",
+        "foundation-example-announcer",
+        "foundation-example-autosave",
     ]
     # asset packs requirements
     assets_requirements = [

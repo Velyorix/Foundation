@@ -10,8 +10,9 @@ economy, ranks, homes, warps or shops are provided by separate packages that use
 Any of those packages can be replaced without modifying Foundation.
 
 > Foundation is in early development (0.1.0, unreleased). Available today: package
-> registration, lifecycle and resource tracking. These pages describe only what exists in the
-> current version, and the API may change before 1.0.
+> registration, lifecycle and resource tracking, configuration files, localization, keys and
+> validation, timers and futures. These pages describe only what exists in the current
+> version, and the API may change before 1.0.
 
 *Version française : [Documentation Foundation](../fr/index.md)*
 
@@ -20,10 +21,22 @@ Any of those packages can be replaced without modifying Foundation.
 - [Requirements](requirements.md)
 - [Installation and updates](installation.md)
 - [Compatibility](compatibility.md)
+- [Configuration](configuration.md)
 - [Logging](logging.md)
 
 ## Package developers
 
 - [Package integration](package-integration.md)
 - [Lifecycle](lifecycle.md)
-- [API reference: Foundation and package contexts](reference/foundation.md)
+- [Package settings](package-configuration.md)
+- [Localization](localization.md)
+- [Keys and validation](validation.md)
+- [Timers and asynchronous work](scheduling.md)
+
+API reference:
+
+- [Foundation and package contexts](reference/foundation.md)
+- [Package settings](reference/configuration.md)
+- [Localization](reference/localization.md)
+- [Keys and schemas](reference/validation.md)
+- [Timers and futures](reference/scheduling.md)

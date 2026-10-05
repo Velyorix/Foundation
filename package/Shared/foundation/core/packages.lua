@@ -30,7 +30,10 @@ end
 
 function Registry.new(options)
 	local current_major, current_minor = parse_api(options.api_version)
+	local context_class = setmetatable({}, { __index = Context })
+	context_class.__index = context_class
 	return setmetatable({
+		context_class = context_class,
 		check = options.check,
 		errors = options.check.errors,
 		messages = options.check.errors.messages,
@@ -152,7 +155,7 @@ function Registry:Register(native, manifest)
 		ready_hooks = {},
 		disable_hooks = {},
 	}
-	entry.context = setmetatable({ entry = entry, registry = self }, Context)
+	entry.context = setmetatable({ entry = entry, registry = self }, self.context_class)
 	self.entries[id] = entry
 	self.order[#self.order + 1] = entry
 	self.ownership:Open(id)
@@ -274,6 +277,16 @@ function Registry:Shutdown()
 		end
 	end
 	self.alive = false
+end
+
+-- Adds `context:<name>(...)` for this registry's contexts. `fn(context, entry, ...)` runs
+-- only while the context is active; it is tail-called, so its checks use level 3.
+function Registry:ExtendContext(name, fn)
+	local api = "context:" .. name
+	self.context_class[name] = function(context, ...)
+		local entry = context:guard(api)
+		return fn(context, entry, ...)
+	end
 end
 
 function Registry:State(id)

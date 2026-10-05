@@ -91,6 +91,13 @@ function Logger:DisableDebugCategory(domain)
 	self.core.categories[domain] = nil
 end
 
+function Logger:SetDebugCategories(domains)
+	self.core.categories = {}
+	for _, domain in ipairs(domains) do
+		self.core.categories[domain] = true
+	end
+end
+
 -- Short values would mask ordinary words.
 function Logger:RegisterSecret(value)
 	if type(value) == "string" and #value >= MIN_SECRET_LENGTH then

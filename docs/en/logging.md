@@ -28,8 +28,22 @@ also prints its own stack lines after them and tags them `S_WARN` and `S_ERR` in
 | `<kind> callback of my-package failed` | A function supplied by the package raised an error |
 | `Foundation was unloaded while ...` | Foundation was reloaded alone; follow the command in the message |
 | `Foundation stopped` | Foundation finished shutting down |
+| `created foundation/config/my-package.toml with the default settings` | A configuration file was missing and has been written |
+| `loaded foundation/config/my-package.toml` | A configuration file was read and accepted |
+| `foundation/config/my-package.toml is not used; ...` | The file is invalid; the lines before it list the problems (see [Configuration](configuration.md#editing-safely)) |
+| `missing translation for 'my-package:some.key'` | A package asked for a text that none of its catalogs contains (logged once per key) |
+| `repeating task of my-package stopped after 3 consecutive failures` | A repeating task failed several times in a row and was stopped |
 
-Messages are currently written in English.
+## Level and language
+
+The `[log]` section of `foundation/config.toml` sets the minimum level (`info` by default)
+and the domains whose debug lines are always written. The `language` setting chooses the
+language of the messages: English (`en`) and French (`fr`) are available, other languages use
+English. Lines written while `foundation/config.toml` itself is read are in English. See
+[Configuration](configuration.md).
+
+These settings apply to the lines written by Foundation, whichever package they are about. They
+do not change the server's own `log_level`.
 
 ## Secrets
 
@@ -40,4 +54,4 @@ Field values whose name contains `password`, `passwd`, `secret`, `token`, `crede
 
 When the same warning or error line is written several times within 10 seconds, only the first
 one is printed. The next time it appears after that window, Foundation first prints
-`previous message repeated N more time(s)`. Informational lines are never suppressed.
+`previous message repeated N more times`. Informational lines are never suppressed.

@@ -1,0 +1,15 @@
+# Settings of Daily Rewards (foundation-example-rewards).
+# Read when the package starts. Delete this file to recreate it with the default values.
+
+# Format version of this file. Do not change it.
+config_version = 1
+
+# Give a reward on the first join of each day.
+enabled = true
+
+[reward]
+# Amount of money given.
+amount = 250
+
+# Message shown with the reward.
+message = "Here is your daily reward!"

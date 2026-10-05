@@ -181,6 +181,37 @@ class DocExamplesTest(CheckTestCase):
         self.assertIn("not followed by a code block", problems[2])
 
 
+class RequirePathsTest(CheckTestCase):
+    def setUp(self):
+        super().setUp()
+        self.repo.write("package/Shared/foundation/core/json.lua", "return {}\n")
+        self.repo.write("package/Shared/foundation/core/log.lua", "return {}\n")
+        self.repo.write("package/Server/foundation/core/audit.lua", "return {}\n")
+
+    def test_accepts_paths_resolved_like_nanos(self):
+        self.repo.write(
+            "package/Server/foundation/bootstrap.lua",
+            'local a = Package.Require("foundation/core/json.lua")\n'
+            'local b = Package.Require("foundation/core/audit.lua")\n'
+            'local c = Package.Require("core/audit.lua")\n',
+        )
+        self.repo.write("package/Shared/foundation/core/runtime.lua", 'local l = Package.Require("log.lua")\n')
+        self.assertEqual(check.check_require_paths(self.repo.root), [])
+
+    def test_rejects_parent_segments_wrong_case_and_missing_files(self):
+        self.repo.write(
+            "package/Server/foundation/core/config.lua",
+            'local a = Package.Require("../../../Shared/foundation/core/json.lua")\n'
+            'local b = Package.Require("foundation/core/JSON.lua")\n'
+            'local c = Package.Require("foundation/core/nope.lua")\n',
+        )
+        problems = check.check_require_paths(self.repo.root)
+        self.assertEqual(len(problems), 3, problems)
+        self.assertIn("uses '..'", problems[0])
+        self.assertIn("different casing", problems[1])
+        self.assertIn("does not resolve", problems[2])
+
+
 class StripLuaCommentsTest(unittest.TestCase):
     def test_keeps_strings_containing_dashes(self):
         self.assertEqual(check.strip_lua_comments('local a = "--x" -- note'), 'local a = "--x" ')

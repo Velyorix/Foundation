@@ -35,7 +35,7 @@ end)
 suite:Test("suppresses repeats and reports them on flush", function()
 	local repeated = logger:For("foundation-core-log-test", "repeat")
 	for _ = 1, 3 do
-		repeated:Info("test.plain")
+		repeated:Warning("test.plain")
 	end
 	logger:Flush()
 end)

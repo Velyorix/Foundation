@@ -147,8 +147,9 @@ function Core:emit_repeats(entry)
 	end
 end
 
+-- Only warnings and errors are suppressed: info lines are state changes worth keeping.
 function Core:track(level, line, prefix)
-	if self.repeat_window <= 0 then
+	if self.repeat_window <= 0 or LEVELS[level] < LEVELS.warning then
 		return true
 	end
 	local now = self.clock()

@@ -28,5 +28,20 @@
       "\\[foundation\\] INFO  foundation/core: progress 100% done %s %d note=\\*\\*\\* password=\\*\\*\\*$",
       "\\[foundation\\] INFO  foundation-core-log-test/repeat: previous message repeated 2 more time\\(s\\)$"
     ]
+  },
+  "core-audit": {
+    "description": "Audit records are appended to daily files through the real File API",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-audit-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: audit record could not be written to foundation/blocked\\.txt/"
+    ],
+    "expected_log_lines": [
+      "\\[foundation\\] ERROR foundation/core: audit record could not be written to foundation/blocked\\.txt/audit-\\d{4}-\\d{2}-\\d{2}\\.log; record kept in this log line reason=.*Cannot create a file.* record=.*foundation:fallback_marker"
+    ]
   }
 }

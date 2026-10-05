@@ -132,4 +132,7 @@ return {
 	["reason.config_section_conflict"] = "'{key}' est utilisé à la fois comme réglage et comme section",
 	["reason.config_default"] = "la valeur par défaut ne respecte pas son schéma : {problem}",
 	["reason.config_unknown_key"] = "'{key}' n'est pas un réglage déclaré",
+
+	["reason.delay_range"] = "doit être compris entre {min} et {max} millisecondes",
+	["scheduler.task_stopped"] = "la tâche répétée de {owner} a été arrêtée après {failures} échecs consécutifs",
 }

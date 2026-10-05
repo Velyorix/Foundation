@@ -132,4 +132,7 @@ return {
 	["reason.config_section_conflict"] = "'{key}' is used both as a setting and as a section",
 	["reason.config_default"] = "the default value does not match its schema: {problem}",
 	["reason.config_unknown_key"] = "'{key}' is not a declared setting",
+
+	["reason.delay_range"] = "must be between {min} and {max} milliseconds",
+	["scheduler.task_stopped"] = "repeating task of {owner} stopped after {failures} consecutive failures",
 }

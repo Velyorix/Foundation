@@ -218,5 +218,22 @@
       "\\[foundation\\] INFO  foundation-config-fixture/config: loaded foundation/config/foundation-config-fixture\\.toml",
       "\\[foundation\\] ERROR foundation-config-fixture/config: foundation/config/foundation-config-fixture\\.toml: \\$\\.motd: must have at most 32 characters"
     ]
+  },
+  "core-scheduler": {
+    "description": "Scheduler tasks on real engine timers, with cleanup when the owner unloads",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-scheduler-fixture",
+      "foundation-core-scheduler-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: task callback of foundation-core-scheduler-test failed",
+      "\\[foundation\\] ERROR foundation/core: previous message repeated"
+    ],
+    "expected_log_lines": [
+      "\\[foundation\\] WARN  foundation-core-scheduler-test/scheduler: repeating task of foundation-core-scheduler-test stopped after 2 consecutive failures"
+    ]
   }
 }

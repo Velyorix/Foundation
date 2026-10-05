@@ -8,6 +8,7 @@ local Registry = Package.Require("packages.lua")
 local Keys = Package.Require("keys.lua")
 local Schema = Package.Require("schema.lua")
 local I18n = Package.Require("i18n.lua")
+local Scheduler = Package.Require("scheduler.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -89,6 +90,46 @@ local COMPONENTS = {
 			runtime.packages:ExtendContext("Translate", function(_, entry, key, params, locale)
 				local text = i18n:Translate(entry.id, key, params, locale, "context:Translate", 3)
 				return text
+			end)
+		end,
+	},
+	{
+		name = "scheduler",
+		required = false,
+		create = function(runtime)
+			local env = runtime.env
+			if not env.timer then
+				return "absent"
+			end
+			local scheduler = Scheduler.new({
+				timer = env.timer,
+				now_ms = env.now_ms,
+				invoker = runtime.invoker,
+				ownership = runtime.ownership,
+				check = runtime.check,
+				log = runtime.log,
+			})
+			runtime.scheduler = scheduler
+			local packages = runtime.packages
+			packages:ExtendContext("NextTick", function(_, entry, fn)
+				local task = scheduler:NextTick(entry.id, fn, "context:NextTick", 3)
+				return task
+			end)
+			packages:ExtendContext("Delay", function(_, entry, milliseconds, fn)
+				local task = scheduler:Delay(entry.id, milliseconds, fn, "context:Delay", 3)
+				return task
+			end)
+			packages:ExtendContext("Repeat", function(_, entry, milliseconds, fn, options)
+				local task = scheduler:Repeat(entry.id, milliseconds, fn, options, "context:Repeat", 3)
+				return task
+			end)
+			packages:ExtendContext("Debounce", function(_, entry, milliseconds, fn)
+				local debounced = scheduler:Debounce(entry.id, milliseconds, fn, "context:Debounce", 3)
+				return debounced
+			end)
+			packages:ExtendContext("Throttle", function(_, entry, milliseconds, fn)
+				local throttled = scheduler:Throttle(entry.id, milliseconds, fn, "context:Throttle", 3)
+				return throttled
 			end)
 		end,
 	},
@@ -257,6 +298,7 @@ function Runtime:Snapshot()
 		audit = self.audit and self.audit:Snapshot() or nil,
 		config = self.config and self.config:Snapshot() or nil,
 		package_configs = self.package_configs and self.package_configs:Snapshot() or nil,
+		scheduler = self.scheduler and self.scheduler:Snapshot() or nil,
 		locale = self.i18n and self.i18n:GetServerLocale() or nil,
 	}
 end

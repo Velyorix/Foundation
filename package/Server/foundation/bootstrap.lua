@@ -40,6 +40,10 @@ function Bootstrap.Start()
 			return Server.GetTime() / 1000
 		end,
 		now = now,
+		now_ms = function()
+			return Server.GetTime()
+		end,
+		timer = Timer,
 		create_config = function(rt)
 			return Config.new({
 				spec = Settings(rt.schema, rt.messages),

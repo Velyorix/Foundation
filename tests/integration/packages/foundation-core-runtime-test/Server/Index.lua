@@ -21,6 +21,7 @@ end)
 
 suite:Test("Foundation is read-only", function()
 	FoundationTest.Raises(function()
+		-- selene: allow(unscoped_variables)
 		Foundation.Register = nil
 	end, "the Foundation table is read-only")
 	FoundationTest.Equal(getmetatable(Foundation), false)

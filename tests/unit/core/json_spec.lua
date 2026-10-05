@@ -39,6 +39,7 @@ describe("Json.Encode", function()
 	end)
 
 	it("rejects tables mixing sequence and string keys", function()
+		-- selene: allow(mixed_table)
 		local text, reason, params = Json.Encode({ 1, x = 2 })
 		expect.is_nil(text)
 		expect.equal(reason, "reason.json_key_type")

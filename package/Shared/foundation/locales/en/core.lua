@@ -20,5 +20,5 @@ return {
 	["reason.json_unsupported_type"] = "{path} has unsupported type {type}",
 
 	["reason.owner_closed"] = "'{owner}' is disabled and cannot register new resources",
-	["ownership.release_failed"] = "releasing {kind} #{id} of {owner} failed",
+	["invoke.failed"] = "{kind} callback of {owner} failed",
 }

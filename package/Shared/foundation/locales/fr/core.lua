@@ -20,5 +20,5 @@ return {
 	["reason.json_unsupported_type"] = "{path} a un type non pris en charge : {type}",
 
 	["reason.owner_closed"] = "'{owner}' est désactivé et ne peut plus enregistrer de ressources",
-	["ownership.release_failed"] = "la libération de {kind} n°{id} de {owner} a échoué",
+	["invoke.failed"] = "le callback {kind} de {owner} a échoué",
 }

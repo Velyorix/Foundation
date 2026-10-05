@@ -16,7 +16,7 @@ function Ownership.new(options)
 	return setmetatable({
 		check = options.check,
 		errors = options.check.errors,
-		log = options.log,
+		invoker = options.invoker,
 		sequence = 0,
 		owners = {},
 		release_failures = 0,
@@ -84,14 +84,13 @@ function Ownership:run_release(handle)
 	handle.released = true
 	handle.release = nil
 	self:forget(handle)
-	local ok, err = xpcall(release, debug.traceback, handle)
+	local ok = self.invoker:Call(
+		{ owner = handle.owner, kind = "release", fields = { resource = handle.kind, id = handle.id } },
+		release,
+		handle
+	)
 	if not ok then
 		self.release_failures = self.release_failures + 1
-		self.log:Error(
-			"ownership.release_failed",
-			{ kind = handle.kind, id = handle.id, owner = handle.owner },
-			{ owner = handle.owner, trace = tostring(err) }
-		)
 	end
 	return ok
 end

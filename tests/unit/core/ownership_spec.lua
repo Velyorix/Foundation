@@ -5,6 +5,7 @@ local function setup()
 	local Check = loader:require("foundation/core/check.lua")
 	local Log = loader:require("foundation/core/log.lua")
 	local Ownership = loader:require("foundation/core/ownership.lua")
+	local Invoker = loader:require("foundation/core/invoke.lua")
 	local messages = Messages.new({ en = loader:require("foundation/locales/en/core.lua") })
 	local logged = {}
 	local log = Log.new({
@@ -17,16 +18,17 @@ local function setup()
 		end,
 		repeat_window = 0,
 	})
-	return Ownership.new({ check = Check.new(Errors.new(messages)), log = log }), logged
+	local invoker = Invoker.new({ log = log, side = "server" })
+	return Ownership.new({ check = Check.new(Errors.new(messages)), invoker = invoker }), logged, invoker
 end
 
 local function noop() end
 
 describe("Ownership", function()
-	local tracker, logged
+	local tracker, logged, invoker
 
 	before_each(function()
-		tracker, logged = setup()
+		tracker, logged, invoker = setup()
 	end)
 
 	describe("Track", function()
@@ -108,7 +110,7 @@ describe("Ownership", function()
 			expect.equal(tracker:Count("pkg"), 0)
 			expect.equal(#logged, 1)
 			expect.equal(logged[1].level, "error")
-			expect.contains(logged[1].line, "releasing listener #1 of pkg failed")
+			expect.contains(logged[1].line, "foundation/core: release callback of pkg failed id=1 resource=listener")
 			expect.contains(logged[1].line, "release exploded")
 			expect.equal(tracker:Snapshot().release_failures, 1)
 		end)
@@ -159,6 +161,7 @@ describe("Ownership", function()
 			expect.equal(released, 2)
 			expect.equal(failed, 1)
 			expect.equal(tracker:Count("pkg"), 0)
+			expect.equal(invoker:Errors("pkg"), 1)
 		end)
 
 		it("skips handles released by another release callback", function()

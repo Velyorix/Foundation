@@ -8,7 +8,10 @@ return {
 	["reason.unsupported_type"] = "type non pris en charge '{type}'",
 	["reason.empty_string"] = "ne doit pas être vide",
 
-	["log.repeated"] = "message précédent répété {count} fois de plus",
+	["log.repeated"] = {
+		one = "message précédent répété {count} fois de plus",
+		other = "message précédent répété {count} fois de plus",
+	},
 
 	["error.audit_write_failed"] = "impossible d'écrire l'enregistrement d'audit dans {path}",
 	["audit.write_failed"] = "l'enregistrement d'audit n'a pas pu être écrit dans {path} ; il est conservé dans cette ligne de journal",
@@ -87,4 +90,12 @@ return {
 	["reason.json_decode_depth"] = "imbriqué sur plus de {max} niveaux au caractère {position}",
 	["reason.json_duplicate_key"] = "clé en double '{key}' au caractère {position}",
 	["reason.json_null_in_array"] = "null dans un tableau au caractère {position}",
+
+	["reason.locale_format"] = "doit être un code de langue comme 'en', 'fr' ou 'fr_CA'",
+	["reason.catalog_key"] = "les clés ne peuvent contenir que des lettres, des chiffres, '_', '-' et '.'",
+	["reason.plural_other"] = "les formes de pluriel doivent comporter une forme 'other'",
+	["reason.plural_form"] = "'{form}' n'est pas une forme de pluriel (zero, one, two, few, many, other) ou son texte n'est pas une chaîne",
+	["reason.catalog_value"] = "doit être une chaîne ou une table de formes de pluriel",
+	["reason.catalog_exists"] = "'{owner}' a déjà enregistré un catalogue pour '{locale}'",
+	["i18n.missing_key"] = "traduction manquante pour '{key}'",
 }

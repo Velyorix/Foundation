@@ -167,7 +167,7 @@ describe("Log", function()
 			expect.equal(#state.lines, 3)
 			expect.equal(
 				state.lines[2].line,
-				"[foundation] WARN  foundation/core: previous message repeated 3 more time(s)"
+				"[foundation] WARN  foundation/core: previous message repeated 3 more times"
 			)
 			expect.equal(state.lines[2].level, "warning")
 			expect.equal(state.lines[3].line, "[foundation] WARN  foundation/core: plain message")
@@ -187,7 +187,7 @@ describe("Log", function()
 			logger:Warning("test.plain")
 			logger:Flush()
 			expect.equal(#state.lines, 2)
-			expect.contains(state.lines[2].line, "repeated 1 more time(s)")
+			expect.contains(state.lines[2].line, "repeated 1 more time")
 			logger:Warning("test.plain")
 			expect.equal(#state.lines, 3, "tracking restarts after Flush")
 		end)

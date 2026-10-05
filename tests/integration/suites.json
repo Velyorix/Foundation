@@ -26,7 +26,7 @@
       "\\[foundation\\] WARN  foundation-core-log-test/levels: core-log marker level=warning$",
       "\\[foundation\\] ERROR foundation-core-log-test/levels: core-log marker level=error$",
       "\\[foundation\\] INFO  foundation/core: progress 100% done %s %d note=\\*\\*\\* password=\\*\\*\\*$",
-      "\\[foundation\\] WARN  foundation-core-log-test/repeat: previous message repeated 2 more time\\(s\\)$"
+      "\\[foundation\\] WARN  foundation-core-log-test/repeat: previous message repeated 2 more times$"
     ]
   },
   "core-audit": {
@@ -162,5 +162,18 @@
     ],
     "timeout_seconds": 90,
     "allowed_errors": []
+  },
+  "core-i18n": {
+    "description": "Package catalogs, plurals, fallback and missing keys through the real Foundation global",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-i18n-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] WARN  foundation-core-i18n-test/i18n: missing translation for 'foundation-core-i18n-test:missing\\.key'"
+    ]
   }
 }

@@ -43,5 +43,5 @@ Les valeurs des champs dont le nom contient `password`, `passwd`, `secret`, `tok
 
 Quand une même ligne d'avertissement ou d'erreur est écrite plusieurs fois en moins de
 10 secondes, seule la première est affichée. La fois suivante où elle apparaît après ce délai,
-Foundation affiche d'abord `previous message repeated N more time(s)`. Les lignes
+Foundation affiche d'abord `previous message repeated N more times`. Les lignes
 d'information ne sont jamais supprimées.

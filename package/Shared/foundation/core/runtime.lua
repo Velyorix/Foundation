@@ -7,6 +7,7 @@ local Ownership = Package.Require("ownership.lua")
 local Registry = Package.Require("packages.lua")
 local Keys = Package.Require("keys.lua")
 local Schema = Package.Require("schema.lua")
+local I18n = Package.Require("i18n.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -73,6 +74,22 @@ local COMPONENTS = {
 				invoker = runtime.invoker,
 				api_version = runtime.env.api_version,
 			})
+		end,
+	},
+	{
+		name = "i18n",
+		required = true,
+		create = function(runtime)
+			local i18n = I18n.new({ check = runtime.check, log = runtime.log, messages = runtime.messages })
+			runtime.i18n = i18n
+			runtime.packages:ExtendContext("RegisterCatalog", function(context, entry, locale, entries)
+				local release = i18n:Register(entry.id, locale, entries, "context:RegisterCatalog", 3)
+				context:Track("catalog", release, { locale = locale })
+			end)
+			runtime.packages:ExtendContext("Translate", function(_, entry, key, params, locale)
+				local text = i18n:Translate(entry.id, key, params, locale, "context:Translate", 3)
+				return text
+			end)
 		end,
 	},
 	{

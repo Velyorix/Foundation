@@ -8,7 +8,10 @@ return {
 	["reason.unsupported_type"] = "unsupported type '{type}'",
 	["reason.empty_string"] = "must not be empty",
 
-	["log.repeated"] = "previous message repeated {count} more time(s)",
+	["log.repeated"] = {
+		one = "previous message repeated {count} more time",
+		other = "previous message repeated {count} more times",
+	},
 
 	["error.audit_write_failed"] = "could not write audit record to {path}",
 	["audit.write_failed"] = "audit record could not be written to {path}; record kept in this log line",
@@ -87,4 +90,12 @@ return {
 	["reason.json_decode_depth"] = "nested more than {max} levels deep at character {position}",
 	["reason.json_duplicate_key"] = "duplicate key '{key}' at character {position}",
 	["reason.json_null_in_array"] = "null inside an array at character {position}",
+
+	["reason.locale_format"] = "must be a locale code such as 'en', 'fr' or 'fr_CA'",
+	["reason.catalog_key"] = "keys may only contain letters, digits, '_', '-' and '.'",
+	["reason.plural_other"] = "plural forms need an 'other' form",
+	["reason.plural_form"] = "'{form}' is not a plural form (zero, one, two, few, many, other) or its text is not a string",
+	["reason.catalog_value"] = "must be a string or a table of plural forms",
+	["reason.catalog_exists"] = "'{owner}' already registered a catalog for '{locale}'",
+	["i18n.missing_key"] = "missing translation for '{key}'",
 }

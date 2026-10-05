@@ -40,4 +40,4 @@ Field values whose name contains `password`, `passwd`, `secret`, `token`, `crede
 
 When the same warning or error line is written several times within 10 seconds, only the first
 one is printed. The next time it appears after that window, Foundation first prints
-`previous message repeated N more time(s)`. Informational lines are never suppressed.
+`previous message repeated N more times`. Informational lines are never suppressed.

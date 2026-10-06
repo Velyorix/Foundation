@@ -1,3 +1,5 @@
+local Arguments = Package.Require("arguments.lua")
+
 local Commands = {}
 Commands.__index = Commands
 
@@ -6,7 +8,14 @@ Commands.MAX_DEPTH = 8
 Commands.RESERVED = { foundation = true }
 
 local LABEL_PATTERN = "^[a-z][a-z0-9_-]*$"
-local SPEC_FIELDS = { name = true, aliases = true, description = true, run = true, subcommands = true }
+local SPEC_FIELDS = {
+	name = true,
+	aliases = true,
+	description = true,
+	run = true,
+	subcommands = true,
+	arguments = true,
+}
 local FIELD_TYPES = {
 	{ "aliases", "table" },
 	{ "description", "string" },
@@ -14,9 +23,10 @@ local FIELD_TYPES = {
 	{ "subcommands", "table" },
 }
 
--- options: check, log
+-- options: check, log, arguments (core/arguments.lua instance)
 function Commands.new(options)
 	return setmetatable({
+		arguments = options.arguments,
 		check = options.check,
 		errors = options.check.errors,
 		messages = options.check.errors.messages,
@@ -57,11 +67,20 @@ function Commands:build(spec, path, depth, owner)
 		return nil, path, "reason.command_depth", { max = Commands.MAX_DEPTH }
 	end
 
+	local arguments = {}
+	if spec.arguments ~= nil then
+		local compiled, where, reason, params = self.arguments:Compile(spec.arguments, path .. ".arguments")
+		if not compiled then
+			return nil, where, reason, params
+		end
+		arguments = compiled
+	end
 	local node = {
 		name = spec.name,
 		aliases = {},
 		description = spec.description,
 		run = spec.run,
+		arguments = arguments,
 		children = {},
 		lookup = {},
 	}
@@ -229,7 +248,117 @@ function Commands:Resolve(tokens)
 		path[#path + 1] = child.name
 		index = index + 1
 	end
-	return { root = entry.root, node = node, path = path, arguments = { table.unpack(tokens, index) } }
+	return {
+		root = entry.root,
+		node = node,
+		path = path,
+		index = index,
+		arguments = { table.unpack(tokens, index) },
+	}
+end
+
+local function texts(tokens, last)
+	local words = {}
+	for index = 1, last or #tokens do
+		words[index] = tokens[index].text
+	end
+	return words
+end
+
+-- Parses a typed command line (without the leading '/'). Returns nil when the first word
+-- is not a command; nil and a `command_usage` error when the input is wrong; otherwise
+-- { root, node, path, values }.
+function Commands:Parse(line)
+	local tokens, reason = Arguments.Split(line)
+	if not tokens then
+		local _, err = self.arguments:usage_error(reason)
+		return nil, err
+	end
+	local result = self:Resolve(texts(tokens))
+	if not result then
+		return nil
+	end
+	local node = result.node
+	if not node.run then
+		local choices = {}
+		for _, child in ipairs(node.children) do
+			choices[#choices + 1] = child.name
+		end
+		local _, err =
+			self.arguments:usage_error("command.choose_subcommand", { choices = table.concat(choices, ", ") })
+		return nil, err
+	end
+	local values, err = self.arguments:Parse(node.arguments, tokens, result.index, line)
+	if not values then
+		return nil, err
+	end
+	return { root = result.root, node = node, path = result.path, values = values }
+end
+
+local function add_labels(result, seen, labels, prefix)
+	for _, label in ipairs(labels) do
+		if not seen[label] and label:sub(1, #prefix) == prefix then
+			seen[label] = true
+			result[#result + 1] = label
+		end
+	end
+end
+
+local function finish(result)
+	table.sort(result)
+	while #result > Arguments.MAX_SUGGESTIONS do
+		result[#result] = nil
+	end
+	return result
+end
+
+-- Completions for the word being typed at the end of `line`.
+function Commands:Suggest(line)
+	local tokens = Arguments.Split(line)
+	if not tokens then
+		return {}
+	end
+	local prefix = ""
+	local completed = #tokens
+	if #tokens > 0 and not line:match("%s$") then
+		prefix = tokens[#tokens].text:lower()
+		completed = #tokens - 1
+	end
+	local result, seen = {}, {}
+	if completed == 0 then
+		local labels = {}
+		for label, entry in pairs(self.labels) do
+			if entry.kind ~= "namespaced" or prefix:find(":", 1, true) then
+				labels[#labels + 1] = label
+			end
+		end
+		add_labels(result, seen, labels, prefix)
+		return finish(result)
+	end
+	local resolved = self:Resolve(texts(tokens, completed))
+	if not resolved then
+		return {}
+	end
+	local node = resolved.node
+	local position = completed - resolved.index + 2
+	if position == 1 then
+		local labels = {}
+		for label in pairs(node.lookup) do
+			labels[#labels + 1] = label
+		end
+		add_labels(result, seen, labels, prefix)
+	end
+	for index = 1, position - 1 do
+		local previous = node.arguments[index]
+		if not previous or (previous.builtin and previous.builtin.greedy) then
+			return finish(result)
+		end
+	end
+	local declaration = node.arguments[position]
+	if declaration then
+		self.arguments:Suggest(declaration, prefix, result, seen)
+	end
+	return finish(result)
 end
 
 -- Plain and namespaced labels with the owner and command name they lead to.

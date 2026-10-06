@@ -12,6 +12,7 @@ local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
 local Commands = Package.Require("commands.lua")
+local Arguments = Package.Require("arguments.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -218,8 +219,21 @@ local COMPONENTS = {
 		name = "commands",
 		required = true,
 		create = function(runtime)
-			local commands = Commands.new({ check = runtime.check, log = runtime.log })
+			local arguments = Arguments.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				invoker = runtime.invoker,
+				log = runtime.log,
+			})
+			local commands = Commands.new({ check = runtime.check, log = runtime.log, arguments = arguments })
 			runtime.commands = commands
+			runtime.arguments = arguments
+			runtime.packages:ExtendContext("RegisterArgumentType", function(context, entry, name, definition)
+				local key, release =
+					arguments:RegisterType(entry.id, name, definition, "context:RegisterArgumentType", 3)
+				context:Track("argument_type", release, { type = key })
+				return key
+			end)
 			runtime.packages:ExtendContext("RegisterCommand", function(context, entry, spec)
 				local root, release = commands:Register(entry.id, spec, "context:RegisterCommand", 3)
 				local handle = context:Track("command", release, { command = root.name })

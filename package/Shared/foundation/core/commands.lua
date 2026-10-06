@@ -15,18 +15,33 @@ local SPEC_FIELDS = {
 	run = true,
 	subcommands = true,
 	arguments = true,
+	description_key = true,
+	senders = true,
+	cooldown = true,
+	audit = true,
 }
 local FIELD_TYPES = {
 	{ "aliases", "table" },
 	{ "description", "string" },
+	{ "description_key", "string" },
 	{ "run", "function" },
 	{ "subcommands", "table" },
+	{ "senders", "table" },
+	{ "cooldown", "number" },
+	{ "audit", "boolean" },
 }
+local SENDER_KINDS = { console = true, player = true }
 
--- options: check, log, arguments (core/arguments.lua instance)
+-- options: check, log, arguments (core/arguments.lua instance), invoker, events, i18n,
+-- now_ms, audit (function returning the audit sink or nil)
 function Commands.new(options)
 	return setmetatable({
 		arguments = options.arguments,
+		invoker = options.invoker,
+		events = options.events,
+		i18n = options.i18n,
+		now_ms = options.now_ms,
+		audit = options.audit,
 		check = options.check,
 		errors = options.check.errors,
 		messages = options.check.errors.messages,
@@ -75,12 +90,33 @@ function Commands:build(spec, path, depth, owner)
 		end
 		arguments = compiled
 	end
+	local senders
+	if spec.senders ~= nil then
+		senders = {}
+		for _, kind in ipairs(spec.senders) do
+			if not SENDER_KINDS[kind] then
+				return nil, path .. ".senders", "reason.command_senders", nil
+			end
+			senders[kind] = true
+		end
+		if next(senders) == nil then
+			return nil, path .. ".senders", "reason.command_senders", nil
+		end
+	end
+	if spec.cooldown ~= nil and (math.type(spec.cooldown) ~= "integer" or spec.cooldown < 0) then
+		return nil, path .. ".cooldown", "reason.command_cooldown", nil
+	end
 	local node = {
 		name = spec.name,
 		aliases = {},
 		description = spec.description,
+		description_key = spec.description_key,
 		run = spec.run,
 		arguments = arguments,
+		senders = senders,
+		cooldown = spec.cooldown,
+		audit = spec.audit == true,
+		cooldowns = {},
 		children = {},
 		lookup = {},
 	}
@@ -359,6 +395,154 @@ function Commands:Suggest(line)
 		self.arguments:Suggest(declaration, prefix, result, seen)
 	end
 	return finish(result)
+end
+
+local function node_path(node)
+	local names = {}
+	while node do
+		table.insert(names, 1, node.name)
+		node = node.parent
+	end
+	return names
+end
+
+local function argument_usage(argument)
+	local name = argument.name
+	if argument.builtin and argument.builtin.greedy then
+		name = name .. "..."
+	end
+	if argument.optional then
+		return "[" .. name .. "]"
+	end
+	return "<" .. name .. ">"
+end
+
+-- Usage line of a node: "/home set <name> [note...]", or "/admin <open|close>" for a node
+-- that only groups subcommands. `prefix` is "/" for players and "" for the console.
+function Commands:Usage(node, prefix)
+	local parts = { (prefix or "") .. table.concat(node_path(node), " ") }
+	if not node.run then
+		local names = {}
+		for _, child in ipairs(node.children) do
+			names[#names + 1] = child.name
+		end
+		parts[#parts + 1] = "<" .. table.concat(names, "|") .. ">"
+	else
+		for _, argument in ipairs(node.arguments) do
+			parts[#parts + 1] = argument_usage(argument)
+		end
+	end
+	return table.concat(parts, " ")
+end
+
+-- Description of a node in `locale`: description_key is looked up in the owner's catalogs.
+function Commands:Describe(root, node, locale)
+	if node.description_key and self.i18n then
+		local text = self.i18n:Translate(root.owner, node.description_key, nil, locale, "Commands:Describe", 2)
+		return text
+	end
+	return node.description
+end
+
+local function audit_value(value)
+	local kind = type(value)
+	if kind == "string" or kind == "number" or kind == "boolean" then
+		return value
+	end
+	return tostring(value)
+end
+
+function Commands:record_audit(root, path, sender, values, outcome)
+	local audit = self.audit and self.audit()
+	if not audit then
+		return
+	end
+	local arguments = {}
+	for name, value in pairs(values) do
+		arguments[name] = audit_value(value)
+	end
+	local info = { owner = root.owner, kind = "command_audit", fields = { command = table.concat(path, " ") } }
+	self.invoker:Call(info, function()
+		audit:Record(root.owner, root.owner .. ":command/" .. table.concat(path, "/"), {
+			actor = sender.kind == "console" and "console" or ("player:" .. tostring(sender.id)),
+			outcome = outcome,
+			details = { arguments = arguments },
+		})
+	end)
+end
+
+function Commands:usage_node(line)
+	local tokens = Arguments.Split(line)
+	if not tokens then
+		return nil
+	end
+	local resolved = self:Resolve(texts(tokens))
+	return resolved and resolved.node
+end
+
+-- Runs a typed command line for `sender` (core/senders.lua): parse, check the sender
+-- kind and cooldown, emit foundation:command (cancellable), run, record the audit entry
+-- when asked, emit foundation:command_completed. Replies go to the sender.
+-- Returns { status = "ok" | "unknown" | "usage" | "denied" | "cooldown" | "cancelled" | "failed" }.
+function Commands:Execute(sender, line)
+	local prefix = sender:IsPlayer() and "/" or ""
+	local parsed, err = self:Parse(line)
+	if not parsed then
+		if not err then
+			return { status = "unknown" }
+		end
+		sender:Reply(err.message)
+		local node = self:usage_node(line)
+		if node then
+			sender:Reply(self.messages:Format("command.usage", { usage = self:Usage(node, prefix) }))
+		end
+		return { status = "usage", error = err }
+	end
+
+	local node, root = parsed.node, parsed.root
+	if node.senders and not node.senders[sender.kind] then
+		sender:Reply(
+			self.messages:Format(sender.kind == "console" and "command.players_only" or "command.console_only")
+		)
+		return { status = "denied" }
+	end
+	local now = self.now_ms()
+	local cooled = node.cooldown and node.cooldown > 0 and not sender:IsConsole()
+	if cooled then
+		local ready_at = node.cooldowns[sender.id]
+		if ready_at and ready_at > now then
+			sender:Reply(self.messages:Format("command.cooldown", { seconds = math.ceil((ready_at - now) / 1000) }))
+			return { status = "cooldown" }
+		end
+	end
+
+	local command = table.concat(parsed.path, " ")
+	local payload = {
+		command = command,
+		owner = root.owner,
+		sender = sender.kind,
+		name = sender.name,
+		arguments = parsed.values,
+	}
+	if self.events:Emit("foundation", "command", payload, "Commands:Execute", 2):IsCancelled() then
+		return { status = "cancelled" }
+	end
+
+	local info = { owner = root.owner, kind = "command", fields = { command = command } }
+	local ok = self.invoker:Call(info, node.run, sender, parsed.values, { path = parsed.path, line = line })
+	if ok and cooled then
+		node.cooldowns[sender.id] = now + node.cooldown
+	end
+	if not ok then
+		sender:Reply(self.messages:Format("command.failed"))
+	end
+	local outcome = ok and "success" or "failure"
+	if node.audit then
+		self:record_audit(root, parsed.path, sender, parsed.values, outcome)
+	end
+	payload.outcome = outcome
+	self.events:Emit("foundation", "command_completed", payload, "Commands:Execute", 2)
+	return { status = ok and "ok" or "failed" }
 end
 
 -- Plain and namespaced labels with the owner and command name they lead to.

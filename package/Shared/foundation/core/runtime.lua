@@ -225,7 +225,41 @@ local COMPONENTS = {
 				invoker = runtime.invoker,
 				log = runtime.log,
 			})
-			local commands = Commands.new({ check = runtime.check, log = runtime.log, arguments = arguments })
+			local env = runtime.env
+			local commands = Commands.new({
+				check = runtime.check,
+				log = runtime.log,
+				arguments = arguments,
+				invoker = runtime.invoker,
+				events = runtime.events,
+				i18n = runtime.i18n,
+				now_ms = env.now_ms or function()
+					return math.floor(env.clock() * 1000)
+				end,
+				audit = function()
+					return runtime.audit
+				end,
+			})
+			local S = runtime.schema
+			local command_fields = {
+				command = S:String(),
+				owner = S:String(),
+				sender = S:Enum({ "console", "player" }),
+				name = S:String(),
+				arguments = S:Any(),
+			}
+			runtime.events:Define(
+				"foundation",
+				"command",
+				{ fields = command_fields, cancellable = true },
+				"Runtime",
+				2
+			)
+			local completed_fields = { outcome = S:Enum({ "success", "failure" }) }
+			for field, schema in pairs(command_fields) do
+				completed_fields[field] = schema
+			end
+			runtime.events:Define("foundation", "command_completed", { fields = completed_fields }, "Runtime", 2)
 			runtime.commands = commands
 			runtime.arguments = arguments
 			runtime.packages:ExtendContext("RegisterArgumentType", function(context, entry, name, definition)

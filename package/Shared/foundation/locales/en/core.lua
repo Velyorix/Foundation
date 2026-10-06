@@ -189,4 +189,12 @@ return {
 	["argument.failed"] = "<{name}> could not be read",
 	["argument.invalid"] = "<{name}>: '{value}' is not valid",
 	["argument.custom"] = "<{name}>: {reason}",
+
+	["reason.command_senders"] = "must list 'console', 'player' or both",
+	["reason.command_cooldown"] = "must be a whole number of milliseconds, 0 or more",
+	["command.usage"] = "Usage: {usage}",
+	["command.players_only"] = "this command can only be used by players",
+	["command.console_only"] = "this command can only be used from the server console",
+	["command.cooldown"] = "wait {seconds} s before using this command again",
+	["command.failed"] = "the command failed; the error was logged",
 }

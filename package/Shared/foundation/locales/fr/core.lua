@@ -189,4 +189,12 @@ return {
 	["argument.failed"] = "<{name}> n'a pas pu être lu",
 	["argument.invalid"] = "<{name}> : '{value}' n'est pas valide",
 	["argument.custom"] = "<{name}> : {reason}",
+
+	["reason.command_senders"] = "doit contenir 'console', 'player' ou les deux",
+	["reason.command_cooldown"] = "doit être un nombre entier de millisecondes, 0 ou plus",
+	["command.usage"] = "Utilisation : {usage}",
+	["command.players_only"] = "cette commande ne peut être utilisée que par des joueurs",
+	["command.console_only"] = "cette commande ne peut être utilisée que depuis la console du serveur",
+	["command.cooldown"] = "attendez {seconds} s avant de réutiliser cette commande",
+	["command.failed"] = "la commande a échoué ; l'erreur a été journalisée",
 }

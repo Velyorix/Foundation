@@ -197,4 +197,7 @@ return {
 	["command.console_only"] = "this command can only be used from the server console",
 	["command.cooldown"] = "wait {seconds} s before using this command again",
 	["command.failed"] = "the command failed; the error was logged",
+
+	["command.unknown"] = "unknown command: {label}",
+	["config.template.unknown_in_chat"] = "Chat messages starting with '/' that are not commands: 'reply' answers \"unknown command\" and hides the message, 'pass' leaves them to other packages.",
 }

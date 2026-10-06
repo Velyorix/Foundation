@@ -35,3 +35,5 @@ globals:
     any: true
   EventsFixture:
     any: true
+  CommandsFixture:
+    any: true

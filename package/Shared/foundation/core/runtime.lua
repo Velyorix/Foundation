@@ -303,6 +303,21 @@ local COMPONENTS = {
 		end,
 	},
 	{
+		name = "command_bridges",
+		required = false,
+		create = function(runtime)
+			if not runtime.env.create_command_bridges then
+				return "absent"
+			end
+			local bridges = runtime.env.create_command_bridges(runtime)
+			runtime.command_bridges = bridges
+			runtime.commands:OnLabelsChanged(function()
+				bridges:Sync()
+			end)
+			bridges:Start()
+		end,
+	},
+	{
 		name = "audit",
 		required = false,
 		create = function(runtime)
@@ -352,6 +367,7 @@ function Runtime:Start()
 end
 
 function Runtime:ApplySettings(values)
+	self.settings = values
 	self.i18n:SetServerLocale(values.language)
 	self.log:SetLevel(values.log.level)
 	self.log:SetDebugCategories(values.log.debug_categories)

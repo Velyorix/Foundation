@@ -49,7 +49,20 @@ function Commands.new(options)
 		roots = {},
 		labels = {},
 		sequence = 0,
+		observers = {},
 	}, Commands)
+end
+
+-- observer() runs after the set of labels changed (registration or removal).
+function Commands:OnLabelsChanged(observer)
+	self.observers[#self.observers + 1] = observer
+end
+
+function Commands:notify()
+	local info = { owner = "foundation", kind = "command_observer" }
+	for _, observer in ipairs(self.observers) do
+		self.invoker:Call(info, observer)
+	end
 end
 
 local function is_label(value)
@@ -251,6 +264,7 @@ function Commands:Register(owner, spec, api, level)
 	end
 	self.roots[#self.roots + 1] = root
 	self:report_conflicts(root, self:rebuild())
+	self:notify()
 	return root,
 		function()
 			for index, other in ipairs(self.roots) do
@@ -261,6 +275,7 @@ function Commands:Register(owner, spec, api, level)
 			end
 			root.removed = true
 			self:rebuild()
+			self:notify()
 		end
 end
 

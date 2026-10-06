@@ -197,4 +197,7 @@ return {
 	["command.console_only"] = "cette commande ne peut être utilisée que depuis la console du serveur",
 	["command.cooldown"] = "attendez {seconds} s avant de réutiliser cette commande",
 	["command.failed"] = "la commande a échoué ; l'erreur a été journalisée",
+
+	["command.unknown"] = "commande inconnue : {label}",
+	["config.template.unknown_in_chat"] = "Messages du chat commençant par '/' qui ne sont pas des commandes : 'reply' répond \"commande inconnue\" et masque le message, 'pass' les laisse aux autres packages.",
 }

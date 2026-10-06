@@ -289,5 +289,25 @@
     "expected_log_lines": [
       "\\[foundation\\] INFO  foundation/core: foundation-events-fixture disabled: package unloaded"
     ]
+  },
+  "core-commands": {
+    "description": "Commands typed in the server console reach package commands; labels, collisions and cleanup on unload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-commands-fixture",
+      "foundation-core-commands-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_sequence": [
+      "\\[foundation\\] WARN  foundation-core-commands-test/commands: /give of foundation-core-commands-test is already used by foundation-commands-fixture; it is available as /foundation-core-commands-test:give",
+      "\\[foundation\\] gave 3 golden apple",
+      "\\[foundation\\] gave 1 pear",
+      "\\[foundation\\] <amount>: 'many' is not a whole number",
+      "\\[foundation\\] Usage: give <item> \\[amount\\]",
+      "\\[foundation\\] INFO  foundation/core: foundation-commands-fixture disabled: package unloaded",
+      "\\[foundation\\] unknown command: g"
+    ]
   }
 }

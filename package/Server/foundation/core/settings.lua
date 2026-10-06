@@ -41,6 +41,18 @@ return function(S, messages, is_locale)
 					},
 				},
 			},
+			{
+				name = "commands",
+				fields = {
+					{
+						key = "unknown_in_chat",
+						schema = S:Enum({ "reply", "pass" }),
+						default = "reply",
+						reload = "hot",
+						comment_key = "config.template.unknown_in_chat",
+					},
+				},
+			},
 		},
 	}
 end

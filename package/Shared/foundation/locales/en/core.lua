@@ -152,4 +152,14 @@ return {
 	["reason.event_finished"] = "'{name}' can only be changed by its listeners while it is dispatched",
 	["reason.event_monitor"] = "monitor listeners cannot change the event",
 	["reason.event_not_cancellable"] = "'{name}' cannot be cancelled",
+
+	["reason.command_label"] = "must start with a lowercase letter and contain only lowercase letters, digits, '_' and '-' (at most {max} characters)",
+	["reason.command_reserved"] = "'{label}' is reserved for Foundation",
+	["reason.command_duplicate_label"] = "'{label}' is used twice under '{parent}'",
+	["reason.command_empty"] = "needs a run function or subcommands",
+	["reason.command_depth"] = "subcommands are nested more than {max} levels deep",
+	["reason.command_exists"] = "'{label}' is already used by this package's command '{name}'",
+	["commands.label_taken"] = "/{label} of {owner} is already used by {holder}; it is available as /{fallback}",
+	["commands.alias_taken"] = "alias /{label} of {owner} is already used by {holder} and is ignored",
+	["commands.alias_lost"] = "alias /{label} of {holder} is now used by the command of {owner}",
 }

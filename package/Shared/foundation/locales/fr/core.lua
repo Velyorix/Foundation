@@ -152,4 +152,14 @@ return {
 	["reason.event_finished"] = "'{name}' ne peut être modifié que par ses écouteurs pendant sa diffusion",
 	["reason.event_monitor"] = "les écouteurs de priorité monitor ne peuvent pas modifier l'événement",
 	["reason.event_not_cancellable"] = "'{name}' ne peut pas être annulé",
+
+	["reason.command_label"] = "doit commencer par une lettre minuscule et ne contenir que des lettres minuscules, des chiffres, '_' et '-' ({max} caractères au plus)",
+	["reason.command_reserved"] = "'{label}' est réservé à Foundation",
+	["reason.command_duplicate_label"] = "'{label}' est utilisé deux fois sous '{parent}'",
+	["reason.command_empty"] = "nécessite une fonction run ou des sous-commandes",
+	["reason.command_depth"] = "les sous-commandes sont imbriquées sur plus de {max} niveaux",
+	["reason.command_exists"] = "'{label}' est déjà utilisé par la commande '{name}' de ce package",
+	["commands.label_taken"] = "/{label} de {owner} est déjà utilisé par {holder} ; elle reste disponible sous /{fallback}",
+	["commands.alias_taken"] = "l'alias /{label} de {owner} est déjà utilisé par {holder} et il est ignoré",
+	["commands.alias_lost"] = "l'alias /{label} de {holder} est désormais utilisé par la commande de {owner}",
 }

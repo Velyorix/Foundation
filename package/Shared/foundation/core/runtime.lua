@@ -11,6 +11,7 @@ local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
+local Commands = Package.Require("commands.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -210,6 +211,19 @@ local COMPONENTS = {
 			packages:ExtendContext("Emit", function(_, entry, name, payload)
 				local event = events:Emit(entry.id, name, payload, "context:Emit", 3)
 				return event
+			end)
+		end,
+	},
+	{
+		name = "commands",
+		required = true,
+		create = function(runtime)
+			local commands = Commands.new({ check = runtime.check, log = runtime.log })
+			runtime.commands = commands
+			runtime.packages:ExtendContext("RegisterCommand", function(context, entry, spec)
+				local root, release = commands:Register(entry.id, spec, "context:RegisterCommand", 3)
+				local handle = context:Track("command", release, { command = root.name })
+				return handle
 			end)
 		end,
 	},

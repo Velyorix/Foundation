@@ -13,6 +13,7 @@ local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
 local Commands = Package.Require("commands.lua")
 local Arguments = Package.Require("arguments.lua")
+local Admin = Package.Require("admin_commands.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -273,6 +274,7 @@ local COMPONENTS = {
 				local handle = context:Track("command", release, { command = root.name })
 				return handle
 			end)
+			Admin.Register(runtime)
 		end,
 	},
 	{

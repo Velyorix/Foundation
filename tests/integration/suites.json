@@ -307,7 +307,14 @@
       "\\[foundation\\] <amount>: 'many' is not a whole number",
       "\\[foundation\\] Usage: give <item> \\[amount\\]",
       "\\[foundation\\] INFO  foundation/core: foundation-commands-fixture disabled: package unloaded",
-      "\\[foundation\\] unknown command: g"
+      "\\[foundation\\] unknown command: g",
+      "\\[foundation\\] Foundation 0\\.1\\.0 \\(API 0\\.1\\)",
+      "\\[foundation\\] Packages \\(2\\):",
+      "\\[foundation\\] foundation-commands-fixture 0\\.1\\.0 - disabled",
+      "\\[foundation\\] foundation-core-commands-test 0\\.1\\.0 - ready",
+      "\\[foundation\\] give \\[target\\]",
+      "\\[foundation\\] foundation/config\\.toml: no change",
+      "\\[foundation\\] foundation/config/foundation-core-commands-test\\.toml: 1 setting changed"
     ]
   }
 }

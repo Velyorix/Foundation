@@ -450,8 +450,12 @@ function Commands:Usage(node, prefix)
 	return table.concat(parts, " ")
 end
 
--- Description of a node in `locale`: description_key is looked up in the owner's catalogs.
+-- Description of a node in `locale`: description_key is looked up in the owner's catalogs
+-- (Foundation's own commands use the core messages).
 function Commands:Describe(root, node, locale)
+	if node.description_key and root.owner == "foundation" then
+		return self.messages:Format(node.description_key)
+	end
 	if node.description_key and self.i18n then
 		local text = self.i18n:Translate(root.owner, node.description_key, nil, locale, "Commands:Describe", 2)
 		return text

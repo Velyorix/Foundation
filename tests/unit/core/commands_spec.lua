@@ -201,7 +201,9 @@ describe("Commands", function()
 			homes:RegisterCommand({ name = "home", run = noop })
 			runtime.packages:Disable("homes", "unload")
 			expect.is_nil(resolve("home"))
-			expect.equal(#runtime.commands:Snapshot().commands, 0)
+			expect.same(runtime.commands:Snapshot().commands, {
+				{ owner = "foundation", name = "foundation", labels = { "foundation", "foundation:foundation" } },
+			})
 			expect.equal(runtime.ownership:Count("homes"), 0)
 		end)
 	end)
@@ -212,8 +214,10 @@ describe("Commands", function()
 		expect.same(labels.home, { owner = "homes", name = "home", kind = "name" })
 		expect.same(labels.h, { owner = "homes", name = "home", kind = "alias" })
 		expect.same(labels["homes:h"], { owner = "homes", name = "home", kind = "namespaced" })
-		expect.same(runtime.commands:Snapshot().commands, {
-			{ owner = "homes", name = "home", labels = { "h", "home", "homes:h", "homes:home" } },
+		expect.same(runtime.commands:Snapshot().commands[2], {
+			owner = "homes",
+			name = "home",
+			labels = { "h", "home", "homes:h", "homes:home" },
 		})
 	end)
 end)

@@ -200,4 +200,26 @@ return {
 
 	["command.unknown"] = "commande inconnue : {label}",
 	["config.template.unknown_in_chat"] = "Messages du chat commençant par '/' qui ne sont pas des commandes : 'reply' répond \"commande inconnue\" et masque le message, 'pass' les laisse aux autres packages.",
+
+	["admin.description.root"] = "Administration de Foundation",
+	["admin.description.version"] = "Afficher la version de Foundation",
+	["admin.description.help"] = "Lister les commandes, ou en décrire une",
+	["admin.description.packages"] = "Lister les packages qui utilisent Foundation et leur état",
+	["admin.description.reload_config"] = "Recharger les fichiers de configuration",
+	["admin.version"] = "Foundation {version} (API {api})",
+	["admin.help_header"] = "Commandes ({count}) :",
+	["admin.help_line"] = "{usage} - {description}",
+	["admin.help_aliases"] = "Alias : {aliases}",
+	["admin.packages_none"] = "Aucun package n'utilise Foundation.",
+	["admin.packages_header"] = "Packages ({count}) :",
+	["admin.package_line"] = "{id} {version} - {state}",
+	["admin.package_failed"] = "{id} {version} - en échec : {reason}",
+	["admin.reload_changed"] = {
+		one = "{path} : {count} réglage modifié",
+		other = "{path} : {count} réglages modifiés",
+	},
+	["admin.reload_unchanged"] = "{path} : aucun changement",
+	["admin.reload_pending"] = "{path} : redémarrez le serveur pour appliquer {keys}",
+	["admin.reload_rejected"] = "{path} : refusé, les réglages actuels sont conservés (détails dans le journal)",
+	["admin.reload_none"] = "Aucun fichier de configuration à recharger.",
 }

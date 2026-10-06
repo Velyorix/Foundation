@@ -200,4 +200,26 @@ return {
 
 	["command.unknown"] = "unknown command: {label}",
 	["config.template.unknown_in_chat"] = "Chat messages starting with '/' that are not commands: 'reply' answers \"unknown command\" and hides the message, 'pass' leaves them to other packages.",
+
+	["admin.description.root"] = "Foundation administration",
+	["admin.description.version"] = "Show the Foundation version",
+	["admin.description.help"] = "List commands, or describe one",
+	["admin.description.packages"] = "List the packages that use Foundation and their state",
+	["admin.description.reload_config"] = "Reload the configuration files",
+	["admin.version"] = "Foundation {version} (API {api})",
+	["admin.help_header"] = "Commands ({count}):",
+	["admin.help_line"] = "{usage} - {description}",
+	["admin.help_aliases"] = "Aliases: {aliases}",
+	["admin.packages_none"] = "No package uses Foundation.",
+	["admin.packages_header"] = "Packages ({count}):",
+	["admin.package_line"] = "{id} {version} - {state}",
+	["admin.package_failed"] = "{id} {version} - failed: {reason}",
+	["admin.reload_changed"] = {
+		one = "{path}: {count} setting changed",
+		other = "{path}: {count} settings changed",
+	},
+	["admin.reload_unchanged"] = "{path}: no change",
+	["admin.reload_pending"] = "{path}: restart the server to apply {keys}",
+	["admin.reload_rejected"] = "{path}: rejected, the current settings are kept (details in the log)",
+	["admin.reload_none"] = "No configuration file to reload.",
 }

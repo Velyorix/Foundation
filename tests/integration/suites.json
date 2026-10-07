@@ -144,6 +144,8 @@
       "foundation-example-rewards",
       "foundation-example-announcer",
       "foundation-example-autosave",
+      "foundation-example-shop",
+      "foundation-example-loyalty",
       "foundation-docs-examples-test"
     ],
     "timeout_seconds": 90,
@@ -153,7 +155,13 @@
       "Greeter is ready",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter is ready",
       "pong for docs",
-      "saved 3 change\\(s\\)",
+      "\\[foundation\\] console bought 3 apple for 27",
+      "console ran buy \\(success\\)",
+      "\\[foundation\\] purchase refused",
+      "\\[foundation\\] <item> must be one of apple, sword",
+      "\\[foundation\\] Usage: buy <item> \\[amount\\]",
+      "\\[foundation\\] buy <item> \\[amount\\] - Buy an item",
+      "\\[foundation\\] Packages \\(8\\):",
       "Greeter is shutting down",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter disabled: Foundation is stopping",
       "\\[foundation\\] INFO  foundation/core: Foundation stopped"
@@ -175,7 +183,8 @@
       "announcement: Welcome to the server!",
       "announcement: Read the rules with /rules\\.",
       "announcement: Have fun!",
-      "unsaved changes: 1"
+      "unsaved changes: 1",
+      "saved 3 change\\(s\\)"
     ]
   },
   "core-json": {

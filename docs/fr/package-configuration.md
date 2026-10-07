@@ -103,8 +103,9 @@ gérer ce cas.
 
 ## Rechargement
 
-Le fichier est lu à l'appel de `context:Config` : au démarrage du serveur, et quand votre
-package est rechargé. `reload` indique comment un réglage peut changer pendant que votre
+Le fichier est lu à l'appel de `context:Config` (au démarrage du serveur, et quand votre
+package est rechargé), puis de nouveau quand un administrateur tape
+`foundation reload-config`. `reload` indique comment un réglage peut changer pendant que votre
 package continue de fonctionner :
 
 - `"restart"` : jamais ; une nouvelle valeur n'est utilisée qu'après un redémarrage. À utiliser
@@ -113,10 +114,9 @@ package continue de fonctionner :
   `settings:OnChange(fn)` sont appelées avec la liste des clés modifiées et toutes les
   valeurs : `fn(changed, values)`.
 
-Foundation 0.1.0 ne recharge pas les fichiers de configuration pendant que les packages
-fonctionnent : les fonctions `OnChange` ne sont donc pas appelées dans cette version. Déclarer
-`reload` et `OnChange` dès maintenant permet à votre package de le prendre en charge sans
-modification.
+Si le fichier rechargé est invalide, rien ne change et les fonctions `OnChange` ne sont pas
+appelées. Les autres packages peuvent suivre les rechargements avec l'événement
+[`foundation:config_reloaded`](events.md#événements-de-foundation).
 
 ## Changer la structure
 

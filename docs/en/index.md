@@ -11,8 +11,8 @@ Any of those packages can be replaced without modifying Foundation.
 
 > Foundation is in early development (0.1.0, unreleased). Available today: package
 > registration, lifecycle and resource tracking, configuration files, localization, keys and
-> validation, timers and futures. These pages describe only what exists in the current
-> version, and the API may change before 1.0.
+> validation, timers and futures, events, commands with console and chat input. These pages
+> describe only what exists in the current version, and the API may change before 1.0.
 
 *Version française : [Documentation Foundation](../fr/index.md)*
 
@@ -22,6 +22,7 @@ Any of those packages can be replaced without modifying Foundation.
 - [Installation and updates](installation.md)
 - [Compatibility](compatibility.md)
 - [Configuration](configuration.md)
+- [Administration commands](administration.md)
 - [Logging](logging.md)
 
 ## Package developers
@@ -32,6 +33,8 @@ Any of those packages can be replaced without modifying Foundation.
 - [Localization](localization.md)
 - [Keys and validation](validation.md)
 - [Timers and asynchronous work](scheduling.md)
+- [Events](events.md)
+- [Commands](commands.md)
 
 API reference:
 
@@ -40,3 +43,5 @@ API reference:
 - [Localization](reference/localization.md)
 - [Keys and schemas](reference/validation.md)
 - [Timers and futures](reference/scheduling.md)
+- [Events](reference/events.md)
+- [Commands](reference/commands.md)

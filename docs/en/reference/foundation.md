@@ -52,6 +52,8 @@ lifecycle methods; the context also provides:
 | `RegisterCatalog`, `Translate` | [Localization](localization.md) |
 | `Config` | [Package settings](configuration.md) |
 | `NextTick`, `Delay`, `Repeat`, `Debounce`, `Throttle`, `Future`, `All` | [Timers and futures](scheduling.md) |
+| `DefineEvent`, `Emit`, `Listen` | [Events](events.md) |
+| `RegisterCommand`, `RegisterArgumentType` | [Commands](commands.md) |
 
 ### `context:GetId()`
 
@@ -149,3 +151,4 @@ which depends on the language.
 | `validation_failed` | user | [`Foundation.Schema.Validate`](validation.md#foundationschemavalidateschema-value-limits) |
 | `async_failed` | developer | A [future](scheduling.md#futures) whose executor or handler raised an error |
 | `timeout` | infrastructure | [`future:Timeout`](scheduling.md#future-methods) |
+| `command_usage` | user | Wrong command input, reported to the [sender](commands.md#errors) |

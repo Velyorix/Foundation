@@ -11,14 +11,20 @@ their own heading inside each release.
 
 - Installable `foundation` script package.
 - English and French documentation: introduction, requirements, installation, compatibility,
-  configuration, package integration, lifecycle, package settings, localization, keys and
-  validation, timers and futures, logging, API reference.
+  configuration, administration commands, package integration, lifecycle, package settings,
+  localization, keys and validation, timers and futures, events, commands, logging, API
+  reference.
 - Structured console logging with masked secret fields and suppression of repeated warnings
   and errors.
 - `foundation/config.toml`, created with commented defaults on first start: server language
   (`language`, English and French messages), log level and debug categories. Invalid files are
   ignored with every problem logged, and the defaults are used.
 - Per-package settings files in `foundation/config/<package>.toml`.
+- Console commands `foundation version`, `foundation help`, `foundation packages` and
+  `foundation reload-config` (reloads every configuration file without restarting; audited).
+- Commands typed in the server console and in the chat (`/` prefix) run package commands;
+  `commands.unknown_in_chat` chooses whether unknown `/` messages are answered or left to other
+  packages.
 
 ### API
 
@@ -43,3 +49,10 @@ their own heading inside each release.
 - Timers owned by the package: `context:NextTick`, `Delay`, `Repeat`, `Debounce`, `Throttle`.
 - Futures: `context:Future`, `context:All`, and `Then`, `Catch`, `Finally`, `Timeout`,
   `Cancel`.
+- Events: `context:DefineEvent`, `context:Emit`, `context:Listen`, with priorities
+  (`lowest` to `monitor`), cancellation and fields listeners may change.
+- Foundation events: `foundation:package_ready`, `package_failed`, `package_disabled`,
+  `config_reloaded`, `command` (cancellable), `command_completed`.
+- Commands: `context:RegisterCommand` (aliases, subcommands, typed arguments, sender kinds,
+  cooldowns, audit) and `context:RegisterArgumentType`; senders with `Reply`, `GetKind`,
+  `GetId`, `GetName`, `GetPlayer`; error code `command_usage`.

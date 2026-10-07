@@ -84,10 +84,15 @@ message = "Here is your daily reward!"
 - `foundation/config.toml` est lu au démarrage de Foundation.
 - Le fichier d'un package est lu au démarrage de ce package.
 
-Redémarrez le serveur après avoir modifié un fichier. Pour appliquer le fichier d'un package
-sans redémarrer, rechargez ce package avec la commande console `package reload <package>`. Ne
-rechargez pas `foundation` seul : tous les packages qui l'utilisent cesseraient de fonctionner
-jusqu'à ce qu'ils soient rechargés à leur tour.
+Après avoir modifié des fichiers, tapez `foundation reload-config` dans la console du serveur :
+chaque fichier est relu et la réponse indique, pour chacun, ce qui a changé (voir
+[Commandes d'administration](administration.md#recharger-la-configuration)). Tous les
+réglages de Foundation s'appliquent tout de suite. Un package décide lesquels de ses réglages
+peuvent changer pendant qu'il fonctionne ; les autres attendent un redémarrage, et la réponse
+les liste.
+
+N'utilisez pas `package reload foundation` : tous les packages qui utilisent Foundation
+cesseraient de fonctionner jusqu'à ce qu'ils soient rechargés à leur tour.
 
 ## Modifier un fichier sans risque
 

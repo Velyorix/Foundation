@@ -83,9 +83,14 @@ message = "Here is your daily reward!"
 - `foundation/config.toml` is read when Foundation starts.
 - A package file is read when that package starts.
 
-Restart the server after editing a file. To apply a package file without restarting, reload
-that package with the console command `package reload <package>`. Do not reload `foundation`
-alone: every package that uses it would stop working until it is reloaded too.
+After editing files, type `foundation reload-config` in the server console: every file is read
+again and the answer tells, for each one, what changed (see
+[Administration commands](administration.md#reloading-the-configuration)). All of
+Foundation's settings apply at once. A package decides which of its settings can change
+while it runs; the others wait for a restart, and the answer lists them.
+
+Do not use `package reload foundation`: every package that uses Foundation would stop working
+until it is reloaded too.
 
 ## Editing safely
 

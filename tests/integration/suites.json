@@ -338,6 +338,14 @@
     "timeout_seconds": 90,
     "allowed_errors": [
       "\\[foundation\\] ERROR foundation/core: foundation-services-consumer failed: "
+    ],
+    "expected_log_sequence": [
+      "\\[foundation\\] Services \\(1\\):",
+      "\\[foundation\\] economy:bank",
+      "\\[foundation\\]   provided by: foundation-services-fixture 1\\.2 \\(priority 10\\), foundation-core-services-test 1\\.0 \\(priority 0\\)",
+      "\\[foundation\\]   required by: foundation-services-consumer \\(1\\.1\\), foundation-core-services-test \\(1\\)",
+      "\\[foundation\\] Capabilities \\(1\\):",
+      "\\[foundation\\]   economy:interest: foundation-services-fixture 1\\.0"
     ]
   }
 }

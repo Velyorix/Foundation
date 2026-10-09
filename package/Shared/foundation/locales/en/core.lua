@@ -242,4 +242,17 @@ return {
 	["reason.manifest_capability_duplicate"] = "'{name}' is listed twice",
 	["reason.capability_reserved"] = "'{name}' uses a namespace reserved for Foundation",
 	["capabilities.service_clash"] = "{id} declares the capability '{name}', which is also the name of a service; use distinct names so that consumers know which one they get",
+
+	["admin.description.services"] = "List services with their providers and the packages that need them, and capabilities",
+	["admin.services_none"] = "No service or capability is declared.",
+	["admin.services_header"] = "Services ({count}):",
+	["admin.service_no_provider"] = "no provider",
+	["admin.service_providers"] = "provided by: {providers}",
+	["admin.service_provider"] = "{package} {version} (priority {priority})",
+	["admin.service_required"] = "required by: {packages}",
+	["admin.service_optional"] = "used if present by: {packages}",
+	["admin.service_requirement"] = "{package} ({version})",
+	["admin.service_requirement_missing"] = "{package} ({version}, MISSING)",
+	["admin.capabilities_header"] = "Capabilities ({count}):",
+	["admin.capability_line"] = "{name}: {packages}",
 }

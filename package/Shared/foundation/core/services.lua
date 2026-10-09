@@ -427,6 +427,50 @@ function Services:check_required(key)
 	end
 end
 
+local GRAPH_STATES = { initializing = true, ready = true, failed = true }
+
+-- Providers and package requirements per service key, keys sorted. Requirements come from
+-- packages that are starting, ready or failed (a failed one often explains a missing service).
+function Services:Graph()
+	local nodes, keys = {}, {}
+	local function node(key)
+		local entry = nodes[key]
+		if not entry then
+			entry = { key = key, providers = {}, required = {}, optional = {} }
+			nodes[key] = entry
+			keys[#keys + 1] = key
+		end
+		return entry
+	end
+	for key, list in pairs(self.services) do
+		local entry = node(key)
+		for index, provider in ipairs(list) do
+			entry.providers[index] =
+				{ package = provider.owner, version = provider.version, priority = provider.priority }
+		end
+	end
+	local packages = self.packages
+	for _, consumer in ipairs(packages and packages.order or {}) do
+		if packages.entries[consumer.id] == consumer and GRAPH_STATES[consumer.state] then
+			for _, requirement in ipairs(consumer.extensions.services or {}) do
+				local entry = node(requirement.key)
+				local list = requirement.optional and entry.optional or entry.required
+				list[#list + 1] = {
+					package = consumer.id,
+					version = requirement.version,
+					satisfied = self:best(requirement.key, requirement.range) ~= nil,
+				}
+			end
+		end
+	end
+	table.sort(keys)
+	local result = {}
+	for index, key in ipairs(keys) do
+		result[index] = nodes[key]
+	end
+	return result
+end
+
 function Services:Snapshot()
 	local services = {}
 	for key, list in pairs(self.services) do

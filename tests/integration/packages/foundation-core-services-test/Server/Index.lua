@@ -52,6 +52,11 @@ suite:Test("the best provider of another package is returned and callable", func
 end)
 
 suite:Do(function()
+	Console.RunCommand("foundation services")
+end)
+suite:Wait(100)
+
+suite:Do(function()
 	Server.UnloadPackage("foundation-services-fixture")
 end)
 suite:Wait(300)

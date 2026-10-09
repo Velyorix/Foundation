@@ -33,6 +33,14 @@ suite:Test("packages requiring a provided service become ready", function()
 	FoundationTest.Equal(#failures, 0)
 end)
 
+suite:Test("a ready package's capabilities can be queried", function()
+	FoundationTest.True(Foundation.Capabilities.Has("economy:interest", "1"))
+	FoundationTest.Equal(
+		Foundation.Capabilities.Providers("economy:interest")[1].package,
+		"foundation-services-fixture"
+	)
+end)
+
 suite:Test("the best provider of another package is returned and callable", function()
 	local bank, info = context:GetService("economy:bank", "1.1")
 	FoundationTest.Equal(info.provider, "foundation-services-fixture")
@@ -54,6 +62,7 @@ suite:Test("after the provider unloads, old references fail and lookups fall bac
 	end, "is no longer available")
 	FoundationTest.Equal(context:GetService("economy:bank", "1.1"), nil)
 	FoundationTest.Equal(context:GetService("economy:bank").name, "fallback")
+	FoundationTest.Equal(Foundation.Capabilities.Has("economy:interest"), false)
 end)
 
 suite:Test("losing the only compatible provider fails the packages that require it", function()

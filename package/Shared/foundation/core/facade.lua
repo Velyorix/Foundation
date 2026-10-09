@@ -77,6 +77,16 @@ function Facade.new(runtime)
 		IsSchema = Schema.IsSchema,
 	})
 
+	local capabilities = runtime.capabilities
+	api.Capabilities = read_only(runtime, "Foundation.Capabilities", {
+		Has = function(name, version)
+			return capabilities:Has(name, version)
+		end,
+		Providers = function(name, version)
+			return capabilities:Providers(name, version)
+		end,
+	})
+
 	return read_only(runtime, "Foundation", api)
 end
 

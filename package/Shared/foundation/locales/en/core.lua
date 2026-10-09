@@ -237,4 +237,9 @@ return {
 	["reason.service_lost"] = "the service '{name}' ({range}) required by '{id}' is no longer provided",
 	["service.any_version"] = "any version",
 	["service.version_range"] = "version {range}",
+
+	["reason.manifest_capability"] = "each entry is '<namespace>:<name>' or { name = '<namespace>:<name>', version = '<major>.<minor>' }",
+	["reason.manifest_capability_duplicate"] = "'{name}' is listed twice",
+	["reason.capability_reserved"] = "'{name}' uses a namespace reserved for Foundation",
+	["capabilities.service_clash"] = "{id} declares the capability '{name}', which is also the name of a service; use distinct names so that consumers know which one they get",
 }

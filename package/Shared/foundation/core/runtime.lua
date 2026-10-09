@@ -12,6 +12,7 @@ local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
 local Services = Package.Require("services.lua")
+local Capabilities = Package.Require("capabilities.lua")
 local Commands = Package.Require("commands.lua")
 local Arguments = Package.Require("arguments.lua")
 local Admin = Package.Require("admin_commands.lua")
@@ -262,6 +263,30 @@ local COMPONENTS = {
 			packages:ExtendContext("GetServices", function(_, entry, name, version)
 				local list = services:All(entry.id, name, version, "context:GetServices", 3)
 				return list
+			end)
+		end,
+	},
+	{
+		name = "capabilities",
+		required = true,
+		create = function(runtime)
+			local capabilities = Capabilities.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				log = runtime.log,
+				events = runtime.events,
+				services = runtime.services,
+			})
+			runtime.capabilities = capabilities
+			local S = runtime.schema
+			local fields = { capability = S:String(), package = S:String(), version = S:Optional(S:String()) }
+			runtime.events:Define("foundation", "capability_available", { fields = fields }, "Runtime", 2)
+			runtime.events:Define("foundation", "capability_unavailable", { fields = fields }, "Runtime", 2)
+			runtime.packages:ExtendManifest("capabilities", function(value, api, level)
+				return capabilities:CheckManifest(value, api, level)
+			end)
+			runtime.packages:Observe(function(kind, entry)
+				capabilities:Observe(kind, entry)
 			end)
 		end,
 	},

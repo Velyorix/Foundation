@@ -237,4 +237,9 @@ return {
 	["reason.service_lost"] = "le service '{name}' ({range}) requis par '{id}' n'est plus fourni",
 	["service.any_version"] = "toute version",
 	["service.version_range"] = "version {range}",
+
+	["reason.manifest_capability"] = "chaque entrée est '<espace>:<nom>' ou { name = '<espace>:<nom>', version = '<majeure>.<mineure>' }",
+	["reason.manifest_capability_duplicate"] = "'{name}' est listé deux fois",
+	["reason.capability_reserved"] = "'{name}' utilise un espace de noms réservé à Foundation",
+	["capabilities.service_clash"] = "{id} déclare la capacité '{name}', qui est aussi le nom d'un service ; utilisez des noms distincts pour que les consommateurs sachent lequel ils obtiennent",
 }

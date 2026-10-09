@@ -1,4 +1,7 @@
-local context = Foundation.Register(Package, { api = Foundation.API_VERSION })
+local context = Foundation.Register(Package, {
+	api = Foundation.API_VERSION,
+	capabilities = { { name = "economy:interest", version = "1.0" } },
+})
 local balances = {}
 
 context:ProvideService("economy:bank", "1.2", {

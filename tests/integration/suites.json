@@ -325,5 +325,16 @@
       "\\[foundation\\] foundation/config\\.toml: no change",
       "\\[foundation\\] foundation/config/foundation-core-commands-test\\.toml: 1 setting changed"
     ]
+  },
+  "core-services": {
+    "description": "Services provided and used across packages on a real server, with fallback when the provider unloads",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-services-fixture",
+      "foundation-core-services-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": []
   }
 }

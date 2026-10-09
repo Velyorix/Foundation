@@ -222,4 +222,12 @@ return {
 	["admin.reload_pending"] = "{path} : redémarrez le serveur pour appliquer {keys}",
 	["admin.reload_rejected"] = "{path} : refusé, les réglages actuels sont conservés (détails dans le journal)",
 	["admin.reload_none"] = "Aucun fichier de configuration à recharger.",
+
+	["reason.service_version"] = "doit être '<majeure>' ou '<majeure>.<mineure>'",
+	["reason.service_provided_version"] = "doit être '<majeure>.<mineure>', par exemple '1.0'",
+	["reason.service_priority"] = "doit être comprise entre -{max} et {max}",
+	["reason.service_tie"] = "'{name}' est déjà fourni par {owner} avec la priorité {priority} ; choisissez une autre priorité",
+	["reason.service_provided"] = "ce package fournit déjà '{name}' ; passez replace = true pour le remplacer",
+	["reason.service_gone"] = "le fournisseur de '{name}' ({owner}) n'est plus disponible",
+	["reason.service_read_only"] = "les services ne peuvent pas être modifiés via l'objet renvoyé par GetService",
 }

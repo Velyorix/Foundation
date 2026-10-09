@@ -222,4 +222,12 @@ return {
 	["admin.reload_pending"] = "{path}: restart the server to apply {keys}",
 	["admin.reload_rejected"] = "{path}: rejected, the current settings are kept (details in the log)",
 	["admin.reload_none"] = "No configuration file to reload.",
+
+	["reason.service_version"] = "must be '<major>' or '<major>.<minor>'",
+	["reason.service_provided_version"] = "must be '<major>.<minor>', for example '1.0'",
+	["reason.service_priority"] = "must be between -{max} and {max}",
+	["reason.service_tie"] = "'{name}' is already provided by {owner} with priority {priority}; choose another priority",
+	["reason.service_provided"] = "this package already provides '{name}'; pass replace = true to replace it",
+	["reason.service_gone"] = "the provider of '{name}' ({owner}) is no longer available",
+	["reason.service_read_only"] = "services cannot be modified through the object returned by GetService",
 }

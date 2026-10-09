@@ -11,6 +11,7 @@ local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
+local Services = Package.Require("services.lua")
 local Commands = Package.Require("commands.lua")
 local Arguments = Package.Require("arguments.lua")
 local Admin = Package.Require("admin_commands.lua")
@@ -213,6 +214,32 @@ local COMPONENTS = {
 			packages:ExtendContext("Emit", function(_, entry, name, payload)
 				local event = events:Emit(entry.id, name, payload, "context:Emit", 3)
 				return event
+			end)
+		end,
+	},
+	{
+		name = "services",
+		required = true,
+		create = function(runtime)
+			local services = Services.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				ownership = runtime.ownership,
+			})
+			runtime.services = services
+			local packages = runtime.packages
+			packages:ExtendContext("ProvideService", function(_, entry, name, version, implementation, options)
+				local provider =
+					services:Provide(entry.id, name, version, implementation, options, "context:ProvideService", 3)
+				return provider.handle
+			end)
+			packages:ExtendContext("GetService", function(_, entry, name, version)
+				local service, info = services:Get(entry.id, name, version, "context:GetService", 3)
+				return service, info
+			end)
+			packages:ExtendContext("GetServices", function(_, entry, name, version)
+				local list = services:All(entry.id, name, version, "context:GetServices", 3)
+				return list
 			end)
 		end,
 	},

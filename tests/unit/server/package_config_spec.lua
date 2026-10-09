@@ -36,7 +36,7 @@ local function memory_files()
 	return raw
 end
 
-local function setup()
+local function setup(with_core_config)
 	local loader = Loader.new({ side = "Server" })
 	local Runtime = loader:require("foundation/core/runtime.lua")
 	local Files = loader:require("foundation/core/files.lua")
@@ -44,6 +44,29 @@ local function setup()
 	local raw = memory_files()
 	local parsed = {}
 	local lines = {}
+	local function parse(text)
+		local data = parsed[text]
+		if data == nil then
+			error("bad format")
+		end
+		return data
+	end
+	local create_config
+	if with_core_config then
+		local Config = loader:require("foundation/core/config.lua")
+		local Settings = loader:require("foundation/core/settings.lua")
+		local I18n = loader:require("foundation/core/i18n.lua")
+		create_config = function(rt)
+			return Config.new({
+				spec = Settings(rt.schema, rt.messages, I18n.IsLocale),
+				files = Files.new(raw),
+				parse = parse,
+				schema = rt.schema,
+				log = rt.log:For("foundation", "config"),
+				errors = rt.errors,
+			})
+		end
+	end
 	local runtime = Runtime.new({
 		side = "server",
 		version = "0.1.0",
@@ -58,16 +81,11 @@ local function setup()
 		now = function()
 			return 0
 		end,
+		create_config = create_config,
 		create_package_configs = function(rt)
 			return PackageConfigs.new({
 				files = Files.new(raw),
-				parse = function(text)
-					local data = parsed[text]
-					if data == nil then
-						error("bad format")
-					end
-					return data
-				end,
+				parse = parse,
 				schema = rt.schema,
 				check = rt.check,
 				log = rt.log,
@@ -297,6 +315,41 @@ describe("package configuration", function()
 			expect.same(report.packages.shop.changed, { "limits.max_homes" })
 			expect.equal(settings:Get("limits.max_homes"), 10)
 			expect.same(notifications, { { changed = { "limits.max_homes" }, max = 10 } })
+		end)
+
+		it("announces each reloaded file with foundation:config_reloaded", function()
+			local announced = {}
+			context:Listen("foundation:config_reloaded", function(event)
+				announced[#announced + 1] = event:GetData()
+			end)
+			parsed.NEXT = { motd = "Two", limits = { max_homes = 10 } }
+			raw.contents["foundation/config/shop.toml"] = "NEXT"
+			runtime:ReloadConfig()
+			expect.same(announced, {
+				{
+					package = "shop",
+					path = "foundation/config/shop.toml",
+					changed = { "limits.max_homes" },
+					pending = { "motd" },
+				},
+			})
+			raw.contents["foundation/config/shop.toml"] = "broken"
+			runtime:ReloadConfig()
+			expect.equal(#announced, 1)
+		end)
+
+		it("announces Foundation's own file first", function()
+			local core_runtime, core_context, core_raw, core_parsed = setup(true)
+			core_parsed.CORE = { language = "fr" }
+			core_raw.contents["foundation/config.toml"] = "CORE"
+			local announced = {}
+			core_context:Listen("foundation:config_reloaded", function(event)
+				announced[#announced + 1] = event:GetData()
+			end)
+			core_runtime:ReloadConfig()
+			expect.same(announced, {
+				{ package = "foundation", path = "foundation/config.toml", changed = { "language" }, pending = {} },
+			})
 		end)
 
 		it("keeps restart-only settings and does not notify", function()

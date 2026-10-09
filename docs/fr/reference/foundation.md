@@ -52,6 +52,8 @@ méthodes du cycle de vie ; le contexte fournit aussi :
 | `RegisterCatalog`, `Translate` | [Localisation](localization.md) |
 | `Config` | [Réglages d'un package](configuration.md) |
 | `NextTick`, `Delay`, `Repeat`, `Debounce`, `Throttle`, `Future`, `All` | [Minuteries et futures](scheduling.md) |
+| `DefineEvent`, `Emit`, `Listen` | [Événements](events.md) |
+| `RegisterCommand`, `RegisterArgumentType` | [Commandes](commands.md) |
 
 ### `context:GetId()`
 
@@ -153,3 +155,4 @@ qui dépend de la langue.
 | `validation_failed` | user | [`Foundation.Schema.Validate`](validation.md#foundationschemavalidateschema-value-limits) |
 | `async_failed` | developer | Une [future](scheduling.md#futures) dont l'exécuteur ou une fonction a levé une erreur |
 | `timeout` | infrastructure | [`future:Timeout`](scheduling.md#méthodes-des-futures) |
+| `command_usage` | user | Saisie de commande incorrecte, signalée à l'[expéditeur](commands.md#erreurs) |

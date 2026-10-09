@@ -77,7 +77,8 @@ un réglage `"hot"`. `changed` est le tableau des clés modifiées, `values` une
 les valeurs. Un réglage déclaré `"restart"` garde sa valeur jusqu'au prochain démarrage du
 package ; un avertissement invite l'administrateur à redémarrer.
 
-Foundation 0.1.0 ne recharge pas les fichiers de configuration pendant que les packages
-fonctionnent : ces fonctions ne sont donc pas appelées dans cette version.
+Les fichiers sont rechargés par la commande console `foundation reload-config`. Les fonctions
+s'exécutent dans l'ordre où elles ont été ajoutées ; une erreur dans l'une d'elles est
+journalisée et les autres s'exécutent quand même.
 
 `Get`, `Values` et `OnChange` lèvent `invalid_state` une fois le package désactivé.

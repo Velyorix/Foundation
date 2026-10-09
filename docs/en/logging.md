@@ -33,6 +33,8 @@ also prints its own stack lines after them and tags them `S_WARN` and `S_ERR` in
 | `foundation/config/my-package.toml is not used; ...` | The file is invalid; the lines before it list the problems (see [Configuration](configuration.md#editing-safely)) |
 | `missing translation for 'my-package:some.key'` | A package asked for a text that none of its catalogs contains (logged once per key) |
 | `repeating task of my-package stopped after 3 consecutive failures` | A repeating task failed several times in a row and was stopped |
+| `/spawn of warps is already used by homes; it is available as /warps:spawn` | Two packages declared the same command name |
+| `command callback of my-package failed` | A command raised an error; the player got a short message |
 
 ## Level and language
 

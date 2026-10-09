@@ -27,6 +27,8 @@
         "foundation-example-rewards",
         "foundation-example-announcer",
         "foundation-example-autosave",
+        "foundation-example-shop",
+        "foundation-example-loyalty",
     ]
     # asset packs requirements
     assets_requirements = [

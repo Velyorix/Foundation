@@ -9,6 +9,8 @@ local I18n = Package.Require("foundation/core/i18n.lua")
 local Config = Package.Require("foundation/core/config.lua")
 local Settings = Package.Require("foundation/core/settings.lua")
 local PackageConfigs = Package.Require("foundation/core/package_config.lua")
+local CommandBridges = Package.Require("foundation/core/command_bridges.lua")
+local Senders = Package.Require("foundation/core/senders.lua")
 local version = Package.Require("foundation/version.lua")
 
 local Bootstrap = {}
@@ -66,6 +68,20 @@ function Bootstrap.Start()
 				check = rt.check,
 				log = rt.log,
 				invoker = rt.invoker,
+			})
+		end,
+		create_command_bridges = function(rt)
+			return CommandBridges.new({
+				commands = rt.commands,
+				senders = Senders,
+				console = Console,
+				chat = Chat,
+				messages = rt.messages,
+				invoker = rt.invoker,
+				setting = function(name)
+					local settings = rt.settings
+					return settings and settings.commands and settings.commands[name]
+				end,
 			})
 		end,
 		create_audit = function(rt)

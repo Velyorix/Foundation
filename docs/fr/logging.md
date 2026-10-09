@@ -35,6 +35,8 @@ serveur : celui-ci ajoute donc ses propres lignes de pile après eux et les marq
 | `foundation/config/my-package.toml is not used; ...` | Le fichier est invalide ; les lignes précédentes listent les problèmes (voir [Configuration](configuration.md#modifier-un-fichier-sans-risque)) |
 | `missing translation for 'my-package:some.key'` | Un package a demandé un texte qu'aucun de ses catalogues ne contient (journalisé une fois par clé) |
 | `repeating task of my-package stopped after 3 consecutive failures` | Une tâche répétée a échoué plusieurs fois de suite et a été arrêtée |
+| `/spawn of warps is already used by homes; it is available as /warps:spawn` | Deux packages ont déclaré le même nom de commande |
+| `command callback of my-package failed` | Une commande a levé une erreur ; le joueur a reçu un court message |
 
 Ces lignes sont données en anglais, la langue par défaut. Avec `language = "fr"`, elles sont
 écrites en français.

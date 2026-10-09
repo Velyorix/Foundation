@@ -20,6 +20,7 @@ Errors.CODES = {
 	config_invalid = "configuration",
 	async_failed = "developer",
 	timeout = "infrastructure",
+	command_usage = "user",
 }
 
 local ErrorValue = {}

@@ -10,6 +10,10 @@ local Schema = Package.Require("schema.lua")
 local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
+local Events = Package.Require("events.lua")
+local Commands = Package.Require("commands.lua")
+local Arguments = Package.Require("arguments.lua")
+local Admin = Package.Require("admin_commands.lua")
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -156,6 +160,124 @@ local COMPONENTS = {
 		end,
 	},
 	{
+		name = "events",
+		required = true,
+		create = function(runtime)
+			local events = Events.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				schema = runtime.schema,
+				invoker = runtime.invoker,
+				ownership = runtime.ownership,
+			})
+			runtime.events = events
+			local packages = runtime.packages
+			local S = runtime.schema
+			local package_fields = { package = S:String(), version = S:Optional(S:String()) }
+			events:Define("foundation", "package_ready", { fields = package_fields }, "Runtime", 2)
+			events:Define("foundation", "package_failed", {
+				fields = { package = S:String(), version = S:Optional(S:String()), message = S:String() },
+			}, "Runtime", 2)
+			events:Define("foundation", "package_disabled", {
+				fields = {
+					package = S:String(),
+					version = S:Optional(S:String()),
+					reason = S:Enum({ "unload", "dependency_disabled", "dependency_failed", "foundation_stopping" }),
+				},
+			}, "Runtime", 2)
+			events:Define("foundation", "config_reloaded", {
+				fields = {
+					package = S:String(),
+					path = S:String(),
+					changed = S:List(S:String()),
+					pending = S:List(S:String()),
+				},
+			}, "Runtime", 2)
+			packages:Observe(function(kind, entry, details)
+				events:Emit("foundation", "package_" .. kind, {
+					package = entry.id,
+					version = entry.version,
+					message = details and kind == "failed" and details.reason or nil,
+					reason = details and kind == "disabled" and details.reason or nil,
+				}, "Runtime", 2)
+			end)
+			packages:ExtendContext("DefineEvent", function(context, entry, name, definition)
+				local key, release = events:Define(entry.id, name, definition, "context:DefineEvent", 3)
+				context:Track("event", release, { event = key })
+				return key
+			end)
+			packages:ExtendContext("Listen", function(_, entry, name, fn, options)
+				local handle = events:Listen(entry.id, name, fn, options, "context:Listen", 3)
+				return handle
+			end)
+			packages:ExtendContext("Emit", function(_, entry, name, payload)
+				local event = events:Emit(entry.id, name, payload, "context:Emit", 3)
+				return event
+			end)
+		end,
+	},
+	{
+		name = "commands",
+		required = true,
+		create = function(runtime)
+			local arguments = Arguments.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				invoker = runtime.invoker,
+				log = runtime.log,
+			})
+			local env = runtime.env
+			local commands = Commands.new({
+				check = runtime.check,
+				log = runtime.log,
+				arguments = arguments,
+				invoker = runtime.invoker,
+				events = runtime.events,
+				i18n = runtime.i18n,
+				now_ms = env.now_ms or function()
+					return math.floor(env.clock() * 1000)
+				end,
+				audit = function()
+					return runtime.audit
+				end,
+			})
+			local S = runtime.schema
+			local command_fields = {
+				command = S:String(),
+				owner = S:String(),
+				sender = S:Enum({ "console", "player" }),
+				name = S:String(),
+				arguments = S:Any(),
+			}
+			runtime.events:Define(
+				"foundation",
+				"command",
+				{ fields = command_fields, cancellable = true },
+				"Runtime",
+				2
+			)
+			local completed_fields = { outcome = S:Enum({ "success", "failure" }) }
+			for field, schema in pairs(command_fields) do
+				completed_fields[field] = schema
+			end
+			runtime.events:Define("foundation", "command_completed", { fields = completed_fields }, "Runtime", 2)
+			runtime.commands = commands
+			runtime.arguments = arguments
+			runtime.packages:ExtendContext("RegisterArgumentType", function(context, entry, name, definition)
+				local key, release =
+					arguments:RegisterType(entry.id, name, definition, "context:RegisterArgumentType", 3)
+				context:Track("argument_type", release, { type = key })
+				return key
+			end)
+			runtime.packages:ExtendContext("RegisterCommand", function(context, entry, spec)
+				local root, release = commands:Register(entry.id, spec, "context:RegisterCommand", 3)
+				local handle = context:Track("command", release, { command = root.name })
+				return handle
+			end)
+			Admin.Register(runtime)
+		end,
+	},
+	{
 		name = "config",
 		required = false,
 		create = function(runtime)
@@ -180,6 +302,21 @@ local COMPONENTS = {
 				context:Track("config", release)
 				return settings
 			end)
+		end,
+	},
+	{
+		name = "command_bridges",
+		required = false,
+		create = function(runtime)
+			if not runtime.env.create_command_bridges then
+				return "absent"
+			end
+			local bridges = runtime.env.create_command_bridges(runtime)
+			runtime.command_bridges = bridges
+			runtime.commands:OnLabelsChanged(function()
+				bridges:Sync()
+			end)
+			bridges:Start()
 		end,
 	},
 	{
@@ -232,6 +369,7 @@ function Runtime:Start()
 end
 
 function Runtime:ApplySettings(values)
+	self.settings = values
 	self.i18n:SetServerLocale(values.language)
 	self.log:SetLevel(values.log.level)
 	self.log:SetDebugCategories(values.log.debug_categories)
@@ -245,15 +383,33 @@ function Runtime:ReloadConfig()
 		local changed, pending = self.config:Reload()
 		if changed then
 			self:ApplySettings(self.config:Values())
-			report.core = { changed = changed, pending = pending }
+			report.core = { changed = changed, pending = pending, path = self.config.spec.path }
 		else
-			report.core = { error = pending }
+			report.core = { error = pending, path = self.config.spec.path }
 		end
 	end
 	if self.package_configs then
 		report.packages = self.package_configs:ReloadAll()
 	end
+	self:announce_reload("foundation", report.core)
+	for _, owner in ipairs(self.package_configs and self.package_configs.order or {}) do
+		self:announce_reload(owner, report.packages[owner])
+	end
 	return report
+end
+
+function Runtime:announce_reload(owner, result)
+	if not result or result.error or not self.events then
+		return
+	end
+	self.invoker:Call({ owner = "foundation", kind = "config_event" }, function()
+		self.events:Emit("foundation", "config_reloaded", {
+			package = owner,
+			path = result.path,
+			changed = result.changed,
+			pending = result.pending,
+		}, "Runtime:ReloadConfig", 2)
+	end)
 end
 
 function Runtime:IsRunning()

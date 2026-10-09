@@ -76,7 +76,7 @@ setting. `changed` is the array of changed keys, `values` a copy of all values. 
 declared `"restart"` keeps its value until the package starts again; a warning tells the
 administrator to restart.
 
-Foundation 0.1.0 does not reload configuration files while packages run, so these functions
-are not called in this version.
+Files are reloaded by the `foundation reload-config` console command. Functions run in the
+order they were added; an error in one is logged and the others still run.
 
 `Get`, `Values` and `OnChange` raise `invalid_state` once the package is disabled.

@@ -36,6 +36,10 @@ level = "info"
 
 # Parts of Foundation whose debug lines are written even when the level is above 'debug', for example ['config'].
 debug_categories = []
+
+[commands]
+# Chat messages starting with '/' that are not commands: 'reply' answers "unknown command" and hides the message, 'pass' leaves them to other packages.
+unknown_in_chat = "reply"
 ```
 
 | Setting | Values | Default | Effect |
@@ -43,6 +47,7 @@ debug_categories = []
 | `language` | Locale code: `en`, `fr`, or a regional code such as `fr_CA` | `"en"` | Language of Foundation's log messages and the default language of package translations (see [Localization](localization.md)). Foundation ships English and French; other languages fall back to English. |
 | `log.level` | `"debug"`, `"info"`, `"warning"`, `"error"` | `"info"` | Lines below this level are not written. See [Logging](logging.md). |
 | `log.debug_categories` | List of domains, for example `["config"]` | `[]` | Domains (the part after `/` in a log line) whose debug lines are written whatever `log.level` is. |
+| `commands.unknown_in_chat` | `"reply"`, `"pass"` | `"reply"` | Chat messages starting with `/` that are not commands: `reply` answers "unknown command" and hides the message; `pass` lets other packages handle it, for example a package with its own chat commands. |
 
 This file is always created in English. Changing `language` changes the messages, not the
 comments already in the file.
@@ -78,9 +83,14 @@ message = "Here is your daily reward!"
 - `foundation/config.toml` is read when Foundation starts.
 - A package file is read when that package starts.
 
-Restart the server after editing a file. To apply a package file without restarting, reload
-that package with the console command `package reload <package>`. Do not reload `foundation`
-alone: every package that uses it would stop working until it is reloaded too.
+After editing files, type `foundation reload-config` in the server console: every file is read
+again and the answer tells, for each one, what changed (see
+[Administration commands](administration.md#reloading-the-configuration)). All of
+Foundation's settings apply at once. A package decides which of its settings can change
+while it runs; the others wait for a restart, and the answer lists them.
+
+Do not use `package reload foundation`: every package that uses Foundation would stop working
+until it is reloaded too.
 
 ## Editing safely
 

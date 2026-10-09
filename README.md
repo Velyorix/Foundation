@@ -11,8 +11,8 @@ freely and replace any of them without touching the platform.
 
 > **Status:** early development (0.1.0, unreleased). Package registration, lifecycle and
 > resource tracking, configuration files, localization, keys and validation, timers and
-> futures are available; the rest of the API is being implemented and nothing is stable
-> before 1.0.
+> futures, events and commands are available; the rest of the API is being implemented and
+> nothing is stable before 1.0.
 
 ## Requirements
 

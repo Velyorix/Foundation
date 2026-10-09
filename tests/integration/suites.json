@@ -144,6 +144,8 @@
       "foundation-example-rewards",
       "foundation-example-announcer",
       "foundation-example-autosave",
+      "foundation-example-shop",
+      "foundation-example-loyalty",
       "foundation-docs-examples-test"
     ],
     "timeout_seconds": 90,
@@ -153,7 +155,13 @@
       "Greeter is ready",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter is ready",
       "pong for docs",
-      "saved 3 change\\(s\\)",
+      "\\[foundation\\] console bought 3 apple for 27",
+      "console ran buy \\(success\\)",
+      "\\[foundation\\] purchase refused",
+      "\\[foundation\\] <item> must be one of apple, sword",
+      "\\[foundation\\] Usage: buy <item> \\[amount\\]",
+      "\\[foundation\\] buy <item> \\[amount\\] - Buy an item",
+      "\\[foundation\\] Packages \\(8\\):",
       "Greeter is shutting down",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter disabled: Foundation is stopping",
       "\\[foundation\\] INFO  foundation/core: Foundation stopped"
@@ -175,7 +183,8 @@
       "announcement: Welcome to the server!",
       "announcement: Read the rules with /rules\\.",
       "announcement: Have fun!",
-      "unsaved changes: 1"
+      "unsaved changes: 1",
+      "saved 3 change\\(s\\)"
     ]
   },
   "core-json": {
@@ -272,6 +281,49 @@
     "allowed_errors": [
       "Failed to execute Select query: 'SELECT \\* FROM missing_table'",
       "SQL Error: .*missing_table"
+    ]
+  },
+  "core-events": {
+    "description": "Events defined, emitted and listened to across packages on a real server, with cleanup on unload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-events-fixture",
+      "foundation-core-events-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: event_listener callback of foundation-core-events-test failed"
+    ],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/core: foundation-events-fixture disabled: package unloaded"
+    ]
+  },
+  "core-commands": {
+    "description": "Commands typed in the server console reach package commands; labels, collisions and cleanup on unload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-commands-fixture",
+      "foundation-core-commands-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_sequence": [
+      "\\[foundation\\] WARN  foundation-core-commands-test/commands: /give of foundation-core-commands-test is already used by foundation-commands-fixture; it is available as /foundation-core-commands-test:give",
+      "\\[foundation\\] gave 3 golden apple",
+      "\\[foundation\\] gave 1 pear",
+      "\\[foundation\\] <amount>: 'many' is not a whole number",
+      "\\[foundation\\] Usage: give <item> \\[amount\\]",
+      "\\[foundation\\] INFO  foundation/core: foundation-commands-fixture disabled: package unloaded",
+      "\\[foundation\\] unknown command: g",
+      "\\[foundation\\] Foundation 0\\.1\\.0 \\(API 0\\.1\\)",
+      "\\[foundation\\] Packages \\(2\\):",
+      "\\[foundation\\] foundation-commands-fixture 0\\.1\\.0 - disabled",
+      "\\[foundation\\] foundation-core-commands-test 0\\.1\\.0 - ready",
+      "\\[foundation\\] give \\[target\\]",
+      "\\[foundation\\] foundation/config\\.toml: no change",
+      "\\[foundation\\] foundation/config/foundation-core-commands-test\\.toml: 1 setting changed"
     ]
   }
 }

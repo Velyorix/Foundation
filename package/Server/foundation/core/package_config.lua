@@ -214,7 +214,7 @@ function PackageConfigs:ReloadAll()
 		local settings = self.configs[owner]
 		local changed, pending = settings.config:Reload()
 		if changed then
-			results[owner] = { changed = changed, pending = pending }
+			results[owner] = { changed = changed, pending = pending, path = settings.config.spec.path }
 			if #changed > 0 then
 				local values = settings.config:Values()
 				local info = { owner = owner, kind = "config_hook" }
@@ -223,7 +223,7 @@ function PackageConfigs:ReloadAll()
 				end
 			end
 		else
-			results[owner] = { error = pending }
+			results[owner] = { error = pending, path = settings.config.spec.path }
 		end
 	end
 	return results

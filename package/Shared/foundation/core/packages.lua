@@ -47,7 +47,20 @@ function Registry.new(options)
 		order = {},
 		sequence = 0,
 		alive = true,
+		observers = {},
 	}, Registry)
+end
+
+-- observer(kind, entry, details) runs after a package becomes ready, fails or is disabled.
+function Registry:Observe(observer)
+	self.observers[#self.observers + 1] = observer
+end
+
+function Registry:notify(kind, entry, details)
+	local info = { owner = "foundation", kind = "package_observer", fields = { package = entry.id } }
+	for _, observer in ipairs(self.observers) do
+		self.invoker:Call(info, observer, kind, entry, details)
+	end
 end
 
 function Registry:invalid(api, index, name, reason_key, params, level)
@@ -214,6 +227,7 @@ function Registry:fail(entry, reason_key, params)
 	entry.state = "failed"
 	entry.failure = reason
 	self.log:Error("package.failed", { id = entry.id, reason = reason })
+	self:notify("failed", entry, { reason = reason })
 end
 
 function Registry:mark_ready(entry)
@@ -236,6 +250,7 @@ function Registry:mark_ready(entry)
 	end
 	entry.state = "ready"
 	self.log:Info("package.ready", { id = entry.id })
+	self:notify("ready", entry)
 end
 
 -- Returns true when the package was active and is now disabled.
@@ -252,6 +267,7 @@ function Registry:Disable(id, reason)
 	end
 	entry.state = "disabled"
 	self.log:Info("package.disabled", { id = id, reason = self.messages:Format("disable_reason." .. reason) })
+	self:notify("disabled", entry, { reason = reason })
 	return true
 end
 

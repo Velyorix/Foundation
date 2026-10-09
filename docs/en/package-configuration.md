@@ -100,8 +100,9 @@ with the defaults. You do not need to handle that case.
 
 ## Reloading
 
-The file is read when `context:Config` is called: at server start, and when your package is
-reloaded. `reload` declares how a setting may change while your package keeps running:
+The file is read when `context:Config` is called (at server start, and when your package is
+reloaded), and again when an administrator types `foundation reload-config`. `reload`
+declares how a setting may change while your package keeps running:
 
 - `"restart"`: never; a new value is only used after a restart. Use it for settings read
   once (a database path, a port).
@@ -109,9 +110,9 @@ reloaded. `reload` declares how a setting may change while your package keeps ru
   `settings:OnChange(fn)` run with the list of changed keys and all values:
   `fn(changed, values)`.
 
-Foundation 0.1.0 does not reload configuration files while packages run, so `OnChange`
-functions are not called in this version. Declaring `reload` and `OnChange` now lets your
-package support it without changes.
+If the reloaded file is invalid, nothing changes and `OnChange` functions are not called.
+Other packages can follow reloads with the
+[`foundation:config_reloaded`](events.md#foundations-events) event.
 
 ## Changing the layout
 

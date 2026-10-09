@@ -36,6 +36,10 @@ level = "info"
 
 # Parts of Foundation whose debug lines are written even when the level is above 'debug', for example ['config'].
 debug_categories = []
+
+[commands]
+# Chat messages starting with '/' that are not commands: 'reply' answers "unknown command" and hides the message, 'pass' leaves them to other packages.
+unknown_in_chat = "reply"
 ```
 
 | Réglage | Valeurs | Défaut | Effet |
@@ -43,6 +47,7 @@ debug_categories = []
 | `language` | Code de langue : `en`, `fr`, ou un code régional comme `fr_CA` | `"en"` | Langue des messages de Foundation dans le journal et langue par défaut des traductions des packages (voir [Localisation](localization.md)). Foundation fournit l'anglais et le français ; les autres langues utilisent l'anglais. |
 | `log.level` | `"debug"`, `"info"`, `"warning"`, `"error"` | `"info"` | Les lignes d'un niveau inférieur ne sont pas écrites. Voir [Journalisation](logging.md). |
 | `log.debug_categories` | Liste de domaines, par exemple `["config"]` | `[]` | Domaines (la partie après `/` dans une ligne du journal) dont les lignes de débogage sont écrites quel que soit `log.level`. |
+| `commands.unknown_in_chat` | `"reply"`, `"pass"` | `"reply"` | Messages du chat commençant par `/` qui ne sont pas des commandes : `reply` répond « commande inconnue » et masque le message ; `pass` les laisse aux autres packages, par exemple un package qui gère ses propres commandes de chat. |
 
 Ce fichier est toujours créé en anglais. Modifier `language` change la langue des messages, pas
 les commentaires déjà présents dans le fichier.
@@ -79,10 +84,15 @@ message = "Here is your daily reward!"
 - `foundation/config.toml` est lu au démarrage de Foundation.
 - Le fichier d'un package est lu au démarrage de ce package.
 
-Redémarrez le serveur après avoir modifié un fichier. Pour appliquer le fichier d'un package
-sans redémarrer, rechargez ce package avec la commande console `package reload <package>`. Ne
-rechargez pas `foundation` seul : tous les packages qui l'utilisent cesseraient de fonctionner
-jusqu'à ce qu'ils soient rechargés à leur tour.
+Après avoir modifié des fichiers, tapez `foundation reload-config` dans la console du serveur :
+chaque fichier est relu et la réponse indique, pour chacun, ce qui a changé (voir
+[Commandes d'administration](administration.md#recharger-la-configuration)). Tous les
+réglages de Foundation s'appliquent tout de suite. Un package décide lesquels de ses réglages
+peuvent changer pendant qu'il fonctionne ; les autres attendent un redémarrage, et la réponse
+les liste.
+
+N'utilisez pas `package reload foundation` : tous les packages qui utilisent Foundation
+cesseraient de fonctionner jusqu'à ce qu'ils soient rechargés à leur tour.
 
 ## Modifier un fichier sans risque
 

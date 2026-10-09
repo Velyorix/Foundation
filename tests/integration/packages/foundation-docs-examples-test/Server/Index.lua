@@ -33,7 +33,14 @@ suite:Do(function()
 	end
 end)
 
+for _, line in ipairs({ "buy apple 3", "buy sword", "buy pear", "foundation help buy", "foundation packages" }) do
+	suite:Do(function()
+		Console.RunCommand(line)
+	end)
+	suite:Wait(100)
+end
+
 -- Leaves time for the debounced save and the three announcements (one per second).
-suite:Wait(3600)
+suite:Wait(3100)
 
 suite:Run()

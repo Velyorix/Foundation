@@ -19,9 +19,10 @@ local function parse_version(text)
 	return nil
 end
 
--- options: check, keys, ownership, invoker, events (optional)
+-- options: check, keys, ownership, invoker, events (optional), packages (registry, optional)
 function Services.new(options)
 	return setmetatable({
+		packages = options.packages,
 		invoker = options.invoker,
 		events = options.events,
 		watchers = {},
@@ -139,6 +140,7 @@ function Services:remove(provider)
 	if not provider.replacing then
 		self:announce("service_unavailable", provider)
 		self:notify(provider.key)
+		self:check_required(provider.key)
 	end
 end
 
@@ -345,6 +347,84 @@ function Services:Watch(owner, name, range, fn, api, level)
 		self:call_watcher(watcher, best)
 	end
 	return watcher.handle
+end
+
+local REQUIREMENT_FIELDS = { name = true, version = true, optional = true }
+
+-- Validates `manifest.services`; returns the list of { key, version, range, optional }.
+-- `level` as for Check, seen from Foundation.Register.
+function Services:CheckManifest(value, api, level)
+	if value == nil then
+		return {}
+	end
+	self.check:Argument(api, 2, "manifest.services", value, "table", level)
+	local requirements, seen = {}, {}
+	for index, item in ipairs(value) do
+		local name = "manifest.services[" .. index .. "]"
+		local valid = type(item) == "table"
+		for field in pairs(valid and item or {}) do
+			valid = valid and REQUIREMENT_FIELDS[field] == true
+		end
+		local key = valid and type(item.name) == "string" and self.keys.Split(item.name:lower()) and item.name:lower()
+		valid = valid and key and self.keys:Parse(key) ~= nil
+		valid = valid and (item.version == nil or parse_version(item.version) ~= nil)
+		valid = valid and (item.optional == nil or type(item.optional) == "boolean")
+		if not valid then
+			self:invalid(api, 2, name, "reason.manifest_service", nil, level)
+		end
+		if seen[key] then
+			self:invalid(api, 2, name, "reason.manifest_service_duplicate", { name = key }, level)
+		end
+		seen[key] = true
+		local major, minor = parse_version(item.version)
+		requirements[#requirements + 1] = {
+			key = key,
+			version = item.version,
+			range = major and { major = major, minor = minor } or nil,
+			optional = item.optional == true,
+		}
+	end
+	return requirements
+end
+
+function Services:range_text(requirement)
+	if not requirement.version then
+		return self.messages:Format("service.any_version")
+	end
+	return self.messages:Format("service.version_range", { range = requirement.version })
+end
+
+-- Ready check: the package fails when a required service has no compatible provider.
+function Services:ReadyCheck(entry)
+	for _, requirement in ipairs(entry.extensions.services or {}) do
+		if not requirement.optional and not self:best(requirement.key, requirement.range) then
+			return "reason.service_missing",
+				{ id = entry.id, name = requirement.key, range = self:range_text(requirement) }
+		end
+	end
+	return nil
+end
+
+-- Fails ready packages whose required service `key` has no compatible provider left.
+function Services:check_required(key)
+	local packages = self.packages
+	if not packages then
+		return
+	end
+	for _, entry in ipairs(packages.order) do
+		if packages.entries[entry.id] == entry and entry.state == "ready" then
+			for _, requirement in ipairs(entry.extensions.services or {}) do
+				if requirement.key == key and not requirement.optional and not self:best(key, requirement.range) then
+					packages:Fail(entry.id, "reason.service_lost", {
+						id = entry.id,
+						name = key,
+						range = self:range_text(requirement),
+					})
+					break
+				end
+			end
+		end
+	end
 end
 
 function Services:Snapshot()

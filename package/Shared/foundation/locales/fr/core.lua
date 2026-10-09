@@ -230,4 +230,11 @@ return {
 	["reason.service_provided"] = "ce package fournit déjà '{name}' ; passez replace = true pour le remplacer",
 	["reason.service_gone"] = "le fournisseur de '{name}' ({owner}) n'est plus disponible",
 	["reason.service_read_only"] = "les services ne peuvent pas être modifiés via l'objet renvoyé par GetService",
+
+	["reason.manifest_service"] = "chaque entrée est { name = '<espace>:<nom>', version = '<majeure>' ou '<majeure>.<mineure>' (facultatif), optional = true (facultatif) }",
+	["reason.manifest_service_duplicate"] = "'{name}' est listé deux fois",
+	["reason.service_missing"] = "'{id}' requiert le service '{name}' ({range}), qu'aucun package ne fournit",
+	["reason.service_lost"] = "le service '{name}' ({range}) requis par '{id}' n'est plus fourni",
+	["service.any_version"] = "toute version",
+	["service.version_range"] = "version {range}",
 }

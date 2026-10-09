@@ -1,4 +1,12 @@
-local context = Foundation.Register(Package, { api = Foundation.API_VERSION })
+local context = Foundation.Register(Package, {
+	api = Foundation.API_VERSION,
+	services = { { name = "economy:bank", version = "1" } },
+})
+
+local failures = {}
+context:Listen("foundation:package_failed", function(event)
+	failures[#failures + 1] = event:Get("package") .. ": " .. event:Get("message")
+end)
 
 context:ProvideService("economy:bank", "1.0", {
 	name = "fallback",
@@ -19,6 +27,11 @@ end)
 
 local suite = FoundationTest.Suite("core-services")
 local held
+
+suite:Test("packages requiring a provided service become ready", function()
+	FoundationTest.Equal(context:GetState(), "ready")
+	FoundationTest.Equal(#failures, 0)
+end)
 
 suite:Test("the best provider of another package is returned and callable", function()
 	local bank, info = context:GetService("economy:bank", "1.1")
@@ -41,6 +54,15 @@ suite:Test("after the provider unloads, old references fail and lookups fall bac
 	end, "is no longer available")
 	FoundationTest.Equal(context:GetService("economy:bank", "1.1"), nil)
 	FoundationTest.Equal(context:GetService("economy:bank").name, "fallback")
+end)
+
+suite:Test("losing the only compatible provider fails the packages that require it", function()
+	FoundationTest.Equal(context:GetState(), "ready")
+	FoundationTest.Equal(
+		table.concat(failures, ";"),
+		"foundation-services-consumer: the service 'economy:bank' (version 1.1) required by "
+			.. "'foundation-services-consumer' is no longer provided"
+	)
 end)
 
 suite:Test("watchers follow the best provider and Foundation announces the loss", function()

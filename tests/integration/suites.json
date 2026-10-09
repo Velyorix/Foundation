@@ -332,9 +332,12 @@
       "foundation",
       "foundation-test-harness",
       "foundation-services-fixture",
+      "foundation-services-consumer",
       "foundation-core-services-test"
     ],
     "timeout_seconds": 90,
-    "allowed_errors": []
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: foundation-services-consumer failed: "
+    ]
   }
 }

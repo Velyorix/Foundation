@@ -227,8 +227,15 @@ local COMPONENTS = {
 				ownership = runtime.ownership,
 				invoker = runtime.invoker,
 				events = runtime.events,
+				packages = runtime.packages,
 			})
 			runtime.services = services
+			runtime.packages:ExtendManifest("services", function(value, api, level)
+				return services:CheckManifest(value, api, level)
+			end)
+			runtime.packages:AddReadyCheck(function(entry)
+				return services:ReadyCheck(entry)
+			end)
 			local packages = runtime.packages
 			local S = runtime.schema
 			local fields = {

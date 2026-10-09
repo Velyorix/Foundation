@@ -7,6 +7,16 @@ context:ProvideService("economy:bank", "1.0", {
 	end,
 })
 
+local changes = {}
+context:OnService("economy:bank", "1", function(service, info)
+	changes[#changes + 1] = service and (service.name .. "@" .. info.version) or "none"
+end)
+
+local announced = {}
+context:Listen("foundation:service_unavailable", function(event)
+	announced[#announced + 1] = event:Get("service") .. ":" .. event:Get("provider")
+end)
+
 local suite = FoundationTest.Suite("core-services")
 local held
 
@@ -31,6 +41,11 @@ suite:Test("after the provider unloads, old references fail and lookups fall bac
 	end, "is no longer available")
 	FoundationTest.Equal(context:GetService("economy:bank", "1.1"), nil)
 	FoundationTest.Equal(context:GetService("economy:bank").name, "fallback")
+end)
+
+suite:Test("watchers follow the best provider and Foundation announces the loss", function()
+	FoundationTest.Equal(table.concat(changes, ","), "fixture@1.2,fallback@1.0")
+	FoundationTest.Equal(table.concat(announced, ","), "economy:bank:foundation-services-fixture")
 end)
 
 suite:Run()

@@ -225,9 +225,24 @@ local COMPONENTS = {
 				check = runtime.check,
 				keys = runtime.keys,
 				ownership = runtime.ownership,
+				invoker = runtime.invoker,
+				events = runtime.events,
 			})
 			runtime.services = services
 			local packages = runtime.packages
+			local S = runtime.schema
+			local fields = {
+				service = S:String(),
+				provider = S:String(),
+				version = S:String(),
+				priority = S:Integer(),
+			}
+			runtime.events:Define("foundation", "service_available", { fields = fields }, "Runtime", 2)
+			runtime.events:Define("foundation", "service_unavailable", { fields = fields }, "Runtime", 2)
+			packages:ExtendContext("OnService", function(_, entry, name, version, fn)
+				local handle = services:Watch(entry.id, name, version, fn, "context:OnService", 3)
+				return handle
+			end)
 			packages:ExtendContext("ProvideService", function(_, entry, name, version, implementation, options)
 				local provider =
 					services:Provide(entry.id, name, version, implementation, options, "context:ProvideService", 3)

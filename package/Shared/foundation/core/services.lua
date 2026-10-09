@@ -19,9 +19,12 @@ local function parse_version(text)
 	return nil
 end
 
--- options: check, keys, ownership
+-- options: check, keys, ownership, invoker, events (optional)
 function Services.new(options)
 	return setmetatable({
+		invoker = options.invoker,
+		events = options.events,
+		watchers = {},
 		check = options.check,
 		errors = options.check.errors,
 		messages = options.check.errors.messages,
@@ -116,6 +119,9 @@ local function sort_providers(list)
 end
 
 function Services:remove(provider)
+	if not provider.active then
+		return
+	end
 	provider.active = false
 	local list = self.services[provider.key]
 	if not list then
@@ -129,6 +135,10 @@ function Services:remove(provider)
 	end
 	if #list == 0 then
 		self.services[provider.key] = nil
+	end
+	if not provider.replacing then
+		self:announce("service_unavailable", provider)
+		self:notify(provider.key)
 	end
 end
 
@@ -172,6 +182,7 @@ function Services:Provide(owner, name, version, implementation, options, api, le
 		self:state_error(api, "reason.service_provided", { name = key }, level)
 	end
 	if previous then
+		previous.replacing = true
 		previous.handle:Release()
 	end
 
@@ -198,6 +209,11 @@ function Services:Provide(owner, name, version, implementation, options, api, le
 	end
 	list[#list + 1] = provider
 	sort_providers(list)
+	if previous then
+		self:announce("service_unavailable", previous)
+	end
+	self:announce("service_available", provider)
+	self:notify(key)
 	return provider
 end
 
@@ -237,6 +253,98 @@ function Services:All(owner, name, range, api, level)
 		result[index] = describe(provider)
 	end
 	return result
+end
+
+function Services:announce(name, provider)
+	if not self.events then
+		return
+	end
+	self.invoker:Call({ owner = "foundation", kind = "service_event" }, function()
+		self.events:Emit("foundation", name, {
+			service = provider.key,
+			provider = provider.owner,
+			version = provider.version,
+			priority = provider.priority,
+		}, "Services", 2)
+	end)
+end
+
+function Services:best(key, range)
+	for _, provider in ipairs(self.services[key] or {}) do
+		if accepts(range, provider) then
+			return provider
+		end
+	end
+	return nil
+end
+
+-- Calls the watchers of `key` whose best provider changed.
+function Services:notify(key)
+	local watchers = self.watchers[key]
+	if not watchers then
+		return
+	end
+	local snapshot = {}
+	for index, watcher in ipairs(watchers) do
+		snapshot[index] = watcher
+	end
+	for _, watcher in ipairs(snapshot) do
+		if watcher.active then
+			local best = self:best(key, watcher.range)
+			if best ~= watcher.current then
+				watcher.current = best
+				self:call_watcher(watcher, best)
+			end
+		end
+	end
+end
+
+function Services:call_watcher(watcher, provider)
+	if provider then
+		self.invoker:Call(watcher.info, watcher.fn, provider.proxy, describe(provider))
+	else
+		self.invoker:Call(watcher.info, watcher.fn, nil, nil)
+	end
+end
+
+-- fn(service, info) runs now when a matching provider exists, then each time the best
+-- matching provider changes; fn(nil) when none is left. Returns the ownership handle.
+function Services:Watch(owner, name, range, fn, api, level)
+	local key = self.keys:Check(api, 1, "name", name, { default_namespace = owner }, level)
+	local parsed = self:check_range(api, 2, range, level)
+	self.check:Argument(api, 3, "fn", fn, "function", level)
+	local watcher = {
+		owner = owner,
+		range = parsed,
+		fn = fn,
+		active = true,
+		info = { owner = owner, kind = "service_watcher", fields = { service = key } },
+	}
+	local list = self.watchers[key]
+	if not list then
+		list = {}
+		self.watchers[key] = list
+	end
+	list[#list + 1] = watcher
+	watcher.handle = self.ownership:Track(owner, "service_watcher", function()
+		watcher.active = false
+		local current = self.watchers[key]
+		for index, other in ipairs(current or {}) do
+			if other == watcher then
+				table.remove(current, index)
+				break
+			end
+		end
+		if current and #current == 0 then
+			self.watchers[key] = nil
+		end
+	end, { service = key })
+	local best = self:best(key, parsed)
+	if best then
+		watcher.current = best
+		self:call_watcher(watcher, best)
+	end
+	return watcher.handle
 end
 
 function Services:Snapshot()

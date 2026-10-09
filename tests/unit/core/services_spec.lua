@@ -226,4 +226,111 @@ describe("Services", function()
 			})
 		end)
 	end)
+
+	describe("availability", function()
+		local calls
+
+		local function watch(context, name, version)
+			calls = calls or {}
+			return context:OnService(name, version, function(service, info)
+				calls[#calls + 1] = service and (service.name .. "@" .. info.provider) or "none"
+			end)
+		end
+
+		before_each(function()
+			calls = {}
+		end)
+
+		it("reports the current provider at once, then every change of the best one", function()
+			coins:ProvideService("economy:bank", "1.0", bank("coins"), { priority = 5 })
+			watch(shop, "economy:bank")
+			expect.same(calls, { "coins@coins" })
+			gems:ProvideService("economy:bank", "1.0", bank("gems"), { priority = 1 })
+			expect.same(calls, { "coins@coins" })
+			local cash = register("cash"):ProvideService("economy:bank", "1.0", bank("cash"), { priority = 9 })
+			expect.same(calls, { "coins@coins", "cash@cash" })
+			cash:Release()
+			expect.same(calls, { "coins@coins", "cash@cash", "coins@coins" })
+			runtime.packages:Disable("coins", "unload")
+			runtime.packages:Disable("gems", "unload")
+			expect.same(calls, { "coins@coins", "cash@cash", "coins@coins", "gems@gems", "none" })
+		end)
+
+		it("waits silently until a matching provider appears", function()
+			watch(shop, "economy:bank", "2")
+			coins:ProvideService("economy:bank", "1.0", bank("coins"))
+			expect.same(calls, {})
+			gems:ProvideService("economy:bank", "2.1", bank("gems"))
+			expect.same(calls, { "gems@gems" })
+		end)
+
+		it("reports a replacement once", function()
+			coins:ProvideService("economy:bank", "1.0", bank("old"))
+			watch(shop, "economy:bank")
+			coins:ProvideService("economy:bank", "1.1", bank("new"), { replace = true })
+			expect.same(calls, { "old@coins", "new@coins" })
+		end)
+
+		it("stops with its handle and with its package", function()
+			local handle = watch(shop, "economy:bank")
+			handle:Release()
+			watch(gems, "economy:bank")
+			runtime.packages:Disable("gems", "unload")
+			coins:ProvideService("economy:bank", "1.0", bank("coins"))
+			expect.same(calls, {})
+			expect.equal(runtime.ownership:Count("shop"), 0)
+		end)
+
+		it("skips a watcher released by another one during the same change", function()
+			local second
+			shop:OnService("economy:bank", nil, function()
+				second:Release()
+			end)
+			second = watch(gems, "economy:bank")
+			coins:ProvideService("economy:bank", "1.0", bank("coins"))
+			expect.same(calls, {})
+		end)
+
+		it("isolates a failing callback", function()
+			shop:OnService("economy:bank", nil, function()
+				error("watcher exploded")
+			end)
+			watch(gems, "economy:bank")
+			coins:ProvideService("economy:bank", "1.0", bank("coins"))
+			expect.same(calls, { "coins@coins" })
+		end)
+
+		it("validates its arguments", function()
+			expect.raises(function()
+				shop:OnService("economy:bank", "x", function() end)
+			end, "must be '<major>' or '<major>.<minor>'")
+			expect.raises(function()
+				shop:OnService("economy:bank", nil, "fn")
+			end, "'fn' must be function (got string)")
+		end)
+
+		it("emits Foundation events for each provider", function()
+			local seen = {}
+			for _, name in ipairs({ "service_available", "service_unavailable" }) do
+				shop:Listen("foundation:" .. name, function(event)
+					seen[#seen + 1] = name
+						.. ":"
+						.. event:Get("service")
+						.. ":"
+						.. event:Get("provider")
+						.. ":"
+						.. event:Get("version")
+				end)
+			end
+			coins:ProvideService("economy:bank", "1.0", bank("coins"))
+			coins:ProvideService("economy:bank", "1.1", bank("coins"), { replace = true })
+			runtime.packages:Disable("coins", "unload")
+			expect.same(seen, {
+				"service_available:economy:bank:coins:1.0",
+				"service_unavailable:economy:bank:coins:1.0",
+				"service_available:economy:bank:coins:1.1",
+				"service_unavailable:economy:bank:coins:1.1",
+			})
+		end)
+	end)
 end)

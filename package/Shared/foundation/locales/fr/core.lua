@@ -263,4 +263,8 @@ return {
 
 	["reason.permission_console"] = "la console a toutes les permissions ; les attachements ne concernent que les joueurs",
 	["reason.permission_duration"] = "doit être un nombre positif de millisecondes",
+
+	["permissions.provider_active"] = "les permissions sont désormais résolues par {provider} (contrat {version})",
+	["permissions.provider_none"] = "aucun fournisseur de permissions : les permissions utilisent leurs valeurs par défaut déclarées",
+	["permissions.provider_answer"] = "le fournisseur de permissions {owner} a répondu un {type} au lieu de true, false ou nil ; la réponse est ignorée",
 }

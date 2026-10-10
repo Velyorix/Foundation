@@ -263,4 +263,8 @@ return {
 
 	["reason.permission_console"] = "the console has every permission; attachments only apply to players",
 	["reason.permission_duration"] = "must be a positive number of milliseconds",
+
+	["permissions.provider_active"] = "permissions are now resolved by {provider} (contract {version})",
+	["permissions.provider_none"] = "no permission provider: permissions use their declared defaults",
+	["permissions.provider_answer"] = "the permission provider {owner} answered a {type} instead of true, false or nil; the answer is ignored",
 }

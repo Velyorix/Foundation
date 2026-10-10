@@ -358,5 +358,20 @@
       "\\[foundation\\] Capabilities \\(1\\):",
       "\\[foundation\\]   economy:interest: foundation-services-fixture 1\\.0"
     ]
+  },
+  "core-permissions": {
+    "description": "Permission resolution with an external provider package on a real server, attachments and provider audit",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-permissions-provider-fixture",
+      "foundation-core-permissions-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation/core: permissions are now resolved by foundation-permissions-provider-fixture \\(contract 1\\.0\\)",
+      "\\[foundation\\] INFO  foundation/core: no permission provider: permissions use their declared defaults"
+    ]
   }
 }

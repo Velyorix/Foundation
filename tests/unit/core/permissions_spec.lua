@@ -4,7 +4,7 @@ local function setup()
 	local Facade = loader:require("foundation/core/facade.lua")
 	local Senders = loader:require("foundation/core/senders.lua")
 	local lines = {}
-	local clock = { now = 0 }
+	local clock = { now = 0, audited = {} }
 	local runtime = Runtime.new({
 		side = "server",
 		version = "0.1.0",
@@ -18,6 +18,14 @@ local function setup()
 		end,
 		now = function()
 			return 0
+		end,
+		create_audit = function()
+			return {
+				Record = function(_, owner, action, entry)
+					clock.audited[#clock.audited + 1] = { owner = owner, action = action, entry = entry }
+					return true
+				end,
+			}
 		end,
 	})
 	runtime:Start()
@@ -262,6 +270,98 @@ describe("Permissions", function()
 				expect.contains(message, case[2])
 				expect.equal(tonumber(message:match("permissions_spec%.lua:(%d+):")), expected_line)
 			end
+		end)
+	end)
+
+	describe("provider", function()
+		local ranks
+
+		local function provide(context, grants, options)
+			return context:ProvideService("foundation:permission_provider", "1.0", {
+				Check = function(_, subject, node)
+					return grants[subject .. " " .. node]
+				end,
+			}, options)
+		end
+
+		before_each(function()
+			homes:DeclarePermission("homes.admin")
+			homes:DeclarePermission("homes.use", { default = "everyone" })
+			ranks = register("ranks")
+		end)
+
+		local function explain(subject, node)
+			local result = Foundation.Permissions.Explain(subject, node)
+			return tostring(result.allowed)
+				.. ":"
+				.. result.source
+				.. (result.package and (":" .. result.package) or "")
+		end
+
+		it("decides after attachments and before defaults", function()
+			provide(ranks, { ["alex homes.admin"] = true, ["alex homes.use"] = false })
+			expect.equal(explain("alex", "homes.admin"), "true:provider:ranks")
+			expect.equal(explain("alex", "homes.use"), "false:provider:ranks")
+			expect.equal(explain("sam", "homes.use"), "true:default")
+			register("games"):AttachPermission("alex", "homes.admin", false)
+			expect.equal(explain("alex", "homes.admin"), "false:attachment:games")
+		end)
+
+		it("uses the provider with the highest priority", function()
+			provide(ranks, { ["alex homes.admin"] = false })
+			provide(register("vip"), { ["alex homes.admin"] = true }, { priority = 5 })
+			expect.equal(explain("alex", "homes.admin"), "true:provider:vip")
+		end)
+
+		it("falls back to defaults when the provider fails or answers nonsense", function()
+			local calls = 0
+			ranks:ProvideService("foundation:permission_provider", "1.0", {
+				Check = function(_, _, node)
+					calls = calls + 1
+					if node == "homes.admin" then
+						error("database down")
+					end
+					return "yes"
+				end,
+			})
+			expect.equal(explain("alex", "homes.admin"), "false:default")
+			expect.equal(explain("alex", "homes.use"), "true:default")
+			clock.now = 60
+			explain("alex", "homes.use")
+			expect.equal(calls, 3)
+			local output = table.concat(lines, "\n")
+			expect.contains(output, "permission_provider callback of ranks failed")
+			local warnings = 0
+			for _, line in ipairs(lines) do
+				if line:find("answered a string instead of true, false or nil", 1, true) then
+					warnings = warnings + 1
+				end
+			end
+			expect.equal(warnings, 1)
+		end)
+
+		it("ignores providers of another contract version", function()
+			ranks:ProvideService("foundation:permission_provider", "2.0", {
+				Check = function()
+					return true
+				end,
+			})
+			expect.equal(explain("alex", "homes.admin"), "false:default")
+		end)
+
+		it("logs and audits every change of provider", function()
+			local handle = provide(ranks, {})
+			handle:Release()
+			local output = table.concat(lines, "\n")
+			expect.contains(output, "permissions are now resolved by ranks (contract 1.0)")
+			expect.contains(output, "no permission provider: permissions use their declared defaults")
+			local changes = {}
+			for _, record in ipairs(clock.audited) do
+				if record.action == "foundation:permissions/provider" then
+					changes[#changes + 1] = record.entry.details.previous .. ">" .. record.entry.target
+				end
+			end
+			expect.same(changes, { "none>ranks", "ranks>none" })
 		end)
 	end)
 end)

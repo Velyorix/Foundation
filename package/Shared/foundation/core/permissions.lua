@@ -4,6 +4,8 @@ Permissions.__index = Permissions
 Permissions.DEFAULTS = { "everyone", "nobody", "operators", "non_operators" }
 Permissions.UNDECLARED_DEFAULT = "operators"
 Permissions.MAX_LENGTH = 128
+Permissions.PROVIDER_SERVICE = "foundation:permission_provider"
+Permissions.PROVIDER_VERSION = "1"
 
 local SEGMENT = "^[a-z0-9_-]+$"
 local DECLARATION_FIELDS = { description = true, default = true, deprecated = true }
@@ -24,8 +26,9 @@ local function valid_node(node)
 	return node:find(".", 1, true) ~= nil
 end
 
--- options: check, log, now_ms, is_operator(subject_id) (optional; nobody is an operator
--- without it)
+-- options: check, log, now_ms, invoker, is_operator(subject_id) (optional; nobody is an
+-- operator without it), provider() returning the permission provider service and its
+-- package (optional)
 function Permissions.new(options)
 	return setmetatable({
 		check = options.check,
@@ -36,6 +39,9 @@ function Permissions.new(options)
 			return false
 		end,
 		now_ms = options.now_ms,
+		invoker = options.invoker,
+		provider = options.provider,
+		bad_answers = {},
 		declarations = {},
 		attachments = {},
 		warned = {},
@@ -136,8 +142,8 @@ local function from_default(default, operator)
 	return not operator
 end
 
--- Returns allowed (boolean), the source of the decision ("console", "attachment" or
--- "default") and, for attachments, the package that made it.
+-- Returns allowed (boolean), the source of the decision ("console", "attachment",
+-- "provider" or "default") and, for attachments and providers, the package behind it.
 function Permissions:Resolve(subject, node, api, level)
 	local id, console = self:subject_id(api, subject, level + 1)
 	self.check:Argument(api, 2, "node", node, "string", level + 1)
@@ -159,6 +165,10 @@ function Permissions:Resolve(subject, node, api, level)
 	local attached, owner = self:attached(id, node)
 	if attached ~= nil then
 		return attached, "attachment", owner
+	end
+	local answer, provider_owner = self:ask_provider(id, node)
+	if answer ~= nil then
+		return answer, "provider", provider_owner
 	end
 	local default = declaration and declaration.default or Permissions.UNDECLARED_DEFAULT
 	return from_default(default, self.is_operator(id) == true), "default"
@@ -262,6 +272,35 @@ end
 function Permissions:Has(subject, node, level)
 	local allowed = self:Resolve(subject, node, "Foundation.Permissions.Has", level or 2)
 	return allowed
+end
+
+-- Provider contract v1: provider:Check(subject_id, node) returns true, false, or nil when it
+-- has no opinion. Errors and other answers count as no opinion and are logged.
+function Permissions:ask_provider(id, node)
+	local service, owner = nil, nil
+	if self.provider then
+		service, owner = self.provider()
+	end
+	if not service then
+		return nil
+	end
+	local info = { owner = owner, kind = "permission_provider", fields = { node = node } }
+	local ok, answer = self.invoker:Call(info, function()
+		return service:Check(id, node)
+	end)
+	if not ok then
+		return nil
+	end
+	if answer ~= nil and type(answer) ~= "boolean" then
+		if not self.bad_answers[owner] then
+			self.bad_answers[owner] = true
+			self.log
+				:For(owner, "permissions")
+				:Warning("permissions.provider_answer", { owner = owner, type = type(answer) })
+		end
+		return nil
+	end
+	return answer, owner
 end
 
 function Permissions:Explain(subject, node, level)

@@ -296,14 +296,41 @@ local COMPONENTS = {
 		required = true,
 		create = function(runtime)
 			local env = runtime.env
+			local services = runtime.services
 			local permissions = Permissions.new({
 				check = runtime.check,
 				log = runtime.log,
+				invoker = runtime.invoker,
+				provider = function()
+					local service, info = services:Get(
+						"foundation",
+						Permissions.PROVIDER_SERVICE,
+						Permissions.PROVIDER_VERSION,
+						"Runtime",
+						2
+					)
+					return service, info and info.provider
+				end,
 				now_ms = env.now_ms or function()
 					return math.floor(env.clock() * 1000)
 				end,
 			})
 			runtime.permissions = permissions
+			local current
+			services:Watch("foundation", Permissions.PROVIDER_SERVICE, Permissions.PROVIDER_VERSION, function(_, info)
+				local previous = current
+				current = info and info.provider or nil
+				runtime.log:Info(current and "permissions.provider_active" or "permissions.provider_none", {
+					provider = current,
+					version = info and info.version,
+				})
+				if runtime.audit then
+					runtime.audit:Record("foundation", "foundation:permissions/provider", {
+						target = current or "none",
+						details = { previous = previous or "none", version = info and info.version },
+					})
+				end
+			end, "Runtime", 2)
 			runtime.packages:ExtendContext("DeclarePermission", function(context, entry, node, definition)
 				local declaration, release =
 					permissions:Declare(entry.id, node, definition, "context:DeclarePermission", 3)

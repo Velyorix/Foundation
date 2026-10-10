@@ -148,6 +148,8 @@
       "foundation-example-loyalty",
       "foundation-example-coins",
       "foundation-example-salary",
+      "foundation-example-arena",
+      "foundation-example-ranks",
       "foundation-docs-examples-test"
     ],
     "timeout_seconds": 90,
@@ -163,13 +165,20 @@
       "\\[foundation\\] <item> must be one of apple, sword",
       "\\[foundation\\] Usage: buy <item> \\[amount\\]",
       "\\[foundation\\] buy <item> \\[amount\\] - Buy an item",
-      "\\[foundation\\] Packages \\(10\\):",
-      "\\[foundation\\] Services \\(1\\):",
+      "\\[foundation\\] Packages \\(12\\):",
+      "\\[foundation\\] Services \\(2\\):",
       "\\[foundation\\] economy:bank",
       "\\[foundation\\]   provided by: foundation-example-coins 1\\.0 \\(priority 0\\)",
       "\\[foundation\\]   required by: foundation-example-salary \\(1\\)",
       "\\[foundation\\] Capabilities \\(1\\):",
       "\\[foundation\\]   economy:offline-payments: foundation-example-coins",
+      "\\[foundation\\] match started",
+      "\\[foundation\\] 76561198000000009 can manage matches for 10 minutes",
+      "\\[foundation\\] foundation-example-arena\\.manage for 76561198000000009: allowed \\(attachment from foundation-example-arena\\)",
+      "\\[foundation\\]   declared by foundation-example-arena, default: operators",
+      "\\[foundation\\]   Start matches and appoint referees",
+      "\\[foundation\\] foundation-example-arena\\.manage for 76561198000000010: denied \\(declared default\\)",
+      "\\[foundation\\] foundation-example-arena\\.manage for 76561198000000011: allowed \\(provider foundation-example-ranks\\)",
       "Greeter is shutting down",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter disabled: Foundation is stopping",
       "\\[foundation\\] INFO  foundation/core: Foundation stopped"
@@ -357,6 +366,44 @@
       "\\[foundation\\]   required by: foundation-services-consumer \\(1\\.1\\), foundation-core-services-test \\(1\\)",
       "\\[foundation\\] Capabilities \\(1\\):",
       "\\[foundation\\]   economy:interest: foundation-services-fixture 1\\.0"
+    ]
+  },
+  "core-permissions": {
+    "description": "Permission resolution with an external provider package on a real server, attachments and provider audit",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-permissions-provider-fixture",
+      "foundation-core-permissions-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation/core: permissions are now resolved by foundation-permissions-provider-fixture \\(contract 1\\.0\\)",
+      "\\[foundation\\] INFO  foundation/core: no permission provider: permissions use their declared defaults"
+    ]
+  },
+  "core-operators": {
+    "description": "foundation/operators.json is read with the real File API and JSON codec; a damaged file is reported and kept",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-operators-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/operators: foundation/operators\\.json cannot be read"
+    ],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation/operators: loaded 1 operator\\(s\\) from foundation/operators\\.json",
+      "\\[foundation\\] ERROR foundation/operators: foundation/operators\\.json cannot be read \\(the entry '76561198000000001' is not valid\\)",
+      "\\[foundation\\] the operator file is damaged; fix it first \\(see the log\\)",
+      "\\[foundation\\] 76561198000000002 is now an operator",
+      "\\[foundation\\] foundation\\.command\\.packages for 76561198000000002: allowed \\(declared default\\)",
+      "\\[foundation\\] Operators \\(2\\):",
+      "\\[foundation\\]   76561198000000001 Sam O'Neil \\(added by console\\)",
+      "\\[foundation\\]   76561198000000002 Alex Doe \\(added by console\\)",
+      "\\[foundation\\] 76561198000000002 is no longer an operator"
     ]
   }
 }

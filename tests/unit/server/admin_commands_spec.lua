@@ -45,6 +45,8 @@ local function setup()
 	local I18n = loader:require("foundation/core/i18n.lua")
 	local PackageConfigs = loader:require("foundation/core/package_config.lua")
 	local Senders = loader:require("foundation/core/senders.lua")
+	local Json = loader:require("foundation/core/json.lua")
+	local Operators = loader:require("foundation/core/operators.lua")
 	local raw = memory_files()
 	local parsed = {}
 	local audited = {}
@@ -87,6 +89,17 @@ local function setup()
 				invoker = rt.invoker,
 			})
 		end,
+		create_operators = function(rt)
+			return Operators.new({
+				files = Files.new(raw),
+				json = Json,
+				messages = rt.messages,
+				log = rt.log:For("foundation", "operators"),
+				now = function()
+					return 1760100000
+				end,
+			})
+		end,
 		create_audit = function()
 			return {
 				Record = function(_, owner, action, entry)
@@ -109,11 +122,11 @@ local function setup()
 		}
 		return runtime.packages:Register(native, manifest or { api = "0.1" })
 	end
-	local function sender(kind)
+	local function sender(kind, id)
 		local replies = {}
 		return Senders.new({
 			kind = kind,
-			id = kind,
+			id = id or kind,
 			reply = function(text)
 				replies[#replies + 1] = text
 			end,
@@ -143,15 +156,103 @@ describe("Foundation admin commands", function()
 	it("asks for a subcommand with the list", function()
 		expect.equal(run("foundation"), "usage")
 		expect.same(replies, {
-			"choose one of: version, help, packages, services, reload-config",
-			"Usage: foundation <version|help|packages|services|reload-config>",
+			"choose one of: version, help, packages, services, reload-config, op, permissions",
+			"Usage: foundation <version|help|packages|services|reload-config|op|permissions>",
 		})
 	end)
 
-	it("is reserved to the console", function()
-		local player, player_replies = sender("player")
-		expect.equal(runtime.commands:Execute(player, "foundation version").status, "denied")
-		expect.same(player_replies, { "this command can only be used from the server console" })
+	it("opens commands to players according to their permissions", function()
+		local player, player_replies = sender("player", "alex-id")
+		expect.equal(runtime.commands:Execute(player, "foundation version").status, "ok")
+		expect.equal(runtime.commands:Execute(player, "foundation packages").status, "denied")
+		expect.equal(runtime.commands:Execute(player, "foundation op add alex-id").status, "denied")
+		expect.same(player_replies, {
+			"Foundation 0.1.0 (API 0.1)",
+			"you do not have permission to use this command",
+			"you do not have permission to use this command",
+		})
+		run("foundation op add alex-id Alex")
+		expect.equal(runtime.commands:Execute(player, "foundation packages").status, "ok")
+	end)
+
+	describe("op", function()
+		it("adds, lists and removes operators", function()
+			run("foundation op list")
+			run("foundation op add alex-id Alex the Great")
+			run("foundation op add sam-id")
+			run("foundation op add sam-id")
+			run("foundation op list")
+			run("foundation op remove sam-id")
+			run("foundation op remove sam-id")
+			expect.same(replies, {
+				"There is no operator.",
+				"alex-id is now an operator",
+				"sam-id is now an operator",
+				"this account is already an operator",
+				"Operators (2):",
+				"  alex-id Alex the Great (added by console)",
+				"  sam-id (added by console)",
+				"sam-id is no longer an operator",
+				"this account is not an operator",
+			})
+			expect.truthy(raw.contents["foundation/operators.json"]:find('"alex-id"', 1, true))
+		end)
+
+		it("records who made the change and audits it", function()
+			run("foundation op add alex-id")
+			local alex = sender("player", "alex-id")
+			runtime.commands:Execute(alex, "foundation op add sam-id")
+			expect.equal(runtime.operators:List()[2].added_by, "player:alex-id")
+			local actions = {}
+			for _, record in ipairs(audited) do
+				actions[#actions + 1] = record.action
+			end
+			expect.same(actions, {
+				"foundation:command/foundation/op/add",
+				"foundation:command/foundation/op/add",
+			})
+		end)
+	end)
+
+	describe("permissions", function()
+		before_each(function()
+			local homes = register("homes")
+			homes:DeclarePermission("homes.admin", { description = "Manage homes", default = "nobody" })
+			homes:DeclarePermission("homes.use", { default = "everyone" })
+			register("games"):AttachPermission("alex-id", "homes.admin", true)
+		end)
+
+		it("explains the decision for an account", function()
+			run("foundation permissions check alex-id homes.admin")
+			run("foundation permissions check sam-id HOMES.ADMIN")
+			run("foundation permissions check sam-id other.thing")
+			expect.same(replies, {
+				"homes.admin for alex-id: allowed (attachment from games)",
+				"  declared by homes, default: nobody",
+				"  Manage homes",
+				"homes.admin for sam-id: denied (declared default)",
+				"  declared by homes, default: nobody",
+				"  Manage homes",
+				"other.thing for sam-id: denied (declared default)",
+				"  not declared: only operators have it",
+			})
+		end)
+
+		it("lists declared permissions, optionally for one package", function()
+			run("foundation permissions list homes")
+			expect.same(replies, {
+				"Permissions (2):",
+				"  homes.admin (nobody) - Manage homes",
+				"  homes.use (everyone)",
+			})
+			replies[1] = nil
+			for index = #replies, 1, -1 do
+				replies[index] = nil
+			end
+			run("foundation permissions list foundation")
+			expect.equal(replies[1], "Permissions (7):")
+			expect.equal(replies[2], "  foundation.command.help (everyone) - Use foundation help")
+		end)
 	end)
 
 	it("lists packages and their state", function()
@@ -190,7 +291,7 @@ describe("Foundation admin commands", function()
 			run("foundation help")
 			expect.same(replies, {
 				"Commands (2):",
-				"foundation <version|help|packages|services|reload-config> - Foundation administration",
+				"foundation <version|help|packages|services|reload-config|op|permissions> - Foundation administration",
 				"home [name] - Teleport to a home",
 			})
 		end)

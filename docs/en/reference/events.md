@@ -99,6 +99,7 @@ Defined in the reserved `foundation` namespace, emitted by Foundation only. Only
 | `foundation:command_completed` | The fields of `foundation:command` and `outcome`: `"success"` or `"failure"` |
 | `foundation:service_available`, `service_unavailable` | See [Services](services.md#events) |
 | `foundation:capability_available`, `capability_unavailable` | See [Services](services.md#events) |
+| `foundation:operator_added`, `operator_removed` | See [Permissions](permissions.md#events) |
 
 `package_disabled` is emitted for dependents before their dependency. `config_reloaded` is
 emitted once per file that reloaded without error, after the package's `OnChange` functions.

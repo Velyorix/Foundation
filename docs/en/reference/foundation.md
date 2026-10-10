@@ -42,6 +42,10 @@ Raises, at the caller's line:
 
 See [Keys and schemas](validation.md).
 
+### `Foundation.Permissions` and `Foundation.Operators`
+
+See [Permissions and operators](permissions.md).
+
 ### `Foundation.Capabilities`
 
 See [Services and capabilities](services.md#foundationcapabilitieshasname-version).
@@ -59,6 +63,7 @@ lifecycle methods; the context also provides:
 | `DefineEvent`, `Emit`, `Listen` | [Events](events.md) |
 | `RegisterCommand`, `RegisterArgumentType` | [Commands](commands.md) |
 | `ProvideService`, `GetService`, `GetServices`, `OnService` | [Services and capabilities](services.md) |
+| `DeclarePermission`, `AttachPermission` | [Permissions and operators](permissions.md) |
 
 ### `context:GetId()`
 

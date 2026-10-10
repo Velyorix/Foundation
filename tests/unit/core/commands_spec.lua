@@ -101,7 +101,8 @@ describe("Commands", function()
 				{ { name = "Home", run = noop }, "'spec.name' is invalid" },
 				{ { name = "home" }, "'spec' is invalid: needs a run function or subcommands" },
 				{ { name = "home", run = "go" }, "'spec.run' must be function? (got string)" },
-				{ { name = "home", run = noop, permission = "x" }, "unknown field 'permission'" },
+				{ { name = "home", run = noop, weight = 1 }, "unknown field 'weight'" },
+				{ { name = "home", run = noop, permission = "home" }, "'spec.permission' is invalid" },
 				{ { name = "home", aliases = { "home" }, run = noop }, "'home' is used twice under 'home'" },
 				{
 					{ name = "home", subcommands = { { name = "set", run = noop }, { name = "set", run = noop } } },

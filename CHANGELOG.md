@@ -13,16 +13,20 @@ their own heading inside each release.
 - English and French documentation: introduction, requirements, installation, compatibility,
   configuration, administration commands, package integration, lifecycle, package settings,
   localization, keys and validation, timers and futures, events, commands, services and
-  capabilities, logging, API reference.
+  capabilities, permissions, logging, API reference.
 - Structured console logging with masked secret fields and suppression of repeated warnings
   and errors.
 - `foundation/config.toml`, created with commented defaults on first start: server language
   (`language`, English and French messages), log level and debug categories. Invalid files are
   ignored with every problem logged, and the defaults are used.
 - Per-package settings files in `foundation/config/<package>.toml`.
-- Console commands `foundation version`, `foundation help`, `foundation packages`,
-  `foundation services` (providers, consumers, missing services, capabilities) and
-  `foundation reload-config` (reloads every configuration file without restarting; audited).
+- Commands `foundation version`, `foundation help`, `foundation packages`,
+  `foundation services` (providers, consumers, missing services, capabilities),
+  `foundation reload-config` (reloads every configuration file without restarting; audited),
+  `foundation op add|remove|list` and `foundation permissions check|list`. Each is behind a
+  `foundation.command.*` permission; the console can use all of them.
+- Operators kept in `foundation/operators.json`; a damaged file gives no operator and is never
+  overwritten.
 - Commands typed in the server console and in the chat (`/` prefix) run package commands;
   `commands.unknown_in_chat` chooses whether unknown `/` messages are answered or left to other
   packages.
@@ -64,3 +68,9 @@ their own heading inside each release.
 - Capabilities: manifest field `capabilities`, `Foundation.Capabilities.Has` and `Providers`.
 - Foundation events: `foundation:service_available`, `service_unavailable`,
   `capability_available`, `capability_unavailable`.
+- Permissions: `context:DeclarePermission` (defaults `everyone`, `nobody`, `operators`,
+  `non_operators`, deprecation), `context:AttachPermission` (temporary allow/deny, deny wins),
+  `Foundation.Permissions.Has`, `Explain`, `Get`, `List`; command field `permission`.
+- Permission provider contract `foundation:permission_provider` 1.x (`Check(account, node)`).
+- `Foundation.Operators.IsOperator` and `List`; events `foundation:operator_added` and
+  `operator_removed`.

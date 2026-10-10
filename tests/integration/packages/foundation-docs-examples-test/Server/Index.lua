@@ -40,6 +40,11 @@ for _, line in ipairs({
 	"foundation help buy",
 	"foundation packages",
 	"foundation services",
+	"arena start",
+	"arena referee 76561198000000009",
+	"foundation permissions check 76561198000000009 foundation-example-arena.manage",
+	"foundation permissions check 76561198000000010 foundation-example-arena.manage",
+	"foundation permissions check 76561198000000011 foundation-example-arena.manage",
 }) do
 	suite:Do(function()
 		Console.RunCommand(line)

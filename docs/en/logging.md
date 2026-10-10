@@ -35,6 +35,8 @@ also prints its own stack lines after them and tags them `S_WARN` and `S_ERR` in
 | `repeating task of my-package stopped after 3 consecutive failures` | A repeating task failed several times in a row and was stopped |
 | `/spawn of warps is already used by homes; it is available as /warps:spawn` | Two packages declared the same command name |
 | `command callback of my-package failed` | A command raised an error; the player got a short message |
+| `permissions are now resolved by my-ranks (contract 1.0)` | A permission package became the permission provider (`no permission provider: ...` when it stops) |
+| `foundation/operators.json cannot be read (...)` | The operator list is damaged; nobody is an operator until it is fixed, see [Operators](administration.md#operators) |
 | `my-package failed: 'my-package' requires the service 'economy:bank' (version 1), which no package provides` | A required service has no compatible provider; see [`foundation services`](administration.md#services) |
 
 ## Level and language

@@ -11,6 +11,7 @@ local Settings = Package.Require("foundation/core/settings.lua")
 local PackageConfigs = Package.Require("foundation/core/package_config.lua")
 local CommandBridges = Package.Require("foundation/core/command_bridges.lua")
 local Senders = Package.Require("foundation/core/senders.lua")
+local Operators = Package.Require("foundation/core/operators.lua")
 local version = Package.Require("foundation/version.lua")
 
 local Bootstrap = {}
@@ -68,6 +69,21 @@ function Bootstrap.Start()
 				check = rt.check,
 				log = rt.log,
 				invoker = rt.invoker,
+			})
+		end,
+		create_operators = function(rt)
+			return Operators.new({
+				files = engine_files(),
+				json = Json,
+				messages = rt.messages,
+				log = rt.log:For("foundation", "operators"),
+				now = now,
+				audit = function()
+					return rt.audit
+				end,
+				announce = function(name, payload)
+					rt.events:Emit("foundation", name, payload, "Operators", 2)
+				end,
 			})
 		end,
 		create_command_bridges = function(rt)

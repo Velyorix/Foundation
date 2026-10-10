@@ -87,6 +87,31 @@ function Facade.new(runtime)
 		end,
 	})
 
+	local permissions = runtime.permissions
+	api.Permissions = read_only(runtime, "Foundation.Permissions", {
+		Has = function(subject, node)
+			return permissions:Has(subject, node)
+		end,
+		Explain = function(subject, node)
+			return permissions:Explain(subject, node)
+		end,
+		Get = function(node)
+			return permissions:Get(node)
+		end,
+		List = function(owner)
+			return permissions:List(owner)
+		end,
+	})
+
+	api.Operators = read_only(runtime, "Foundation.Operators", {
+		IsOperator = function(subject)
+			return permissions:IsOperator(subject)
+		end,
+		List = function()
+			return runtime.operators and runtime.operators:List() or {}
+		end,
+	})
+
 	return read_only(runtime, "Foundation", api)
 end
 

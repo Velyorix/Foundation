@@ -1,5 +1,5 @@
--- Foundation's own commands, under the reserved "foundation" root. Console only until
--- permissions exist.
+-- Foundation's own commands, under the reserved "foundation" root, each behind a
+-- foundation.command.* permission (operators by default; the console has every permission).
 local Admin = {}
 
 local function prefix_for(sender)
@@ -165,11 +165,130 @@ local function services(runtime, sender)
 	end
 end
 
+local function actor_of(sender)
+	if sender:IsConsole() then
+		return "console"
+	end
+	return "player:" .. tostring(sender:GetId())
+end
+
+local function operators_or_reply(runtime, sender)
+	if not runtime.operators then
+		sender:Reply(runtime.messages:Format("admin.operators_unavailable"))
+		return nil
+	end
+	return runtime.operators
+end
+
+local function op_add(runtime, sender, args)
+	local operators = operators_or_reply(runtime, sender)
+	if not operators then
+		return
+	end
+	local ok, reason = operators:Add(args.account, args.name, actor_of(sender))
+	if ok then
+		sender:Reply(runtime.messages:Format("admin.op_added", { account = args.account }))
+	else
+		sender:Reply(runtime.messages:Format(reason))
+	end
+end
+
+local function op_remove(runtime, sender, args)
+	local operators = operators_or_reply(runtime, sender)
+	if not operators then
+		return
+	end
+	local ok, reason = operators:Remove(args.account, actor_of(sender))
+	if ok then
+		sender:Reply(runtime.messages:Format("admin.op_removed", { account = args.account }))
+	else
+		sender:Reply(runtime.messages:Format(reason))
+	end
+end
+
+local function op_list(runtime, sender)
+	local operators = operators_or_reply(runtime, sender)
+	if not operators then
+		return
+	end
+	local messages = runtime.messages
+	local list = operators:List()
+	if #list == 0 then
+		sender:Reply(messages:Format("admin.op_none"))
+		return
+	end
+	sender:Reply(messages:Format("admin.op_header", { count = #list }))
+	for _, entry in ipairs(list) do
+		local key = entry.name and "admin.op_line_named" or "admin.op_line"
+		sender:Reply("  " .. messages:Format(key, { account = entry.id, name = entry.name, by = entry.added_by }))
+	end
+end
+
+local function permission_check(runtime, sender, args)
+	local messages = runtime.messages
+	local permissions = runtime.permissions
+	local result = permissions:Explain(args.account, args.node)
+	local node = args.node:lower()
+	local source = messages:Format("admin.source." .. result.source, { package = result.package })
+	sender:Reply(messages:Format(result.allowed and "admin.permission_allowed" or "admin.permission_denied", {
+		node = node,
+		account = args.account,
+		source = source,
+	}))
+	local declaration = permissions:Get(node)
+	if declaration then
+		sender:Reply("  " .. messages:Format("admin.permission_declared", {
+			owner = declaration.owner,
+			default = declaration.default,
+		}))
+		if declaration.description then
+			sender:Reply("  " .. declaration.description)
+		end
+	else
+		sender:Reply("  " .. messages:Format("admin.permission_undeclared"))
+	end
+end
+
+local function permission_list(runtime, sender, args)
+	local messages = runtime.messages
+	local list = runtime.permissions:List(args.package)
+	if #list == 0 then
+		sender:Reply(messages:Format("admin.permissions_none"))
+		return
+	end
+	sender:Reply(messages:Format("admin.permissions_header", { count = #list }))
+	for _, declaration in ipairs(list) do
+		local line = declaration.node .. " (" .. declaration.default .. ")"
+		if declaration.description then
+			line = line .. " - " .. declaration.description
+		end
+		sender:Reply("  " .. line)
+	end
+end
+
+-- Permissions of Foundation's own commands; the console has them all.
+Admin.PERMISSIONS = {
+	{ node = "foundation.command.version", default = "everyone" },
+	{ node = "foundation.command.help", default = "everyone" },
+	{ node = "foundation.command.packages", default = "operators" },
+	{ node = "foundation.command.services", default = "operators" },
+	{ node = "foundation.command.reload-config", default = "operators" },
+	{ node = "foundation.command.op", default = "operators" },
+	{ node = "foundation.command.permissions", default = "operators" },
+}
+
 function Admin.Register(runtime)
 	local function bind(fn)
 		return function(sender, args)
 			fn(runtime, sender, args)
 		end
+	end
+	for _, item in ipairs(Admin.PERMISSIONS) do
+		local key = "admin.permission." .. item.node:match("^foundation%.command%.(.+)$"):gsub("-", "_")
+		runtime.permissions:Declare("foundation", item.node, {
+			default = item.default,
+			description = runtime.messages:Format(key),
+		}, "Runtime", 2)
 	end
 	runtime.commands:Register("foundation", {
 		name = "foundation",
@@ -178,7 +297,7 @@ function Admin.Register(runtime)
 			{
 				name = "version",
 				description_key = "admin.description.version",
-				senders = { "console" },
+				permission = "foundation.command.version",
 				run = function(sender)
 					sender:Reply(runtime.messages:Format("admin.version", {
 						version = runtime.env.version,
@@ -189,28 +308,65 @@ function Admin.Register(runtime)
 			{
 				name = "help",
 				description_key = "admin.description.help",
-				senders = { "console" },
+				permission = "foundation.command.help",
 				arguments = { { name = "command", type = "greedy", optional = true } },
 				run = bind(help),
 			},
 			{
 				name = "packages",
 				description_key = "admin.description.packages",
-				senders = { "console" },
+				permission = "foundation.command.packages",
 				run = bind(packages),
 			},
 			{
 				name = "services",
 				description_key = "admin.description.services",
-				senders = { "console" },
+				permission = "foundation.command.services",
 				run = bind(services),
 			},
 			{
 				name = "reload-config",
 				description_key = "admin.description.reload_config",
-				senders = { "console" },
+				permission = "foundation.command.reload-config",
 				audit = true,
 				run = bind(reload_config),
+			},
+			{
+				name = "op",
+				description_key = "admin.description.op",
+				permission = "foundation.command.op",
+				subcommands = {
+					{
+						name = "add",
+						audit = true,
+						arguments = { { name = "account" }, { name = "name", type = "greedy", optional = true } },
+						run = bind(op_add),
+					},
+					{
+						name = "remove",
+						audit = true,
+						arguments = { { name = "account" } },
+						run = bind(op_remove),
+					},
+					{ name = "list", run = bind(op_list) },
+				},
+			},
+			{
+				name = "permissions",
+				description_key = "admin.description.permissions",
+				permission = "foundation.command.permissions",
+				subcommands = {
+					{
+						name = "check",
+						arguments = { { name = "account" }, { name = "node" } },
+						run = bind(permission_check),
+					},
+					{
+						name = "list",
+						arguments = { { name = "package", optional = true } },
+						run = bind(permission_list),
+					},
+				},
 			},
 		},
 	}, "Runtime", 2)

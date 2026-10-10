@@ -100,6 +100,7 @@ Définis dans l'espace de noms réservé `foundation`, émis par Foundation uniq
 | `foundation:command_completed` | Les champs de `foundation:command` et `outcome` : `"success"` ou `"failure"` |
 | `foundation:service_available`, `service_unavailable` | Voir [Services](services.md#événements) |
 | `foundation:capability_available`, `capability_unavailable` | Voir [Services](services.md#événements) |
+| `foundation:operator_added`, `operator_removed` | Voir [Permissions](permissions.md#événements) |
 
 `package_disabled` est émis pour les packages dépendants avant leur dépendance.
 `config_reloaded` est émis une fois par fichier rechargé sans erreur, après les fonctions

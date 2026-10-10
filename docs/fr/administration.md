@@ -1,7 +1,9 @@
 # Commandes d'administration
 
-Foundation ajoute une commande `foundation` à la console du serveur. Dans cette version, elle
-ne s'utilise que depuis la console, pas par les joueurs.
+Foundation ajoute une commande `foundation`, tapée dans la console du serveur ou, avec la
+permission correspondante, dans le chat (`/foundation ...`). La console peut utiliser toutes
+les sous-commandes ; les joueurs ont besoin de la permission indiquée dans
+[Qui peut les utiliser](#qui-peut-les-utiliser).
 
 | Commande | Effet |
 | --- | --- |
@@ -11,6 +13,11 @@ ne s'utilise que depuis la console, pas par les joueurs.
 | `foundation packages` | Liste les packages qui utilisent Foundation, avec leur version et leur état |
 | `foundation services` | Liste les services, leurs fournisseurs, les packages qui en ont besoin, et les capacités |
 | `foundation reload-config` | Recharge tous les fichiers de configuration sans redémarrer |
+| `foundation op add <compte> [nom]` | Rend un compte opérateur |
+| `foundation op remove <compte>` | Retire un opérateur |
+| `foundation op list` | Liste les opérateurs |
+| `foundation permissions check <compte> <permission>` | Indique si un compte a une permission, et pourquoi |
+| `foundation permissions list [package]` | Liste les permissions déclarées |
 
 Taper `foundation` seul liste les sous-commandes.
 
@@ -80,3 +87,58 @@ foundation/config/shop.toml: restart the server to apply port
   `foundation/audit/audit-<date>.log`.
 
 Les réglages de Foundation (`language`, `[log]`, `[commands]`) s'appliquent tous tout de suite.
+
+## Qui peut les utiliser
+
+| Permission | Défaut | Commandes |
+| --- | --- | --- |
+| `foundation.command.version` | tout le monde | `foundation version` |
+| `foundation.command.help` | tout le monde | `foundation help` |
+| `foundation.command.packages` | opérateurs | `foundation packages` |
+| `foundation.command.services` | opérateurs | `foundation services` |
+| `foundation.command.reload-config` | opérateurs | `foundation reload-config` |
+| `foundation.command.op` | opérateurs | `foundation op ...` |
+| `foundation.command.permissions` | opérateurs | `foundation permissions ...` |
+
+Un package de permissions peut accorder ces permissions à d'autres comptes. Voir
+[Permissions](permissions.md).
+
+## Opérateurs
+
+Les opérateurs ont toutes les permissions dont la valeur par défaut est `operators`, y compris
+celles ci-dessus. Ils sont identifiés par leur identifiant de compte : la liste s'applique donc
+aussi aux joueurs hors ligne.
+
+```
+> foundation op add 76561198000000001 Alex
+76561198000000001 is now an operator
+> foundation op list
+Operators (1):
+  76561198000000001 Alex (added by console)
+> foundation op remove 76561198000000001
+76561198000000001 is no longer an operator
+```
+
+Le nom facultatif n'est qu'un aide-mémoire pour les administrateurs. Chaque changement est
+enregistré dans le journal d'audit avec le compte qui l'a fait.
+
+La liste est conservée dans `foundation/operators.json` ; sauvegardez-la avec le reste du
+dossier `foundation/`. Modifiez-la avec `foundation op` plutôt qu'à la main. Si le fichier ne
+peut pas être lu, Foundation journalise pourquoi, personne n'est opérateur, et `foundation op`
+refuse les modifications jusqu'à ce que le fichier soit corrigé ou supprimé ; le fichier
+lui-même n'est jamais réécrit.
+
+## Vérifier les permissions
+
+`foundation permissions check` affiche la décision et son origine :
+
+```
+> foundation permissions check 76561198000000009 arena.manage
+arena.manage for 76561198000000009: allowed (attachment from arena)
+  declared by arena, default: operators
+  Start matches and appoint referees
+```
+
+L'origine est `console`, `attachment from <package>` (une autorisation ou un refus temporaire
+posé par un package), `provider <package>` (un package de permissions) ou `declared default`
+(la valeur par défaut déclarée).

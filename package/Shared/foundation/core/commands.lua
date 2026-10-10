@@ -1,4 +1,5 @@
 local Arguments = Package.Require("arguments.lua")
+local Permissions = Package.Require("permissions.lua")
 
 local Commands = {}
 Commands.__index = Commands
@@ -19,6 +20,7 @@ local SPEC_FIELDS = {
 	senders = true,
 	cooldown = true,
 	audit = true,
+	permission = true,
 }
 local FIELD_TYPES = {
 	{ "aliases", "table" },
@@ -29,15 +31,18 @@ local FIELD_TYPES = {
 	{ "senders", "table" },
 	{ "cooldown", "number" },
 	{ "audit", "boolean" },
+	{ "permission", "string" },
 }
 local SENDER_KINDS = { console = true, player = true }
 
 -- options: check, log, arguments (core/arguments.lua instance), invoker, events, i18n,
+-- permissions (optional),
 -- now_ms, audit (function returning the audit sink or nil)
 function Commands.new(options)
 	return setmetatable({
 		arguments = options.arguments,
 		invoker = options.invoker,
+		permissions = options.permissions,
 		events = options.events,
 		i18n = options.i18n,
 		now_ms = options.now_ms,
@@ -116,6 +121,9 @@ function Commands:build(spec, path, depth, owner)
 			return nil, path .. ".senders", "reason.command_senders", nil
 		end
 	end
+	if spec.permission ~= nil and not Permissions.IsNode(spec.permission:lower()) then
+		return nil, path .. ".permission", "reason.permission_node", { max = Permissions.MAX_LENGTH }
+	end
 	if spec.cooldown ~= nil and (math.type(spec.cooldown) ~= "integer" or spec.cooldown < 0) then
 		return nil, path .. ".cooldown", "reason.command_cooldown", nil
 	end
@@ -129,6 +137,7 @@ function Commands:build(spec, path, depth, owner)
 		senders = senders,
 		cooldown = spec.cooldown,
 		audit = spec.audit == true,
+		permission = spec.permission and spec.permission:lower(),
 		cooldowns = {},
 		children = {},
 		lookup = {},
@@ -490,6 +499,17 @@ function Commands:record_audit(root, path, sender, values, outcome)
 	end)
 end
 
+-- A subcommand without its own permission uses the closest one above it.
+function Commands:PermissionOf(node)
+	while node do
+		if node.permission then
+			return node.permission
+		end
+		node = node.parent
+	end
+	return nil
+end
+
 function Commands:usage_node(line)
 	local tokens = Arguments.Split(line)
 	if not tokens then
@@ -524,6 +544,11 @@ function Commands:Execute(sender, line)
 			self.messages:Format(sender.kind == "console" and "command.players_only" or "command.console_only")
 		)
 		return { status = "denied" }
+	end
+	local permission = self:PermissionOf(node)
+	if permission and self.permissions and not self.permissions:Has(sender, permission) then
+		sender:Reply(self.messages:Format("command.no_permission"))
+		return { status = "denied", permission = permission }
 	end
 	local now = self.now_ms()
 	local cooled = node.cooldown and node.cooldown > 0 and not sender:IsConsole()

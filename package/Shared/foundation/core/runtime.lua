@@ -13,6 +13,7 @@ local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
 local Services = Package.Require("services.lua")
 local Capabilities = Package.Require("capabilities.lua")
+local Permissions = Package.Require("permissions.lua")
 local Commands = Package.Require("commands.lua")
 local Arguments = Package.Require("arguments.lua")
 local Admin = Package.Require("admin_commands.lua")
@@ -291,6 +292,63 @@ local COMPONENTS = {
 		end,
 	},
 	{
+		name = "permissions",
+		required = true,
+		create = function(runtime)
+			local env = runtime.env
+			local services = runtime.services
+			local permissions = Permissions.new({
+				check = runtime.check,
+				log = runtime.log,
+				invoker = runtime.invoker,
+				provider = function()
+					local service, info = services:Get(
+						"foundation",
+						Permissions.PROVIDER_SERVICE,
+						Permissions.PROVIDER_VERSION,
+						"Runtime",
+						2
+					)
+					return service, info and info.provider
+				end,
+				now_ms = env.now_ms or function()
+					return math.floor(env.clock() * 1000)
+				end,
+			})
+			runtime.permissions = permissions
+			local current
+			services:Watch("foundation", Permissions.PROVIDER_SERVICE, Permissions.PROVIDER_VERSION, function(_, info)
+				local previous = current
+				current = info and info.provider or nil
+				runtime.log:Info(current and "permissions.provider_active" or "permissions.provider_none", {
+					provider = current,
+					version = info and info.version,
+				})
+				if runtime.audit then
+					runtime.audit:Record("foundation", "foundation:permissions/provider", {
+						target = current or "none",
+						details = { previous = previous or "none", version = info and info.version },
+					})
+				end
+			end, "Runtime", 2)
+			runtime.packages:ExtendContext("DeclarePermission", function(context, entry, node, definition)
+				local declaration, release =
+					permissions:Declare(entry.id, node, definition, "context:DeclarePermission", 3)
+				context:Track("permission", release, { node = declaration.node })
+				return declaration.node
+			end)
+			runtime.packages:ExtendContext("AttachPermission", function(context, entry, subject, node, value, options)
+				local attachment =
+					permissions:Attach(entry.id, subject, node, value, options, "context:AttachPermission", 3)
+				local handle = context:Track("permission_attachment", attachment.release, {
+					subject = attachment.subject,
+					node = attachment.node,
+				})
+				return handle
+			end)
+		end,
+	},
+	{
 		name = "commands",
 		required = true,
 		create = function(runtime)
@@ -308,6 +366,7 @@ local COMPONENTS = {
 				invoker = runtime.invoker,
 				events = runtime.events,
 				i18n = runtime.i18n,
+				permissions = runtime.permissions,
 				now_ms = env.now_ms or function()
 					return math.floor(env.clock() * 1000)
 				end,
@@ -376,6 +435,25 @@ local COMPONENTS = {
 				context:Track("config", release)
 				return settings
 			end)
+		end,
+	},
+	{
+		name = "operators",
+		required = false,
+		create = function(runtime)
+			if not runtime.env.create_operators then
+				return "absent"
+			end
+			local S = runtime.schema
+			local fields = { account = S:String(), name = S:Optional(S:String()), by = S:String() }
+			runtime.events:Define("foundation", "operator_added", { fields = fields }, "Runtime", 2)
+			runtime.events:Define("foundation", "operator_removed", { fields = fields }, "Runtime", 2)
+			local operators = runtime.env.create_operators(runtime)
+			runtime.operators = operators
+			operators:Load()
+			runtime.permissions.is_operator = function(id)
+				return operators:IsOperator(id)
+			end
 		end,
 	},
 	{

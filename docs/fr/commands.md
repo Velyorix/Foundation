@@ -39,6 +39,7 @@ context:RegisterCommand({
 | `senders` | `{ "player" }` ou `{ "console" }` pour n'accepter qu'un type d'expéditeur ; les deux par défaut |
 | `cooldown` | Millisecondes qu'un joueur doit attendre avant de réutiliser la commande |
 | `audit` | `true` pour enregistrer chaque utilisation dans le [journal d'audit](#audit) |
+| `permission` | [Permission](permissions.md) dont un joueur a besoin ; les sous-commandes sans permission utilisent celle du parent |
 
 Une commande a besoin de `run`, de `subcommands`, ou des deux. Un mot qui n'est pas une
 sous-commande est transmis comme argument.
@@ -129,7 +130,7 @@ démarrent que si `run` se termine sans erreur, et sont remis à zéro au redém
 ## Ce qui se passe quand une commande est tapée
 
 1. La ligne est découpée et les arguments sont vérifiés.
-2. Le type d'expéditeur (`senders`) est vérifié, puis le délai.
+2. Le type d'expéditeur (`senders`) est vérifié, puis la permission, puis le délai.
 3. `foundation:command` est émis. Un écouteur peut l'annuler, par exemple pour bloquer les
    commandes d'un joueur réduit au silence ; la commande ne s'exécute alors pas.
 4. `run` est appelée. Si elle lève une erreur, l'expéditeur reçoit un court message et l'erreur

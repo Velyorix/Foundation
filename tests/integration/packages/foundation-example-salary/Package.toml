@@ -1,7 +1,7 @@
 # vault configurations
 [meta]
     # friendly name
-    title =                 "Foundation Docs Examples Test"
+    title =                 "Salary"
     # contributors
     author =                "Velyorix"
     # version
@@ -19,18 +19,8 @@
     compatibility_version = "1.156"
     # packages requirements
     packages_requirements = [
-        "foundation-test-harness",
         "foundation",
-        "foundation-example-greeter",
-        "foundation-example-kits",
-        "foundation-example-welcome",
-        "foundation-example-rewards",
-        "foundation-example-announcer",
-        "foundation-example-autosave",
-        "foundation-example-shop",
-        "foundation-example-loyalty",
         "foundation-example-coins",
-        "foundation-example-salary",
     ]
     # asset packs requirements
     assets_requirements = [

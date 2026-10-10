@@ -42,6 +42,10 @@ Raises, at the caller's line:
 
 See [Keys and schemas](validation.md).
 
+### `Foundation.Capabilities`
+
+See [Services and capabilities](services.md#foundationcapabilitieshasname-version).
+
 ## Package context
 
 Returned by `Foundation.Register`. Methods are called with `:`. This page describes the
@@ -54,6 +58,7 @@ lifecycle methods; the context also provides:
 | `NextTick`, `Delay`, `Repeat`, `Debounce`, `Throttle`, `Future`, `All` | [Timers and futures](scheduling.md) |
 | `DefineEvent`, `Emit`, `Listen` | [Events](events.md) |
 | `RegisterCommand`, `RegisterArgumentType` | [Commands](commands.md) |
+| `ProvideService`, `GetService`, `GetServices`, `OnService` | [Services and capabilities](services.md) |
 
 ### `context:GetId()`
 

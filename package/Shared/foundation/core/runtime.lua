@@ -11,6 +11,8 @@ local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
+local Services = Package.Require("services.lua")
+local Capabilities = Package.Require("capabilities.lua")
 local Commands = Package.Require("commands.lua")
 local Arguments = Package.Require("arguments.lua")
 local Admin = Package.Require("admin_commands.lua")
@@ -213,6 +215,78 @@ local COMPONENTS = {
 			packages:ExtendContext("Emit", function(_, entry, name, payload)
 				local event = events:Emit(entry.id, name, payload, "context:Emit", 3)
 				return event
+			end)
+		end,
+	},
+	{
+		name = "services",
+		required = true,
+		create = function(runtime)
+			local services = Services.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				ownership = runtime.ownership,
+				invoker = runtime.invoker,
+				events = runtime.events,
+				packages = runtime.packages,
+			})
+			runtime.services = services
+			runtime.packages:ExtendManifest("services", function(value, api, level)
+				return services:CheckManifest(value, api, level)
+			end)
+			runtime.packages:AddReadyCheck(function(entry)
+				return services:ReadyCheck(entry)
+			end)
+			local packages = runtime.packages
+			local S = runtime.schema
+			local fields = {
+				service = S:String(),
+				provider = S:String(),
+				version = S:String(),
+				priority = S:Integer(),
+			}
+			runtime.events:Define("foundation", "service_available", { fields = fields }, "Runtime", 2)
+			runtime.events:Define("foundation", "service_unavailable", { fields = fields }, "Runtime", 2)
+			packages:ExtendContext("OnService", function(_, entry, name, version, fn)
+				local handle = services:Watch(entry.id, name, version, fn, "context:OnService", 3)
+				return handle
+			end)
+			packages:ExtendContext("ProvideService", function(_, entry, name, version, implementation, options)
+				local provider =
+					services:Provide(entry.id, name, version, implementation, options, "context:ProvideService", 3)
+				return provider.handle
+			end)
+			packages:ExtendContext("GetService", function(_, entry, name, version)
+				local service, info = services:Get(entry.id, name, version, "context:GetService", 3)
+				return service, info
+			end)
+			packages:ExtendContext("GetServices", function(_, entry, name, version)
+				local list = services:All(entry.id, name, version, "context:GetServices", 3)
+				return list
+			end)
+		end,
+	},
+	{
+		name = "capabilities",
+		required = true,
+		create = function(runtime)
+			local capabilities = Capabilities.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				log = runtime.log,
+				events = runtime.events,
+				services = runtime.services,
+			})
+			runtime.capabilities = capabilities
+			local S = runtime.schema
+			local fields = { capability = S:String(), package = S:String(), version = S:Optional(S:String()) }
+			runtime.events:Define("foundation", "capability_available", { fields = fields }, "Runtime", 2)
+			runtime.events:Define("foundation", "capability_unavailable", { fields = fields }, "Runtime", 2)
+			runtime.packages:ExtendManifest("capabilities", function(value, api, level)
+				return capabilities:CheckManifest(value, api, level)
+			end)
+			runtime.packages:Observe(function(kind, entry)
+				capabilities:Observe(kind, entry)
 			end)
 		end,
 	},

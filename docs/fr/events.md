@@ -162,6 +162,8 @@ s'est passé et ne peuvent pas être annulés, sauf `foundation:command`.
 | `foundation:config_reloaded` | `package`, `path`, `changed`, `pending` | Un fichier de configuration a été rechargé (`changed` et `pending` listent des clés de réglages) |
 | `foundation:command` | `command`, `owner`, `sender`, `name`, `arguments` | Une commande va s'exécuter. **Annulable** |
 | `foundation:command_completed` | les mêmes, et `outcome` | Une commande s'est exécutée ; `outcome` vaut `success` ou `failure` |
+| `foundation:service_available`, `service_unavailable` | `service`, `provider`, `version`, `priority` | Un fournisseur de service a été ajouté ou retiré, voir [Services](services.md#événements) |
+| `foundation:capability_available`, `capability_unavailable` | `capability`, `package`, `version` | Une capacité est devenue disponible ou a disparu |
 
 Un package ne reçoit pas `package_disabled` pour lui-même : ses écouteurs sont déjà retirés.
 

@@ -48,7 +48,21 @@ function Registry.new(options)
 		sequence = 0,
 		alive = true,
 		observers = {},
+		manifest_fields = {},
+		ready_checks = {},
 	}, Registry)
+end
+
+-- validate(value, api, level) returns the value to keep for `manifest.<field>`; it raises
+-- with `level` (3) to point at the Foundation.Register call.
+function Registry:ExtendManifest(field, validate)
+	self.manifest_fields[field] = validate
+end
+
+-- check(entry) returns nil, or a reason message key and its params to fail the package
+-- instead of making it ready.
+function Registry:AddReadyCheck(check)
+	self.ready_checks[#self.ready_checks + 1] = check
 end
 
 -- observer(kind, entry, details) runs after a package becomes ready, fails or is disabled.
@@ -110,7 +124,7 @@ function Registry:Register(native, manifest)
 	local id = native.GetName()
 	self:check_id(api, 1, "package.GetName()", id)
 	for field in pairs(manifest) do
-		if not MANIFEST_FIELDS[field] then
+		if not MANIFEST_FIELDS[field] and not self.manifest_fields[field] then
 			self:invalid(api, 2, "manifest", "reason.manifest_unknown_field", { field = tostring(field) })
 		end
 	end
@@ -135,6 +149,10 @@ function Registry:Register(native, manifest)
 	check:Argument(api, 2, "manifest.author", manifest.author, "string?")
 	self:check_id_list(api, "manifest.depends", manifest.depends)
 	self:check_id_list(api, "manifest.soft_depends", manifest.soft_depends)
+	local extensions = {}
+	for field, validate in pairs(self.manifest_fields) do
+		extensions[field] = validate(manifest[field], api, 3)
+	end
 
 	local existing = self.entries[id]
 	if existing and existing.state ~= "disabled" then
@@ -162,6 +180,7 @@ function Registry:Register(native, manifest)
 		api = manifest.api,
 		depends = manifest.depends or {},
 		soft_depends = manifest.soft_depends or {},
+		extensions = extensions,
 		state = "initializing",
 		sequence = self.sequence,
 		native = native,
@@ -241,6 +260,13 @@ function Registry:mark_ready(entry)
 			return
 		end
 	end
+	for _, ready_check in ipairs(self.ready_checks) do
+		local reason_key, params = ready_check(entry)
+		if reason_key then
+			self:fail(entry, reason_key, params)
+			return
+		end
+	end
 	local info = { owner = entry.id, kind = "ready_hook" }
 	for _, hook in ipairs(entry.ready_hooks) do
 		if not self.invoker:Call(info, hook, entry.context) then
@@ -251,6 +277,14 @@ function Registry:mark_ready(entry)
 	entry.state = "ready"
 	self.log:Info("package.ready", { id = entry.id })
 	self:notify("ready", entry)
+end
+
+-- Fails an active package from outside the registry (for example a lost service).
+function Registry:Fail(id, reason_key, params)
+	local entry = self.entries[id]
+	if entry then
+		self:fail(entry, reason_key, params)
+	end
 end
 
 -- Returns true when the package was active and is now disabled.

@@ -42,6 +42,10 @@ Lève, à la ligne de l'appelant :
 
 Voir [Clés et schémas](validation.md).
 
+### `Foundation.Capabilities`
+
+Voir [Services et capacités](services.md#foundationcapabilitieshasname-version).
+
 ## Contexte de package
 
 Renvoyé par `Foundation.Register`. Les méthodes s'appellent avec `:`. Cette page décrit les
@@ -54,6 +58,7 @@ méthodes du cycle de vie ; le contexte fournit aussi :
 | `NextTick`, `Delay`, `Repeat`, `Debounce`, `Throttle`, `Future`, `All` | [Minuteries et futures](scheduling.md) |
 | `DefineEvent`, `Emit`, `Listen` | [Événements](events.md) |
 | `RegisterCommand`, `RegisterArgumentType` | [Commandes](commands.md) |
+| `ProvideService`, `GetService`, `GetServices`, `OnService` | [Services et capacités](services.md) |
 
 ### `context:GetId()`
 

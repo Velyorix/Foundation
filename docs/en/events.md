@@ -157,6 +157,8 @@ and cannot be cancelled, except `foundation:command`.
 | `foundation:config_reloaded` | `package`, `path`, `changed`, `pending` | A configuration file was reloaded (`changed` and `pending` list setting keys) |
 | `foundation:command` | `command`, `owner`, `sender`, `name`, `arguments` | A command is about to run. **Cancellable** |
 | `foundation:command_completed` | the same, and `outcome` | A command ran; `outcome` is `success` or `failure` |
+| `foundation:service_available`, `service_unavailable` | `service`, `provider`, `version`, `priority` | A service provider was added or removed, see [Services](services.md#events) |
+| `foundation:capability_available`, `capability_unavailable` | `capability`, `package`, `version` | A capability became available or went away |
 
 A package does not receive `package_disabled` for itself: its listeners are already removed.
 

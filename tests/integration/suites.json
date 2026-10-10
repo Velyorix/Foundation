@@ -146,6 +146,8 @@
       "foundation-example-autosave",
       "foundation-example-shop",
       "foundation-example-loyalty",
+      "foundation-example-coins",
+      "foundation-example-salary",
       "foundation-docs-examples-test"
     ],
     "timeout_seconds": 90,
@@ -161,7 +163,13 @@
       "\\[foundation\\] <item> must be one of apple, sword",
       "\\[foundation\\] Usage: buy <item> \\[amount\\]",
       "\\[foundation\\] buy <item> \\[amount\\] - Buy an item",
-      "\\[foundation\\] Packages \\(8\\):",
+      "\\[foundation\\] Packages \\(10\\):",
+      "\\[foundation\\] Services \\(1\\):",
+      "\\[foundation\\] economy:bank",
+      "\\[foundation\\]   provided by: foundation-example-coins 1\\.0 \\(priority 0\\)",
+      "\\[foundation\\]   required by: foundation-example-salary \\(1\\)",
+      "\\[foundation\\] Capabilities \\(1\\):",
+      "\\[foundation\\]   economy:offline-payments: foundation-example-coins",
       "Greeter is shutting down",
       "\\[foundation\\] INFO  foundation/core: foundation-example-greeter disabled: Foundation is stopping",
       "\\[foundation\\] INFO  foundation/core: Foundation stopped"
@@ -184,7 +192,10 @@
       "announcement: Read the rules with /rules\\.",
       "announcement: Have fun!",
       "unsaved changes: 1",
-      "saved 3 change\\(s\\)"
+      "saved 3 change\\(s\\)",
+      "salaries are paid through foundation-example-coins",
+      "paid 100 to alex, balance 100",
+      "offline players are paid too"
     ]
   },
   "core-json": {

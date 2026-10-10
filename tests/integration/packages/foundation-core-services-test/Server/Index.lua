@@ -28,6 +28,12 @@ end)
 local suite = FoundationTest.Suite("core-services")
 local held
 
+suite:Test("the packages this suite needs are loaded", function()
+	for _, name in ipairs({ "foundation-services-fixture", "foundation-services-consumer" }) do
+		FoundationTest.True(Server.IsPackageLoaded(name), name .. " is not loaded; install and load it with this suite")
+	end
+end)
+
 suite:Test("packages requiring a provided service become ready", function()
 	FoundationTest.Equal(context:GetState(), "ready")
 	FoundationTest.Equal(#failures, 0)
@@ -79,8 +85,13 @@ suite:Test("losing the only compatible provider fails the packages that require 
 	)
 end)
 
+-- When this package loads before the fixture, the watcher first sees its own fallback provider.
 suite:Test("watchers follow the best provider and Foundation announces the loss", function()
-	FoundationTest.Equal(table.concat(changes, ","), "fixture@1.2,fallback@1.0")
+	local history = table.concat(changes, ",")
+	if history:sub(1, #"fallback@1.0,") == "fallback@1.0," then
+		history = history:sub(#"fallback@1.0," + 1)
+	end
+	FoundationTest.Equal(history, "fixture@1.2,fallback@1.0")
 	FoundationTest.Equal(table.concat(announced, ","), "economy:bank:foundation-services-fixture")
 end)
 

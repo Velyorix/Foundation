@@ -159,6 +159,7 @@ and cannot be cancelled, except `foundation:command`.
 | `foundation:command_completed` | the same, and `outcome` | A command ran; `outcome` is `success` or `failure` |
 | `foundation:service_available`, `service_unavailable` | `service`, `provider`, `version`, `priority` | A service provider was added or removed, see [Services](services.md#events) |
 | `foundation:capability_available`, `capability_unavailable` | `capability`, `package`, `version` | A capability became available or went away |
+| `foundation:operator_added`, `operator_removed` | `account`, `name`, `by` | An operator was added or removed, see [Permissions](permissions.md#events) |
 
 A package does not receive `package_disabled` for itself: its listeners are already removed.
 

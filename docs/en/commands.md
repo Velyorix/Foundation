@@ -39,6 +39,7 @@ context:RegisterCommand({
 | `senders` | `{ "player" }` or `{ "console" }` to accept only one kind of sender; both by default |
 | `cooldown` | Milliseconds a player must wait before using the command again |
 | `audit` | `true` to record each use in the [audit log](#audit) |
+| `permission` | [Permission](permissions.md) a player needs; subcommands without one use the parent's |
 
 A command needs `run`, `subcommands`, or both. A word that is not a subcommand is passed as an
 argument.
@@ -128,7 +129,7 @@ completes without error, and are reset when the server restarts.
 ## What happens when a command is typed
 
 1. The line is split and the arguments are checked.
-2. The sender kind is checked (`senders`), then the cooldown.
+2. The sender kind is checked (`senders`), then the permission, then the cooldown.
 3. `foundation:command` is emitted. A listener can cancel it, for example to block commands
    for a muted player; the command then does not run.
 4. `run` is called. If it raises an error, the sender gets a short message and the error is

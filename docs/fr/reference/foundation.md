@@ -42,6 +42,10 @@ Lève, à la ligne de l'appelant :
 
 Voir [Clés et schémas](validation.md).
 
+### `Foundation.Permissions` et `Foundation.Operators`
+
+Voir [Permissions et opérateurs](permissions.md).
+
 ### `Foundation.Capabilities`
 
 Voir [Services et capacités](services.md#foundationcapabilitieshasname-version).
@@ -59,6 +63,7 @@ méthodes du cycle de vie ; le contexte fournit aussi :
 | `DefineEvent`, `Emit`, `Listen` | [Événements](events.md) |
 | `RegisterCommand`, `RegisterArgumentType` | [Commandes](commands.md) |
 | `ProvideService`, `GetService`, `GetServices`, `OnService` | [Services et capacités](services.md) |
+| `DeclarePermission`, `AttachPermission` | [Permissions et opérateurs](permissions.md) |
 
 ### `context:GetId()`
 

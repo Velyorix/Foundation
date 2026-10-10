@@ -25,6 +25,7 @@ removed when the package is disabled.
 | `senders` | array, optional | `"player"`, `"console"` or both (default) |
 | `cooldown` | integer, optional | Milliseconds between two uses by the same player |
 | `audit` | boolean, optional | Record each use in the audit log |
+| `permission` | string, optional | [Permission node](permissions.md#nodes-and-subjects) required from players; inherited by subcommands that have none. Refused players get `you do not have permission to use this command` |
 
 A command needs `run` or `subcommands`. Names and aliases are unique among the subcommands of
 a command. `foundation` cannot be used as a top-level name or alias.
@@ -95,7 +96,7 @@ field, `invalid_state` if the type exists or the context is no longer active.
 
 ## Execution
 
-For each typed command: parsing, sender kind (`senders`), cooldown, `foundation:command`
+For each typed command: parsing, sender kind (`senders`), permission, cooldown, `foundation:command`
 (cancellable), `run`, audit, `foundation:command_completed`. See
 [Foundation's events](events.md#foundations-events).
 

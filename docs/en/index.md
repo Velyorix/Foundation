@@ -12,8 +12,8 @@ Any of those packages can be replaced without modifying Foundation.
 > Foundation is in early development (0.1.0, unreleased). Available today: package
 > registration, lifecycle and resource tracking, configuration files, localization, keys and
 > validation, timers and futures, events, commands with console and chat input, services and
-> capabilities. These pages describe only what exists in the current version, and the API may
-> change before 1.0.
+> capabilities, permissions and operators. These pages describe only what exists in the current
+> version, and the API may change before 1.0.
 
 *Version française : [Documentation Foundation](../fr/index.md)*
 
@@ -37,6 +37,7 @@ Any of those packages can be replaced without modifying Foundation.
 - [Events](events.md)
 - [Commands](commands.md)
 - [Services and capabilities](services.md)
+- [Permissions](permissions.md)
 
 API reference:
 
@@ -48,3 +49,4 @@ API reference:
 - [Events](reference/events.md)
 - [Commands](reference/commands.md)
 - [Services and capabilities](reference/services.md)
+- [Permissions and operators](reference/permissions.md)

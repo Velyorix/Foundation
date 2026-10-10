@@ -25,6 +25,7 @@ retirée quand le package est désactivé.
 | `senders` | tableau, facultatif | `"player"`, `"console"` ou les deux (par défaut) |
 | `cooldown` | entier, facultatif | Millisecondes entre deux utilisations par le même joueur |
 | `audit` | booléen, facultatif | Enregistre chaque utilisation dans le journal d'audit |
+| `permission` | chaîne, facultatif | [Permission](permissions.md#permissions-et-sujets) exigée des joueurs ; héritée par les sous-commandes qui n'en ont pas. Un joueur refusé reçoit `you do not have permission to use this command` |
 
 Une commande a besoin de `run` ou de `subcommands`. Les noms et alias sont uniques parmi les
 sous-commandes d'une commande. `foundation` ne peut pas servir de nom ni d'alias de premier
@@ -99,7 +100,7 @@ inconnu, `invalid_state` si le type existe déjà ou si le contexte n'est plus a
 
 ## Exécution
 
-Pour chaque commande tapée : lecture, type d'expéditeur (`senders`), délai,
+Pour chaque commande tapée : lecture, type d'expéditeur (`senders`), permission, délai,
 `foundation:command` (annulable), `run`, audit, `foundation:command_completed`. Voir
 [Événements de Foundation](events.md#événements-de-foundation).
 

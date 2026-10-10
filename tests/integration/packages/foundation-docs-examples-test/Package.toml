@@ -31,6 +31,8 @@
         "foundation-example-loyalty",
         "foundation-example-coins",
         "foundation-example-salary",
+        "foundation-example-arena",
+        "foundation-example-ranks",
     ]
     # asset packs requirements
     assets_requirements = [

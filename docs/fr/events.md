@@ -164,6 +164,7 @@ s'est passé et ne peuvent pas être annulés, sauf `foundation:command`.
 | `foundation:command_completed` | les mêmes, et `outcome` | Une commande s'est exécutée ; `outcome` vaut `success` ou `failure` |
 | `foundation:service_available`, `service_unavailable` | `service`, `provider`, `version`, `priority` | Un fournisseur de service a été ajouté ou retiré, voir [Services](services.md#événements) |
 | `foundation:capability_available`, `capability_unavailable` | `capability`, `package`, `version` | Une capacité est devenue disponible ou a disparu |
+| `foundation:operator_added`, `operator_removed` | `account`, `name`, `by` | Un opérateur a été ajouté ou retiré, voir [Permissions](permissions.md#événements) |
 
 Un package ne reçoit pas `package_disabled` pour lui-même : ses écouteurs sont déjà retirés.
 

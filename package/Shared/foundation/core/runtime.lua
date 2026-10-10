@@ -13,6 +13,7 @@ local Futures = Package.Require("future.lua")
 local Events = Package.Require("events.lua")
 local Services = Package.Require("services.lua")
 local Capabilities = Package.Require("capabilities.lua")
+local Permissions = Package.Require("permissions.lua")
 local Commands = Package.Require("commands.lua")
 local Arguments = Package.Require("arguments.lua")
 local Admin = Package.Require("admin_commands.lua")
@@ -287,6 +288,20 @@ local COMPONENTS = {
 			end)
 			runtime.packages:Observe(function(kind, entry)
 				capabilities:Observe(kind, entry)
+			end)
+		end,
+	},
+	{
+		name = "permissions",
+		required = true,
+		create = function(runtime)
+			local permissions = Permissions.new({ check = runtime.check, log = runtime.log })
+			runtime.permissions = permissions
+			runtime.packages:ExtendContext("DeclarePermission", function(context, entry, node, definition)
+				local declaration, release =
+					permissions:Declare(entry.id, node, definition, "context:DeclarePermission", 3)
+				context:Track("permission", release, { node = declaration.node })
+				return declaration.node
 			end)
 		end,
 	},

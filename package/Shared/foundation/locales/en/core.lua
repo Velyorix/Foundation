@@ -255,4 +255,9 @@ return {
 	["admin.service_requirement_missing"] = "{package} ({version}, MISSING)",
 	["admin.capabilities_header"] = "Capabilities ({count}):",
 	["admin.capability_line"] = "{name}: {packages}",
+
+	["reason.permission_node"] = "must be dotted segments of lowercase letters, digits, '_' and '-', such as 'my-package.home.set' (at most {max} characters)",
+	["reason.permission_owner"] = "must start with '{owner}.'",
+	["reason.permission_declared"] = "'{node}' is already declared by {owner}",
+	["permissions.deprecated"] = "the deprecated permission '{node}' was checked {note}",
 }

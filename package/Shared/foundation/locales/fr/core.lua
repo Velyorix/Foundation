@@ -255,4 +255,9 @@ return {
 	["admin.service_requirement_missing"] = "{package} ({version}, MANQUANT)",
 	["admin.capabilities_header"] = "Capacités ({count}) :",
 	["admin.capability_line"] = "{name} : {packages}",
+
+	["reason.permission_node"] = "doit être une suite de segments séparés par des points, en lettres minuscules, chiffres, '_' et '-', comme 'my-package.home.set' ({max} caractères au plus)",
+	["reason.permission_owner"] = "doit commencer par '{owner}.'",
+	["reason.permission_declared"] = "'{node}' est déjà déclarée par {owner}",
+	["permissions.deprecated"] = "la permission obsolète '{node}' a été vérifiée {note}",
 }

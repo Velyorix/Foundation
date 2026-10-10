@@ -267,4 +267,17 @@ return {
 	["permissions.provider_active"] = "permissions are now resolved by {provider} (contract {version})",
 	["permissions.provider_none"] = "no permission provider: permissions use their declared defaults",
 	["permissions.provider_answer"] = "the permission provider {owner} answered a {type} instead of true, false or nil; the answer is ignored",
+
+	["operators.loaded"] = "loaded {count} operator(s) from {path}",
+	["operators.unreadable"] = "{path} cannot be read ({reason}); nobody is an operator and operator changes are refused until the file is fixed",
+	["operators.bad_format"] = 'expected {"version": {version}, "operators": {...}}',
+	["operators.bad_entry"] = "the entry '{id}' is not valid",
+	["operators.write_failed"] = "could not write {path}: {reason}",
+	["operators.added"] = "{id} is now an operator (by {by})",
+	["operators.removed"] = "{id} is no longer an operator (by {by})",
+	["operators.invalid_id"] = "this is not a valid account id",
+	["operators.exists"] = "this account is already an operator",
+	["operators.missing"] = "this account is not an operator",
+	["operators.locked"] = "the operator file is damaged; fix it first (see the log)",
+	["operators.write_failed_short"] = "the operator file could not be written (see the log)",
 }

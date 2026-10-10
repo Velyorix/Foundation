@@ -269,6 +269,12 @@ function Permissions:attached(id, node)
 	return decision, owner
 end
 
+-- Console senders count as operators: the server owner types there.
+function Permissions:IsOperator(subject, level)
+	local id, console = self:subject_id("Foundation.Operators.IsOperator", subject, level or 2)
+	return console or self.is_operator(id) == true
+end
+
 function Permissions:Has(subject, node, level)
 	local allowed = self:Resolve(subject, node, "Foundation.Permissions.Has", level or 2)
 	return allowed

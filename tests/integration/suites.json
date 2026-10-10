@@ -373,5 +373,21 @@
       "\\[foundation\\] INFO  foundation/core: permissions are now resolved by foundation-permissions-provider-fixture \\(contract 1\\.0\\)",
       "\\[foundation\\] INFO  foundation/core: no permission provider: permissions use their declared defaults"
     ]
+  },
+  "core-operators": {
+    "description": "foundation/operators.json is read with the real File API and JSON codec; a damaged file is reported and kept",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-operators-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/operators: foundation/operators\\.json cannot be read"
+    ],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation/operators: loaded 1 operator\\(s\\) from foundation/operators\\.json",
+      "\\[foundation\\] ERROR foundation/operators: foundation/operators\\.json cannot be read \\(the entry '76561198000000001' is not valid\\)"
+    ]
   }
 }

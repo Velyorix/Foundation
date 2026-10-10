@@ -267,4 +267,17 @@ return {
 	["permissions.provider_active"] = "les permissions sont désormais résolues par {provider} (contrat {version})",
 	["permissions.provider_none"] = "aucun fournisseur de permissions : les permissions utilisent leurs valeurs par défaut déclarées",
 	["permissions.provider_answer"] = "le fournisseur de permissions {owner} a répondu un {type} au lieu de true, false ou nil ; la réponse est ignorée",
+
+	["operators.loaded"] = "{count} opérateur(s) chargé(s) depuis {path}",
+	["operators.unreadable"] = "{path} est illisible ({reason}) ; personne n'est opérateur et les modifications d'opérateurs sont refusées jusqu'à la correction du fichier",
+	["operators.bad_format"] = 'attendu {"version": {version}, "operators": {...}}',
+	["operators.bad_entry"] = "l'entrée '{id}' n'est pas valide",
+	["operators.write_failed"] = "impossible d'écrire {path} : {reason}",
+	["operators.added"] = "{id} est maintenant opérateur (par {by})",
+	["operators.removed"] = "{id} n'est plus opérateur (par {by})",
+	["operators.invalid_id"] = "ce n'est pas un identifiant de compte valide",
+	["operators.exists"] = "ce compte est déjà opérateur",
+	["operators.missing"] = "ce compte n'est pas opérateur",
+	["operators.locked"] = "le fichier des opérateurs est endommagé ; corrigez-le d'abord (voir le journal)",
+	["operators.write_failed_short"] = "le fichier des opérateurs n'a pas pu être écrit (voir le journal)",
 }

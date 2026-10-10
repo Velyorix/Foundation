@@ -437,6 +437,25 @@ local COMPONENTS = {
 		end,
 	},
 	{
+		name = "operators",
+		required = false,
+		create = function(runtime)
+			if not runtime.env.create_operators then
+				return "absent"
+			end
+			local S = runtime.schema
+			local fields = { account = S:String(), name = S:Optional(S:String()), by = S:String() }
+			runtime.events:Define("foundation", "operator_added", { fields = fields }, "Runtime", 2)
+			runtime.events:Define("foundation", "operator_removed", { fields = fields }, "Runtime", 2)
+			local operators = runtime.env.create_operators(runtime)
+			runtime.operators = operators
+			operators:Load()
+			runtime.permissions.is_operator = function(id)
+				return operators:IsOperator(id)
+			end
+		end,
+	},
+	{
 		name = "command_bridges",
 		required = false,
 		create = function(runtime)

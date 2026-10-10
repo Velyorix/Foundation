@@ -103,6 +103,15 @@ function Facade.new(runtime)
 		end,
 	})
 
+	api.Operators = read_only(runtime, "Foundation.Operators", {
+		IsOperator = function(subject)
+			return permissions:IsOperator(subject)
+		end,
+		List = function()
+			return runtime.operators and runtime.operators:List() or {}
+		end,
+	})
+
 	return read_only(runtime, "Foundation", api)
 end
 

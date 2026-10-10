@@ -253,6 +253,50 @@ describe("Command execution", function()
 		end)
 	end)
 
+	describe("permissions", function()
+		local games
+
+		before_each(function()
+			games = register("games")
+			games:DeclarePermission("games.play", { default = "everyone" })
+			games:DeclarePermission("games.admin", { default = "nobody" })
+			games:RegisterCommand({
+				name = "arena",
+				permission = "games.admin",
+				subcommands = {
+					{ name = "start", run = function() end },
+					{ name = "join", permission = "games.play", run = function() end },
+				},
+			})
+		end)
+
+		it("refuses players without the permission, before the cooldown and the events", function()
+			local seen = 0
+			games:Listen("foundation:command", function()
+				seen = seen + 1
+			end)
+			local alex, replies = sender("player", "alex")
+			expect.equal(execute(alex, "arena start"), "denied")
+			expect.same(replies, { "you do not have permission to use this command" })
+			expect.equal(seen, 0)
+			games:AttachPermission("alex", "games.admin", true)
+			expect.equal(execute(alex, "arena start"), "ok")
+		end)
+
+		it("lets subcommands inherit or override the permission", function()
+			local alex = sender("player", "alex")
+			expect.equal(execute(alex, "arena join"), "ok")
+			expect.equal(
+				runtime.commands:PermissionOf(runtime.commands:Resolve({ "arena", "start" }).node),
+				"games.admin"
+			)
+		end)
+
+		it("never blocks the console", function()
+			expect.equal(execute(sender("console"), "arena start"), "ok")
+		end)
+	end)
+
 	it("rejects malformed sender lists and cooldowns", function()
 		expect.raises(function()
 			homes:RegisterCommand({ name = "a", run = function() end, senders = { "rcon" } })

@@ -80,7 +80,7 @@ describe("Permissions", function()
 				nodes[index] = item.node .. "=" .. item.default
 			end
 			expect.same(nodes, { "homes.admin.delete=nobody", "homes.set=operators" })
-			expect.equal(#Foundation.Permissions.List(), 3)
+			expect.equal(#Foundation.Permissions.List() - #Foundation.Permissions.List("foundation"), 3)
 		end)
 
 		it("rejects malformed or foreign nodes", function()

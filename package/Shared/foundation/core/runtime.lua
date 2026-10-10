@@ -366,6 +366,7 @@ local COMPONENTS = {
 				invoker = runtime.invoker,
 				events = runtime.events,
 				i18n = runtime.i18n,
+				permissions = runtime.permissions,
 				now_ms = env.now_ms or function()
 					return math.floor(env.clock() * 1000)
 				end,

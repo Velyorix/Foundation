@@ -45,4 +45,43 @@ suite:Test("a damaged file gives no operator and is left untouched", function()
 	FoundationTest.Equal(read(), DAMAGED)
 end)
 
+suite:Do(function()
+	Console.RunCommand("foundation op add 76561198000000002 Sam")
+end)
+suite:Wait(100)
+
+suite:Do(function()
+	write(VALID)
+	Server.ReloadPackage("foundation")
+end)
+suite:Wait(500)
+
+local commands = {
+	"foundation op add 76561198000000002 Alex Doe",
+	"foundation permissions check 76561198000000002 foundation.command.packages",
+	"foundation op list",
+}
+for _, line in ipairs(commands) do
+	suite:Do(function()
+		Console.RunCommand(line)
+	end)
+	suite:Wait(100)
+end
+
+suite:Test("foundation op add writes the real file and grants operator permissions", function()
+	FoundationTest.Equal(Foundation.Operators.IsOperator("76561198000000002"), true)
+	FoundationTest.True(read():find('"76561198000000002":{"added_at":', 1, true), read())
+	FoundationTest.Equal(Foundation.Permissions.Has("76561198000000002", "foundation.command.packages"), true)
+end)
+
+suite:Do(function()
+	Console.RunCommand("foundation op remove 76561198000000002")
+end)
+suite:Wait(100)
+
+suite:Test("foundation op remove takes the operator out of the file", function()
+	FoundationTest.Equal(Foundation.Operators.IsOperator("76561198000000002"), false)
+	FoundationTest.Equal(read():find("76561198000000002", 1, true), nil)
+end)
+
 suite:Run()

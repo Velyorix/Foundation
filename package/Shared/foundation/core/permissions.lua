@@ -26,6 +26,10 @@ local function valid_node(node)
 	return node:find(".", 1, true) ~= nil
 end
 
+function Permissions.IsNode(node)
+	return valid_node(node)
+end
+
 -- options: check, log, now_ms, invoker, is_operator(subject_id) (optional; nobody is an
 -- operator without it), provider() returning the permission provider service and its
 -- package (optional)

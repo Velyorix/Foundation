@@ -387,7 +387,14 @@
     ],
     "expected_log_sequence": [
       "\\[foundation\\] INFO  foundation/operators: loaded 1 operator\\(s\\) from foundation/operators\\.json",
-      "\\[foundation\\] ERROR foundation/operators: foundation/operators\\.json cannot be read \\(the entry '76561198000000001' is not valid\\)"
+      "\\[foundation\\] ERROR foundation/operators: foundation/operators\\.json cannot be read \\(the entry '76561198000000001' is not valid\\)",
+      "\\[foundation\\] the operator file is damaged; fix it first \\(see the log\\)",
+      "\\[foundation\\] 76561198000000002 is now an operator",
+      "\\[foundation\\] foundation\\.command\\.packages for 76561198000000002: allowed \\(declared default\\)",
+      "\\[foundation\\] Operators \\(2\\):",
+      "\\[foundation\\]   76561198000000001 Sam O'Neil \\(added by console\\)",
+      "\\[foundation\\]   76561198000000002 Alex Doe \\(added by console\\)",
+      "\\[foundation\\] 76561198000000002 is no longer an operator"
     ]
   }
 }

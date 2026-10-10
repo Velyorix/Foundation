@@ -14,8 +14,9 @@ remplacé sans modifier Foundation.
 > Foundation est en début de développement (0.1.0, non publiée). Disponible aujourd'hui :
 > l'enregistrement des packages, leur cycle de vie et le suivi des ressources, les fichiers de
 > configuration, la localisation, les clés et la validation, les minuteries et les futures, les
-> événements, les commandes avec la console et le chat. Ces pages décrivent uniquement ce qui
-> existe dans la version actuelle, et l'API peut changer avant la 1.0.
+> événements, les commandes avec la console et le chat, les services et les capacités. Ces
+> pages décrivent uniquement ce qui existe dans la version actuelle, et l'API peut changer avant
+> la 1.0.
 
 *English version: [Foundation documentation](../en/index.md)*
 
@@ -38,6 +39,7 @@ remplacé sans modifier Foundation.
 - [Minuteries et travail asynchrone](scheduling.md)
 - [Événements](events.md)
 - [Commandes](commands.md)
+- [Services et capacités](services.md)
 
 Référence de l'API :
 
@@ -48,3 +50,4 @@ Référence de l'API :
 - [Minuteries et futures](reference/scheduling.md)
 - [Événements](reference/events.md)
 - [Commandes](reference/commands.md)
+- [Services et capacités](reference/services.md)

@@ -12,15 +12,16 @@ their own heading inside each release.
 - Installable `foundation` script package.
 - English and French documentation: introduction, requirements, installation, compatibility,
   configuration, administration commands, package integration, lifecycle, package settings,
-  localization, keys and validation, timers and futures, events, commands, logging, API
-  reference.
+  localization, keys and validation, timers and futures, events, commands, services and
+  capabilities, logging, API reference.
 - Structured console logging with masked secret fields and suppression of repeated warnings
   and errors.
 - `foundation/config.toml`, created with commented defaults on first start: server language
   (`language`, English and French messages), log level and debug categories. Invalid files are
   ignored with every problem logged, and the defaults are used.
 - Per-package settings files in `foundation/config/<package>.toml`.
-- Console commands `foundation version`, `foundation help`, `foundation packages` and
+- Console commands `foundation version`, `foundation help`, `foundation packages`,
+  `foundation services` (providers, consumers, missing services, capabilities) and
   `foundation reload-config` (reloads every configuration file without restarting; audited).
 - Commands typed in the server console and in the chat (`/` prefix) run package commands;
   `commands.unknown_in_chat` chooses whether unknown `/` messages are answered or left to other
@@ -56,3 +57,10 @@ their own heading inside each release.
 - Commands: `context:RegisterCommand` (aliases, subcommands, typed arguments, sender kinds,
   cooldowns, audit) and `context:RegisterArgumentType`; senders with `Reply`, `GetKind`,
   `GetId`, `GetName`, `GetPlayer`; error code `command_usage`.
+- Services: `context:ProvideService` (contract versions, priorities, explicit replacement),
+  `GetService`, `GetServices`, `OnService`; returned services stop working when their
+  provider stops. Manifest field `services` (required services block the ready state and fail
+  the package when lost; optional ones are declarative).
+- Capabilities: manifest field `capabilities`, `Foundation.Capabilities.Has` and `Providers`.
+- Foundation events: `foundation:service_available`, `service_unavailable`,
+  `capability_available`, `capability_unavailable`.

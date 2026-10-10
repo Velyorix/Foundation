@@ -68,6 +68,8 @@ plus tard reste dans l'état `initializing`.
 | `id` | chaîne | non | Doit être égal au nom du dossier s'il est présent ; repère les manifestes copiés |
 | `depends` | tableau de noms de packages | non | Packages Foundation qui doivent être enregistrés avant le vôtre (voir [Cycle de vie](lifecycle.md#dépendances)) |
 | `soft_depends` | tableau de noms de packages | non | Packages que votre code utilise s'ils sont présents ; non obligatoires |
+| `services` | tableau | non | Services que votre package exige ou peut utiliser, voir [Services](services.md#exiger-un-service) |
+| `capabilities` | tableau | non | Capacités que votre package déclare, voir [Capacités](services.md#capacités) |
 
 Tout autre champ est refusé : un champ mal orthographié fait échouer le démarrage au lieu
 d'être ignoré.

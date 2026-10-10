@@ -9,6 +9,7 @@ used from the console, not by players.
 | `foundation help` | Lists every command with its usage and description |
 | `foundation help <command>` | Describes one command: usage, aliases, subcommands |
 | `foundation packages` | Lists the packages that use Foundation, with their version and state |
+| `foundation services` | Lists services, their providers, the packages that need them, and capabilities |
 | `foundation reload-config` | Reloads every configuration file without restarting |
 
 Typing `foundation` alone lists the subcommands.
@@ -33,6 +34,29 @@ Package states are `initializing`, `ready`, `failed` (with the reason) and `disa
 
 Answers are written in the server language (`language` setting); the examples above are in
 English.
+
+## Services
+
+`foundation services` shows which package provides each service and which packages need it.
+`MISSING` marks a need that no provider satisfies, the usual reason why a package failed to
+start:
+
+```
+> foundation services
+Services (2):
+chat:format
+  no provider
+  used if present by: shop (any version, MISSING)
+economy:bank
+  provided by: coins 1.2 (priority 10), gems 1.0 (priority 0)
+  required by: shop (1.1), auction (2, MISSING)
+Capabilities (1):
+  chat:emotes: chat-plus 2.1
+```
+
+Providers are listed in the order they are chosen. To fix a missing service, install a package
+that provides it in a compatible version, or remove the package that requires it. See
+[Services and capabilities](services.md).
 
 ## Reloading the configuration
 

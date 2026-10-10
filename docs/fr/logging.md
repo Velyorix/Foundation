@@ -37,6 +37,7 @@ serveur : celui-ci ajoute donc ses propres lignes de pile après eux et les marq
 | `repeating task of my-package stopped after 3 consecutive failures` | Une tâche répétée a échoué plusieurs fois de suite et a été arrêtée |
 | `/spawn of warps is already used by homes; it is available as /warps:spawn` | Deux packages ont déclaré le même nom de commande |
 | `command callback of my-package failed` | Une commande a levé une erreur ; le joueur a reçu un court message |
+| `my-package failed: 'my-package' requires the service 'economy:bank' (version 1), which no package provides` | Un service exigé n'a aucun fournisseur compatible ; voir [`foundation services`](administration.md#services) |
 
 Ces lignes sont données en anglais, la langue par défaut. Avec `language = "fr"`, elles sont
 écrites en français.

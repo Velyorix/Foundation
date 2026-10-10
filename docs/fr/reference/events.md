@@ -98,6 +98,8 @@ Définis dans l'espace de noms réservé `foundation`, émis par Foundation uniq
 | `foundation:config_reloaded` | `package` (`"foundation"` pour le fichier de Foundation), `path`, `changed` et `pending` (tableaux de clés de réglages) |
 | `foundation:command` | `command` (chemin, `"home set"`), `owner` (package), `sender` (`"console"` ou `"player"`), `name` (nom de l'expéditeur), `arguments` (table par nom d'argument) |
 | `foundation:command_completed` | Les champs de `foundation:command` et `outcome` : `"success"` ou `"failure"` |
+| `foundation:service_available`, `service_unavailable` | Voir [Services](services.md#événements) |
+| `foundation:capability_available`, `capability_unavailable` | Voir [Services](services.md#événements) |
 
 `package_disabled` est émis pour les packages dépendants avant leur dépendance.
 `config_reloaded` est émis une fois par fichier rechargé sans erreur, après les fonctions

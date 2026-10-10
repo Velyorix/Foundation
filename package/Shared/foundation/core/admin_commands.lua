@@ -102,6 +102,69 @@ local function reload_config(runtime, sender)
 	end
 end
 
+local function requirement_text(messages, requirement)
+	local version = requirement.version or messages:Format("service.any_version")
+	if requirement.satisfied then
+		return messages:Format("admin.service_requirement", { package = requirement.package, version = version })
+	end
+	return messages:Format("admin.service_requirement_missing", { package = requirement.package, version = version })
+end
+
+local function join(messages, items, format)
+	local parts = {}
+	for index, item in ipairs(items) do
+		parts[index] = format(messages, item)
+	end
+	return table.concat(parts, ", ")
+end
+
+local function services(runtime, sender)
+	local messages = runtime.messages
+	local graph = runtime.services:Graph()
+	local capabilities = runtime.capabilities:Snapshot().capabilities
+	local capability_names = {}
+	for name in pairs(capabilities) do
+		capability_names[#capability_names + 1] = name
+	end
+	table.sort(capability_names)
+	if #graph == 0 and #capability_names == 0 then
+		sender:Reply(messages:Format("admin.services_none"))
+		return
+	end
+	sender:Reply(messages:Format("admin.services_header", { count = #graph }))
+	for _, node in ipairs(graph) do
+		sender:Reply(node.key)
+		if #node.providers == 0 then
+			sender:Reply("  " .. messages:Format("admin.service_no_provider"))
+		else
+			sender:Reply("  " .. messages:Format("admin.service_providers", {
+				providers = join(messages, node.providers, function(m, provider)
+					return m:Format("admin.service_provider", provider)
+				end),
+			}))
+		end
+		if #node.required > 0 then
+			sender:Reply("  " .. messages:Format("admin.service_required", {
+				packages = join(messages, node.required, requirement_text),
+			}))
+		end
+		if #node.optional > 0 then
+			sender:Reply("  " .. messages:Format("admin.service_optional", {
+				packages = join(messages, node.optional, requirement_text),
+			}))
+		end
+	end
+	sender:Reply(messages:Format("admin.capabilities_header", { count = #capability_names }))
+	for _, name in ipairs(capability_names) do
+		sender:Reply("  " .. messages:Format("admin.capability_line", {
+			name = name,
+			packages = join(messages, capabilities[name], function(_, item)
+				return item.version and (item.package .. " " .. item.version) or item.package
+			end),
+		}))
+	end
+end
+
 function Admin.Register(runtime)
 	local function bind(fn)
 		return function(sender, args)
@@ -135,6 +198,12 @@ function Admin.Register(runtime)
 				description_key = "admin.description.packages",
 				senders = { "console" },
 				run = bind(packages),
+			},
+			{
+				name = "services",
+				description_key = "admin.description.services",
+				senders = { "console" },
+				run = bind(services),
 			},
 			{
 				name = "reload-config",

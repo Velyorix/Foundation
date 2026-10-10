@@ -33,7 +33,14 @@ suite:Do(function()
 	end
 end)
 
-for _, line in ipairs({ "buy apple 3", "buy sword", "buy pear", "foundation help buy", "foundation packages" }) do
+for _, line in ipairs({
+	"buy apple 3",
+	"buy sword",
+	"buy pear",
+	"foundation help buy",
+	"foundation packages",
+	"foundation services",
+}) do
 	suite:Do(function()
 		Console.RunCommand(line)
 	end)

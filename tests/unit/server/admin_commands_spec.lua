@@ -143,8 +143,8 @@ describe("Foundation admin commands", function()
 	it("asks for a subcommand with the list", function()
 		expect.equal(run("foundation"), "usage")
 		expect.same(replies, {
-			"choose one of: version, help, packages, reload-config",
-			"Usage: foundation <version|help|packages|reload-config>",
+			"choose one of: version, help, packages, services, reload-config",
+			"Usage: foundation <version|help|packages|services|reload-config>",
 		})
 	end)
 
@@ -190,7 +190,7 @@ describe("Foundation admin commands", function()
 			run("foundation help")
 			expect.same(replies, {
 				"Commands (2):",
-				"foundation <version|help|packages|reload-config> - Foundation administration",
+				"foundation <version|help|packages|services|reload-config> - Foundation administration",
 				"home [name] - Teleport to a home",
 			})
 		end)
@@ -253,6 +253,44 @@ describe("Foundation admin commands", function()
 				"foundation/config/shop.toml: rejected, the current settings are kept (details in the log)",
 			})
 			expect.equal(settings:Get("motd"), "Hello")
+		end)
+	end)
+
+	describe("services", function()
+		it("says when nothing is declared", function()
+			run("foundation services")
+			expect.same(replies, { "No service or capability is declared." })
+		end)
+
+		it("shows providers, requirements, missing services and capabilities", function()
+			register("coins"):ProvideService("economy:bank", "1.2", {}, { priority = 10 })
+			register("gems"):ProvideService("economy:bank", "1.0", {})
+			register("shop", {
+				api = "0.1",
+				services = {
+					{ name = "economy:bank", version = "1.1" },
+					{ name = "chat:format", optional = true },
+				},
+			})
+			register("auction", { api = "0.1", services = { { name = "economy:bank", version = "2" } } })
+			local capabilities = { { name = "chat:emotes", version = "2.1" }, "chat:colors", "chat:bold" }
+			local chat = register("chat-plus", { api = "0.1", capabilities = capabilities })
+			runtime.packages:mark_ready(runtime.packages.entries["chat-plus"])
+			expect.equal(chat:GetState(), "ready")
+			run("foundation services")
+			expect.same(replies, {
+				"Services (2):",
+				"chat:format",
+				"  no provider",
+				"  used if present by: shop (any version, MISSING)",
+				"economy:bank",
+				"  provided by: coins 1.2 (priority 10), gems 1.0 (priority 0)",
+				"  required by: shop (1.1), auction (2, MISSING)",
+				"Capabilities (3):",
+				"  chat:bold: chat-plus",
+				"  chat:colors: chat-plus",
+				"  chat:emotes: chat-plus 2.1",
+			})
 		end)
 	end)
 end)

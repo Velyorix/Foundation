@@ -66,6 +66,8 @@ your scripts have run. A package registered later stays in the `initializing` st
 | `id` | string | no | Must equal your package folder name if present; catches copied manifests |
 | `depends` | array of package names | no | Foundation packages that must be registered before yours (see [Lifecycle](lifecycle.md#dependencies)) |
 | `soft_depends` | array of package names | no | Packages your code can use when present; not required |
+| `services` | array | no | Services your package requires or can use, see [Services](services.md#requiring-a-service) |
+| `capabilities` | array | no | Capabilities your package declares, see [Capabilities](services.md#capabilities) |
 
 Any other field is rejected, so a misspelled field fails at startup instead of being ignored.
 

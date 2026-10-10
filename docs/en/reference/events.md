@@ -97,6 +97,8 @@ Defined in the reserved `foundation` namespace, emitted by Foundation only. Only
 | `foundation:config_reloaded` | `package` (`"foundation"` for Foundation's own file), `path`, `changed` and `pending` (arrays of setting keys) |
 | `foundation:command` | `command` (path, `"home set"`), `owner` (package), `sender` (`"console"` or `"player"`), `name` (sender name), `arguments` (table by argument name) |
 | `foundation:command_completed` | The fields of `foundation:command` and `outcome`: `"success"` or `"failure"` |
+| `foundation:service_available`, `service_unavailable` | See [Services](services.md#events) |
+| `foundation:capability_available`, `capability_unavailable` | See [Services](services.md#events) |
 
 `package_disabled` is emitted for dependents before their dependency. `config_reloaded` is
 emitted once per file that reloaded without error, after the package's `OnChange` functions.

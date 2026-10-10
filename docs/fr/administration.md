@@ -9,6 +9,7 @@ ne s'utilise que depuis la console, pas par les joueurs.
 | `foundation help` | Liste toutes les commandes avec leur usage et leur description |
 | `foundation help <commande>` | Décrit une commande : usage, alias, sous-commandes |
 | `foundation packages` | Liste les packages qui utilisent Foundation, avec leur version et leur état |
+| `foundation services` | Liste les services, leurs fournisseurs, les packages qui en ont besoin, et les capacités |
 | `foundation reload-config` | Recharge tous les fichiers de configuration sans redémarrer |
 
 Taper `foundation` seul liste les sous-commandes.
@@ -33,6 +34,29 @@ Voir [Cycle de vie](lifecycle.md).
 
 Les réponses sont écrites dans la langue du serveur (réglage `language`) ; les exemples
 ci-dessus sont en anglais.
+
+## Services
+
+`foundation services` indique quel package fournit chaque service et quels packages en ont
+besoin. `MISSING` signale un besoin qu'aucun fournisseur ne satisfait, raison habituelle de
+l'échec au démarrage d'un package :
+
+```
+> foundation services
+Services (2):
+chat:format
+  no provider
+  used if present by: shop (any version, MISSING)
+economy:bank
+  provided by: coins 1.2 (priority 10), gems 1.0 (priority 0)
+  required by: shop (1.1), auction (2, MISSING)
+Capabilities (1):
+  chat:emotes: chat-plus 2.1
+```
+
+Les fournisseurs sont listés dans l'ordre où ils sont choisis. Pour corriger un service
+manquant, installez un package qui le fournit dans une version compatible, ou retirez le
+package qui l'exige. Voir [Services et capacités](services.md).
 
 ## Recharger la configuration
 

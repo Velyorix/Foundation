@@ -92,6 +92,9 @@ function Facade.new(runtime)
 		Has = function(subject, node)
 			return permissions:Has(subject, node)
 		end,
+		Explain = function(subject, node)
+			return permissions:Explain(subject, node)
+		end,
 		Get = function(node)
 			return permissions:Get(node)
 		end,

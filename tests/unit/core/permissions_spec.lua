@@ -178,4 +178,90 @@ describe("Permissions", function()
 			end, "must be dotted segments")
 		end)
 	end)
+
+	describe("attachments", function()
+		local games
+
+		before_each(function()
+			homes:DeclarePermission("homes.use", { default = "everyone" })
+			homes:DeclarePermission("homes.admin")
+			games = register("games")
+		end)
+
+		local function explain(subject, node)
+			local result = Foundation.Permissions.Explain(subject, node)
+			return tostring(result.allowed)
+				.. ":"
+				.. result.source
+				.. (result.package and (":" .. result.package) or "")
+		end
+
+		it("override the default for one subject", function()
+			games:AttachPermission("player-1", "homes.use", false)
+			games:AttachPermission("player-2", "homes.admin", true)
+			expect.equal(explain("player-1", "homes.use"), "false:attachment:games")
+			expect.equal(explain("player-2", "homes.admin"), "true:attachment:games")
+			expect.equal(explain("player-3", "homes.use"), "true:default")
+		end)
+
+		it("let a deny win over an allow from another package", function()
+			games:AttachPermission("player-1", "homes.admin", true)
+			homes:AttachPermission("player-1", "homes.admin", false)
+			register("events"):AttachPermission("player-1", "homes.admin", true)
+			expect.equal(explain("player-1", "homes.admin"), "false:attachment:homes")
+		end)
+
+		it("expire after their duration", function()
+			games:AttachPermission("player-1", "homes.admin", true, { duration = 5000 })
+			clock.now = 4.999
+			expect.truthy(has("player-1", "homes.admin"))
+			clock.now = 5
+			expect.falsy(has("player-1", "homes.admin"))
+			expect.same(runtime.permissions.attachments, {})
+		end)
+
+		it("are removed with their handle or their package", function()
+			local handle = games:AttachPermission("player-1", "homes.admin", true)
+			expect.truthy(has("player-1", "homes.admin"))
+			expect.truthy(handle:Release())
+			expect.falsy(has("player-1", "homes.admin"))
+			games:AttachPermission("player-1", "homes.admin", true)
+			runtime.packages:Disable("games", "unload")
+			expect.falsy(has("player-1", "homes.admin"))
+			expect.equal(runtime.ownership:Count("games"), 0)
+		end)
+
+		it("can be cleared for a subject", function()
+			games:AttachPermission("player-1", "homes.admin", true)
+			runtime.permissions:ClearSubject("player-1")
+			expect.falsy(has("player-1", "homes.admin"))
+		end)
+
+		it("work on undeclared nodes and accept senders", function()
+			local player = Senders.new({ kind = "player", id = "player-1", reply = function() end })
+			games:AttachPermission(player, "other.fly", true)
+			expect.truthy(has("player-1", "other.fly"))
+		end)
+
+		it("validate their arguments at the caller's line", function()
+			local console = Senders.new({ kind = "console", reply = function() end })
+			local cases = {
+				{ { console, "homes.use", true }, "the console has every permission" },
+				{ { "player-1", "homes", true }, "must be dotted segments" },
+				{ { "player-1", "homes.use", "yes" }, "'value' must be boolean (got string)" },
+				{ { "player-1", "homes.use", true, { duration = 0 } }, "must be a positive number of milliseconds" },
+				{ { "player-1", "homes.use", true, { permanent = true } }, "unknown field 'permanent'" },
+			}
+			for _, case in ipairs(cases) do
+				local expected_line
+				local ok, message = pcall(function()
+					expected_line = debug.getinfo(1, "l").currentline + 1
+					games:AttachPermission(table.unpack(case[1]))
+				end)
+				expect.falsy(ok)
+				expect.contains(message, case[2])
+				expect.equal(tonumber(message:match("permissions_spec%.lua:(%d+):")), expected_line)
+			end
+		end)
+	end)
 end)

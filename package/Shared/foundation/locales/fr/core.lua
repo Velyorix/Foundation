@@ -260,4 +260,7 @@ return {
 	["reason.permission_owner"] = "doit commencer par '{owner}.'",
 	["reason.permission_declared"] = "'{node}' est déjà déclarée par {owner}",
 	["permissions.deprecated"] = "la permission obsolète '{node}' a été vérifiée {note}",
+
+	["reason.permission_console"] = "la console a toutes les permissions ; les attachements ne concernent que les joueurs",
+	["reason.permission_duration"] = "doit être un nombre positif de millisecondes",
 }

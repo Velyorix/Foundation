@@ -295,13 +295,29 @@ local COMPONENTS = {
 		name = "permissions",
 		required = true,
 		create = function(runtime)
-			local permissions = Permissions.new({ check = runtime.check, log = runtime.log })
+			local env = runtime.env
+			local permissions = Permissions.new({
+				check = runtime.check,
+				log = runtime.log,
+				now_ms = env.now_ms or function()
+					return math.floor(env.clock() * 1000)
+				end,
+			})
 			runtime.permissions = permissions
 			runtime.packages:ExtendContext("DeclarePermission", function(context, entry, node, definition)
 				local declaration, release =
 					permissions:Declare(entry.id, node, definition, "context:DeclarePermission", 3)
 				context:Track("permission", release, { node = declaration.node })
 				return declaration.node
+			end)
+			runtime.packages:ExtendContext("AttachPermission", function(context, entry, subject, node, value, options)
+				local attachment =
+					permissions:Attach(entry.id, subject, node, value, options, "context:AttachPermission", 3)
+				local handle = context:Track("permission_attachment", attachment.release, {
+					subject = attachment.subject,
+					node = attachment.node,
+				})
+				return handle
 			end)
 		end,
 	},

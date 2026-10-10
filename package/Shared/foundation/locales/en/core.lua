@@ -260,4 +260,7 @@ return {
 	["reason.permission_owner"] = "must start with '{owner}.'",
 	["reason.permission_declared"] = "'{node}' is already declared by {owner}",
 	["permissions.deprecated"] = "the deprecated permission '{node}' was checked {note}",
+
+	["reason.permission_console"] = "the console has every permission; attachments only apply to players",
+	["reason.permission_duration"] = "must be a positive number of milliseconds",
 }

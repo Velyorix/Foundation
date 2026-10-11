@@ -32,9 +32,9 @@ jobs:
     env:
       TAG: ${{ inputs.tag }}
     steps:
+      # Tooling from this workflow's commit; the tag's own files are read with git.
       - uses: actions/checkout@v7
         with:
-          ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
 
       - name: Download the release files

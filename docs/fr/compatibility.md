@@ -28,7 +28,8 @@ toute version mineure peut modifier l'API. À partir de la 1.0.0 :
 
 Chaque version est publiée sur la
 [page des versions](https://github.com/Velyorix/Foundation/releases) avec son archive,
-`foundation-<version>.zip`, et un fichier `SHA256SUMS`. Son numéro indique le canal :
+`foundation-<version>.zip`, et un fichier `SHA256SUMS`, et listée avec les mêmes fichiers sur le
+[site de Foundation](https://foundationnw.dev/fr/builds). Son numéro indique le canal :
 
 | Canal | Version et tag | Usage |
 | --- | --- | --- |

@@ -222,7 +222,10 @@ git push origin v0.2.0-beta.1
 The Release workflow runs the checks, builds `foundation-<version>.zip` with
 `scripts/release.py` (the version is written into the archive's `Package.toml` and
 `version.lua`), attests its build provenance and publishes the GitHub release, marked as a
-pre-release for every channel but stable. The notes come from the changelog: the `[X.Y.Z]`
+pre-release for every channel but stable. The Website build workflow then registers the
+same files on foundationnw.dev through its CI ingestion API (`scripts/publish_build.py`, with
+the `FOUNDATION_CI_TOKEN` and `FOUNDATION_CI_SECRET` secrets); it can be started by hand for a
+release that is not on the website yet, and running it twice is harmless. The notes come from the changelog: the `[X.Y.Z]`
 section, or `[Unreleased]` for a pre-release before it exists. Build the same files locally
 with `python scripts/release.py build <version>`, and test an archive on a server with
 `python scripts/integration.py --foundation-dir <extracted foundation folder>`.

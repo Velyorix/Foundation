@@ -36,7 +36,8 @@ their own heading inside each release.
   `max_bytes_per_package`, `max_keys_per_package`), applied after `foundation reload-config`.
 - Release archives `foundation-<version>.zip` on GitHub Releases, with `SHA256SUMS` and
   build provenance, in four channels: stable, release candidate, beta and nightly (built
-  every day from `main` when it changed). `foundation version` shows the full version.
+  every day from `main` when it changed), also listed on foundationnw.dev. `foundation version`
+  shows the full version.
 
 ### API
 

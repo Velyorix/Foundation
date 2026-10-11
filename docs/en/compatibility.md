@@ -26,7 +26,8 @@ may change the API. From 1.0.0 on:
 
 Every release is published on the
 [releases page](https://github.com/Velyorix/Foundation/releases) with its archive,
-`foundation-<version>.zip`, and a `SHA256SUMS` file. Its version tells the channel:
+`foundation-<version>.zip`, and a `SHA256SUMS` file, and listed with the same files on the
+[Foundation website](https://foundationnw.dev/en/builds). Its version tells the channel:
 
 | Channel | Version and tag | Use |
 | --- | --- | --- |

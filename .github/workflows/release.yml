@@ -69,3 +69,11 @@ jobs:
             --title "Foundation ${version}" \
             --notes-file dist/release-notes.md \
             "${channel[@]}"
+
+  website:
+    name: Website
+    needs: publish
+    uses: ./.github/workflows/website.yml
+    with:
+      tag: ${{ inputs.tag || github.ref_name }}
+    secrets: inherit

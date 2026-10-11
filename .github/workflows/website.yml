@@ -1,0 +1,52 @@
+name: Website build
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    secrets:
+      FOUNDATION_CI_TOKEN:
+        required: true
+      FOUNDATION_CI_SECRET:
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published release tag to register on the website (vX.Y.Z[-channel.N])
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  register:
+    name: Register on foundationnw.dev
+    runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Download the release files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$TAG" --dir dist --pattern 'foundation-*.zip' --pattern SHA256SUMS
+          cd dist && sha256sum --check SHA256SUMS
+
+      - name: Register the build
+        env:
+          FOUNDATION_CI_TOKEN: ${{ secrets.FOUNDATION_CI_TOKEN }}
+          FOUNDATION_CI_SECRET: ${{ secrets.FOUNDATION_CI_SECRET }}
+          FOUNDATION_SITE_URL: ${{ vars.FOUNDATION_SITE_URL }}
+        run: python3 scripts/publish_build.py "$TAG" --dist dist

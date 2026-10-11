@@ -45,6 +45,17 @@ for _, line in ipairs({
 	"foundation permissions check 76561198000000009 foundation-example-arena.manage",
 	"foundation permissions check 76561198000000010 foundation-example-arena.manage",
 	"foundation permissions check 76561198000000011 foundation-example-arena.manage",
+	"warp set spawn 0 0 100",
+	"warp set arena 1200.5 -40 100",
+	"warp list",
+	"warp show arena",
+	"warp delete spawn",
+	"warp show spawn",
+	"profile set 76561198000000021 Alex green",
+	"profile show 76561198000000021",
+	"profile show 76561198000000022",
+	"nametag 76561198000000021",
+	"nametag 76561198000000022",
 }) do
 	suite:Do(function()
 		Console.RunCommand(line)

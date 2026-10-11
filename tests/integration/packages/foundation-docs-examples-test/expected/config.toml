@@ -15,10 +15,10 @@ level = "info"
 debug_categories = []
 
 [storage]
-# Largest amount of data, in bytes, that one package can keep in its stores (keys and values).
+# Largest amount of data, in bytes, that each store of a package can keep (keys and values).
 max_bytes_per_package = 52428800
 
-# Largest number of keys that one package can keep in its stores.
+# Largest number of keys that each store of a package can keep.
 max_keys_per_package = 100000
 
 [commands]

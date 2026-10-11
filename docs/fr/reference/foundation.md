@@ -166,3 +166,7 @@ qui dépend de la langue.
 | `async_failed` | developer | Une [future](scheduling.md#futures) dont l'exécuteur ou une fonction a levé une erreur |
 | `timeout` | infrastructure | [`future:Timeout`](scheduling.md#méthodes-des-futures) |
 | `command_usage` | user | Saisie de commande incorrecte, signalée à l'[expéditeur](commands.md#erreurs) |
+| `storage_quota` | developer | Une écriture dans un [espace de stockage](storage.md#méthodes-dun-espace) qui dépasserait son quota |
+| `storage_failed` | infrastructure | Une opération d'un [espace de stockage](storage.md#méthodes-dun-espace) refusée par la base de données |
+| `storage_unavailable` | infrastructure | Un [espace de stockage](storage.md#méthodes-dun-espace) inutilisable |
+| `storage_corrupt` | infrastructure | Une valeur enregistrée qui n'est pas du JSON valide |

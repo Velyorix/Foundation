@@ -45,7 +45,7 @@
 
 Stop the server, replace the `Packages/foundation/` folder with the new version and start the
 server again. The package folder contains no server data, so replacing it loses nothing:
-settings are kept in the `foundation/` folder next to the server executable.
+settings and stored data are kept in the `foundation/` folder next to the server executable.
 
 Read the [changelog](../../CHANGELOG.md) before updating: it lists changes that need action
 from server owners or package developers.
@@ -54,4 +54,4 @@ from server owners or package developers.
 
 Remove `foundation` from `packages` in `Config.toml` and delete `Packages/foundation/`. Packages
 that require Foundation will no longer load. Delete the `foundation/` folder next to the server
-executable as well if you do not want to keep the settings.
+executable as well if you do not want to keep the settings and the stored data.

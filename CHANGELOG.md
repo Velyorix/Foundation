@@ -13,7 +13,7 @@ their own heading inside each release.
 - English and French documentation: introduction, requirements, installation, compatibility,
   configuration, administration commands, package integration, lifecycle, package settings,
   localization, keys and validation, timers and futures, events, commands, services and
-  capabilities, permissions, logging, API reference.
+  capabilities, permissions, storage, persistent data, logging, API reference.
 - Structured console logging with masked secret fields and suppression of repeated warnings
   and errors.
 - `foundation/config.toml`, created with commented defaults on first start: server language
@@ -30,6 +30,10 @@ their own heading inside each release.
 - Commands typed in the server console and in the chat (`/` prefix) run package commands;
   `commands.unknown_in_chat` chooses whether unknown `/` messages are answered or left to other
   packages.
+- Storage in `foundation/data/foundation.db` (SQLite), created on first start. Package data is
+  never deleted when a package stops or is removed, and pending writes are written before the
+  server stops. Quotas per store in `foundation/config.toml` (`[storage]`
+  `max_bytes_per_package`, `max_keys_per_package`), applied after `foundation reload-config`.
 
 ### API
 
@@ -74,3 +78,10 @@ their own heading inside each release.
 - Permission provider contract `foundation:permission_provider` 1.x (`Check(account, node)`).
 - `Foundation.Operators.IsOperator` and `List`; events `foundation:operator_added` and
   `operator_removed`.
+- Stores: `context:Store(name, { version, migrations })` with `Get`, `Set`, `Delete`, `Keys`,
+  `Batch` (all or nothing), `Usage`, `GetName`; JSON values; versioned data with migrations
+  applied in one transaction, which fail the package without changing the data.
+- Persistent data: `context:DefineData(name, schema, { default })` with `Get`, `Set`,
+  `Delete` per subject (account id or player sender), validated against the schema;
+  `context:ReadData("<package>:<name>")` for read-only access from any package.
+- Error codes `storage_unavailable`, `storage_failed`, `storage_corrupt`, `storage_quota`.

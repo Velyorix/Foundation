@@ -169,7 +169,8 @@ function Key:Set(subject, value)
 			problem = err.details.problems[1] and err.details.problems[1].message or err.message,
 		}, 2)
 	end
-	return self.store:Set(storage_key(self.name, subject), checked)
+	local text = self.store:encode("data:Set", 2, checked)
+	return self.store:put("data:Set", storage_key(self.name, subject), text)
 end
 
 -- Resolves with whether the subject had a value.

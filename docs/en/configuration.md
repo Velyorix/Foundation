@@ -1,18 +1,21 @@
 # Configuration
 
 Foundation and the packages that use it keep their settings in TOML files inside a
-`foundation/` folder, next to the server executable:
+`foundation/` folder, next to the server executable. The same folder holds the data packages
+store:
 
 ```
 NanosWorldServer.exe
 Config.toml
 foundation/
 ├── config.toml                 Foundation's own settings
-└── config/
-    └── my-package.toml         settings of the package my-package
+├── config/
+│   └── my-package.toml         settings of the package my-package
+└── data/
+    └── foundation.db           data stored by packages, see Storage
 ```
 
-You never have to create these files. When one is missing, it is written with the default
+You never have to create these files (see [Storage](storage.md) for the data file). When one is missing, it is written with the default
 values and a comment above each setting.
 
 ## Foundation settings
@@ -38,10 +41,10 @@ level = "info"
 debug_categories = []
 
 [storage]
-# Largest amount of data, in bytes, that one package can keep in its stores (keys and values).
+# Largest amount of data, in bytes, that each store of a package can keep (keys and values).
 max_bytes_per_package = 52428800
 
-# Largest number of keys that one package can keep in its stores.
+# Largest number of keys that each store of a package can keep.
 max_keys_per_package = 100000
 
 [commands]
@@ -54,8 +57,8 @@ unknown_in_chat = "reply"
 | `language` | Locale code: `en`, `fr`, or a regional code such as `fr_CA` | `"en"` | Language of Foundation's log messages and the default language of package translations (see [Localization](localization.md)). Foundation ships English and French; other languages fall back to English. |
 | `log.level` | `"debug"`, `"info"`, `"warning"`, `"error"` | `"info"` | Lines below this level are not written. See [Logging](logging.md). |
 | `log.debug_categories` | List of domains, for example `["config"]` | `[]` | Domains (the part after `/` in a log line) whose debug lines are written whatever `log.level` is. |
-| `storage.max_bytes_per_package` | Integer, 1024 or more | `52428800` (50 MB) | Largest amount of data one package can keep in its stores |
-| `storage.max_keys_per_package` | Integer, 1 or more | `100000` | Largest number of keys one package can keep in its stores |
+| `storage.max_bytes_per_package` | Integer, 1024 or more | `52428800` (50 MB) | Largest amount of data each store of a package can keep, see [Storage](storage.md#quotas) |
+| `storage.max_keys_per_package` | Integer, 1 or more | `100000` | Largest number of keys each store of a package can keep |
 | `commands.unknown_in_chat` | `"reply"`, `"pass"` | `"reply"` | Chat messages starting with `/` that are not commands: `reply` answers "unknown command" and hides the message; `pass` lets other packages handle it, for example a package with its own chat commands. |
 
 This file is always created in English. Changing `language` changes the messages, not the

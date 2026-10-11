@@ -15,8 +15,8 @@ remplacé sans modifier Foundation.
 > l'enregistrement des packages, leur cycle de vie et le suivi des ressources, les fichiers de
 > configuration, la localisation, les clés et la validation, les minuteries et les futures, les
 > événements, les commandes avec la console et le chat, les services et les capacités, les
-> permissions et les opérateurs. Ces pages décrivent uniquement ce qui existe dans la version
-> actuelle, et l'API peut changer avant la 1.0.
+> permissions et les opérateurs, le stockage et les données persistantes. Ces pages décrivent
+> uniquement ce qui existe dans la version actuelle, et l'API peut changer avant la 1.0.
 
 *English version: [Foundation documentation](../en/index.md)*
 
@@ -27,6 +27,7 @@ remplacé sans modifier Foundation.
 - [Compatibilité](compatibility.md)
 - [Configuration](configuration.md)
 - [Commandes d'administration](administration.md)
+- [Données enregistrées et sauvegardes](storage.md#le-fichier-de-données)
 - [Journalisation](logging.md)
 
 ## Développeurs de packages
@@ -41,6 +42,8 @@ remplacé sans modifier Foundation.
 - [Commandes](commands.md)
 - [Services et capacités](services.md)
 - [Permissions](permissions.md)
+- [Stockage](storage.md)
+- [Données persistantes](persistent-data.md)
 
 Référence de l'API :
 
@@ -53,3 +56,4 @@ Référence de l'API :
 - [Commandes](reference/commands.md)
 - [Services et capacités](reference/services.md)
 - [Permissions et opérateurs](reference/permissions.md)
+- [Stockage et données persistantes](reference/storage.md)

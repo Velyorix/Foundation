@@ -298,6 +298,12 @@ function Store:check_entries(result)
 		if not text then
 			return manager.messages:Format(reason, params)
 		end
+		if #text > manager.json.DECODE_LIMITS.max_bytes then
+			return manager.messages:Format("reason.migration_too_large", {
+				key = key,
+				max = manager.json.DECODE_LIMITS.max_bytes,
+			})
+		end
 	end
 	return nil
 end
@@ -425,6 +431,15 @@ function Store:encode(api, index, value)
 			reason = manager.messages:Format(reason, params),
 		}, 3)
 	end
+	local max = manager.json.DECODE_LIMITS.max_bytes
+	if #text > max then
+		manager.errors:Raise("invalid_value", {
+			api = api,
+			index = index,
+			name = "value",
+			reason = manager.messages:Format("reason.json_too_large", { max = max }),
+		}, 3)
+	end
 	return text
 end
 
@@ -502,7 +517,12 @@ end
 function Store:Set(key, value)
 	self:check_key("store:Set", key)
 	local text = self:encode("store:Set", 2, value)
-	return self:operation("store:Set", function(future)
+	return self:put("store:Set", key, text)
+end
+
+-- Writes an encoded value; `api` names the public function that encoded it.
+function Store:put(api, key, text)
+	return self:operation(api, function(future)
 		self:write(future, { { key = key, text = text } }, { { op = "set", key = key, value = text } })
 	end)
 end

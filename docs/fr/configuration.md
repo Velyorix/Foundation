@@ -1,18 +1,22 @@
 # Configuration
 
 Foundation et les packages qui l'utilisent conservent leurs réglages dans des fichiers TOML
-placés dans un dossier `foundation/`, à côté de l'exécutable du serveur :
+placés dans un dossier `foundation/`, à côté de l'exécutable du serveur. Le même dossier
+contient les données que les packages enregistrent :
 
 ```
 NanosWorldServer.exe
 Config.toml
 foundation/
 ├── config.toml                 réglages de Foundation
-└── config/
-    └── my-package.toml         réglages du package my-package
+├── config/
+│   └── my-package.toml         réglages du package my-package
+└── data/
+    └── foundation.db           données enregistrées par les packages, voir Stockage
 ```
 
-Vous n'avez jamais à créer ces fichiers. Quand l'un d'eux manque, il est écrit avec les valeurs
+Vous n'avez jamais à créer ces fichiers (voir [Stockage](storage.md) pour le fichier de
+données). Quand l'un d'eux manque, il est écrit avec les valeurs
 par défaut et un commentaire au-dessus de chaque réglage.
 
 ## Réglages de Foundation
@@ -38,10 +42,10 @@ level = "info"
 debug_categories = []
 
 [storage]
-# Largest amount of data, in bytes, that one package can keep in its stores (keys and values).
+# Largest amount of data, in bytes, that each store of a package can keep (keys and values).
 max_bytes_per_package = 52428800
 
-# Largest number of keys that one package can keep in its stores.
+# Largest number of keys that each store of a package can keep.
 max_keys_per_package = 100000
 
 [commands]
@@ -54,8 +58,8 @@ unknown_in_chat = "reply"
 | `language` | Code de langue : `en`, `fr`, ou un code régional comme `fr_CA` | `"en"` | Langue des messages de Foundation dans le journal et langue par défaut des traductions des packages (voir [Localisation](localization.md)). Foundation fournit l'anglais et le français ; les autres langues utilisent l'anglais. |
 | `log.level` | `"debug"`, `"info"`, `"warning"`, `"error"` | `"info"` | Les lignes d'un niveau inférieur ne sont pas écrites. Voir [Journalisation](logging.md). |
 | `log.debug_categories` | Liste de domaines, par exemple `["config"]` | `[]` | Domaines (la partie après `/` dans une ligne du journal) dont les lignes de débogage sont écrites quel que soit `log.level`. |
-| `storage.max_bytes_per_package` | Entier, 1024 ou plus | `52428800` (50 Mo) | Quantité maximale de données qu'un package peut garder dans ses espaces de stockage |
-| `storage.max_keys_per_package` | Entier, 1 ou plus | `100000` | Nombre maximal de clés qu'un package peut garder dans ses espaces |
+| `storage.max_bytes_per_package` | Entier, 1024 ou plus | `52428800` (50 Mo) | Quantité maximale de données que chaque espace de stockage d'un package peut garder, voir [Stockage](storage.md#quotas) |
+| `storage.max_keys_per_package` | Entier, 1 ou plus | `100000` | Nombre maximal de clés que chaque espace de stockage d'un package peut garder |
 | `commands.unknown_in_chat` | `"reply"`, `"pass"` | `"reply"` | Messages du chat commençant par `/` qui ne sont pas des commandes : `reply` répond « commande inconnue » et masque le message ; `pass` les laisse aux autres packages, par exemple un package qui gère ses propres commandes de chat. |
 
 Ce fichier est toujours créé en anglais. Modifier `language` change la langue des messages, pas

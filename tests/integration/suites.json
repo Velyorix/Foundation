@@ -150,6 +150,9 @@
       "foundation-example-salary",
       "foundation-example-arena",
       "foundation-example-ranks",
+      "foundation-example-warps",
+      "foundation-example-profiles",
+      "foundation-example-nametags",
       "foundation-docs-examples-test"
     ],
     "timeout_seconds": 90,
@@ -165,7 +168,7 @@
       "\\[foundation\\] <item> must be one of apple, sword",
       "\\[foundation\\] Usage: buy <item> \\[amount\\]",
       "\\[foundation\\] buy <item> \\[amount\\] - Buy an item",
-      "\\[foundation\\] Packages \\(12\\):",
+      "\\[foundation\\] Packages \\(15\\):",
       "\\[foundation\\] Services \\(2\\):",
       "\\[foundation\\] economy:bank",
       "\\[foundation\\]   provided by: foundation-example-coins 1\\.0 \\(priority 0\\)",
@@ -204,7 +207,49 @@
       "saved 3 change\\(s\\)",
       "salaries are paid through foundation-example-coins",
       "paid 100 to alex, balance 100",
-      "offline players are paid too"
+      "offline players are paid too",
+      "\\[foundation\\] warp spawn saved",
+      "\\[foundation\\] warp arena saved",
+      "\\[foundation\\] 2 warp\\(s\\): arena, spawn",
+      "\\[foundation\\] arena: 1200\\.5 -40 100 on default",
+      "\\[foundation\\] warp spawn deleted",
+      "\\[foundation\\] no warp named spawn",
+      "\\[foundation\\] profile of 76561198000000021 saved",
+      "\\[foundation\\] Alex \\(green\\), 0 visit\\(s\\)",
+      "\\[foundation\\] 76561198000000022 has no profile, 0 visit\\(s\\)",
+      "\\[foundation\\] 76561198000000021: \\[green\\] Alex",
+      "\\[foundation\\] 76561198000000022: no name tag"
+    ],
+    "post_checks": [
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT value FROM foundation_kv WHERE namespace = 'foundation/versions' AND key = 'foundation-example-warps/warps'",
+        "expected": [
+          [
+            "2"
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT key, value FROM foundation_kv WHERE namespace = 'foundation-example-warps/warps'",
+        "expected": [
+          [
+            "arena",
+            "{\"map\":\"default\",\"position\":[1200.5,-40,100]}"
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT key, value FROM foundation_kv WHERE namespace = 'data:foundation-example-profiles'",
+        "expected": [
+          [
+            "profile|76561198000000021",
+            "{\"color\":\"green\",\"nickname\":\"Alex\"}"
+          ]
+        ]
+      }
     ]
   },
   "core-json": {

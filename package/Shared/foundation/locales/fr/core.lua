@@ -320,8 +320,8 @@ return {
 	["storage.opened"] = "stockage ouvert dans {path}",
 	["storage.open_failed"] = "le stockage n'a pas pu être ouvert dans {path} ({reason}) ; les espaces des packages refuseront toute opération",
 	["storage.load_failed"] = "les clés de '{namespace}' n'ont pas pu être lues ({reason}) ; cet espace refuse toute opération",
-	["config.template.storage_bytes"] = "Quantité maximale de données, en octets, qu'un package peut garder dans ses espaces (clés et valeurs).",
-	["config.template.storage_keys"] = "Nombre maximal de clés qu'un package peut garder dans ses espaces.",
+	["config.template.storage_bytes"] = "Quantité maximale de données, en octets, que chaque espace de stockage d'un package peut garder (clés et valeurs).",
+	["config.template.storage_keys"] = "Nombre maximal de clés que chaque espace de stockage d'un package peut garder.",
 
 	["reason.store_migration_missing"] = "aucune migration depuis la version {from} ; migrations[n] doit convertir la version n en n + 1",
 	["reason.store_reopened"] = "'{namespace}' est déjà ouvert avec une autre version",
@@ -330,6 +330,7 @@ return {
 	["reason.migration_raised"] = "la migration a levé une erreur (voir le journal)",
 	["reason.migration_result"] = "la migration a renvoyé un {type} au lieu de la table des entrées",
 	["reason.migration_key"] = "la migration a renvoyé la clé invalide '{key}'",
+	["reason.migration_too_large"] = "la migration a renvoyé pour '{key}' une valeur de plus de {max} octets",
 	["storage.version_newer"] = "les données de '{namespace}' sont en version {stored}, plus récente que la version {version} déclarée par son package ; elles ne sont pas modifiées",
 	["storage.migration_failed"] = "les données de '{namespace}' n'ont pas pu être migrées depuis la version {from} ({reason}) ; rien n'a été modifié",
 	["storage.migrated"] = "'{namespace}' migré de la version {from} à {to} ({changes} changement(s))",

@@ -162,3 +162,7 @@ which depends on the language.
 | `async_failed` | developer | A [future](scheduling.md#futures) whose executor or handler raised an error |
 | `timeout` | infrastructure | [`future:Timeout`](scheduling.md#future-methods) |
 | `command_usage` | user | Wrong command input, reported to the [sender](commands.md#errors) |
+| `storage_quota` | developer | A [store](storage.md#store-methods) write that would exceed its quota |
+| `storage_failed` | infrastructure | A [store](storage.md#store-methods) operation the database refused |
+| `storage_unavailable` | infrastructure | A [store](storage.md#store-methods) that cannot be used |
+| `storage_corrupt` | infrastructure | A stored value that is not valid JSON |

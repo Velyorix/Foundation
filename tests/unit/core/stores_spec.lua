@@ -230,6 +230,18 @@ describe("Package stores", function()
 			},
 			{
 				function()
+					store:Set("k", string.rep("a", 1048577))
+				end,
+				"'value' is invalid: larger than 1048576 bytes",
+			},
+			{
+				function()
+					store:Batch({ { op = "set", key = "k", value = string.rep("a", 1048577) } })
+				end,
+				"larger than 1048576 bytes",
+			},
+			{
+				function()
 					store:Batch({ { op = "put", key = "k" } })
 				end,
 				"'operations[1]' is invalid",
@@ -392,6 +404,12 @@ describe("Package stores", function()
 						return { a = function() end }
 					end,
 					"unsupported type function",
+				},
+				{
+					function()
+						return { a = string.rep("a", 1048577) }
+					end,
+					"returned a value larger than 1048576 bytes for 'a'",
 				},
 			}) do
 				runtime, register, memory, control = setup()

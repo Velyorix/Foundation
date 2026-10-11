@@ -194,6 +194,12 @@ describe("Persistent data", function()
 			},
 			{
 				function()
+					economy:DefineData("note", S:String()):Set("alex", string.rep("a", 1048577))
+				end,
+				"'value' is invalid: larger than 1048576 bytes",
+			},
+			{
+				function()
 					economy:ReadData("coins")
 				end,
 				"'key' is invalid",

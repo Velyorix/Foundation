@@ -29,6 +29,8 @@ import release
 
 DEFAULT_SITE = "https://foundationnw.dev"
 REGISTER_PATH = "/api/ci/v1/builds"
+# The default Python-urllib agent is refused by the website's firewall.
+USER_AGENT = "Foundation-CI/1.0 (+https://github.com/Velyorix/Foundation)"
 
 
 class PublishError(Exception):
@@ -96,6 +98,7 @@ class Client:
         nonce = secrets.token_hex(16)
         path = urllib.parse.urlsplit(url).path
         request = urllib.request.Request(url, data=body, method=method)
+        request.add_header("User-Agent", USER_AGENT)
         request.add_header("Authorization", f"Bearer {self.token}")
         request.add_header("Accept", "application/json")
         request.add_header("Content-Type", "application/json")
@@ -114,6 +117,7 @@ class Client:
 
     def upload(self, target: dict, path: Path) -> None:
         request = urllib.request.Request(target["url"], data=path.read_bytes(), method="PUT")
+        request.add_header("User-Agent", USER_AGENT)
         for name, value in (target.get("headers") or {}).items():
             request.add_header(name, value if isinstance(value, str) else ", ".join(value))
         try:

@@ -2,7 +2,9 @@
 """Runs integration suites on throwaway copies of a nanos world server.
 
 Usage: python scripts/integration.py --server-dir PATH [--suite NAME] [--keep] [--tracy]
-(or set NANOS_SERVER_DIR)
+       [--foundation-dir PATH]
+(or set NANOS_SERVER_DIR). --foundation-dir tests another copy of the package, for example an
+extracted release archive.
 """
 
 from __future__ import annotations
@@ -101,7 +103,7 @@ def free_port_pair() -> int:
     raise RuntimeError(f"no two consecutive free ports found in {PORT_RANGE[0]}-{PORT_RANGE[1] + 1}")
 
 
-def prepare_server(server_dir: Path, work_dir: Path, packages: list[str]) -> None:
+def prepare_server(server_dir: Path, work_dir: Path, packages: list[str], foundation_dir: Path = PACKAGE_DIR) -> None:
     if work_dir.exists():
         shutil.rmtree(work_dir)
     work_dir.mkdir(parents=True)
@@ -116,7 +118,7 @@ def prepare_server(server_dir: Path, work_dir: Path, packages: list[str]) -> Non
     packages_dir = work_dir / "Packages"
     packages_dir.mkdir()
     for name in packages:
-        source = PACKAGE_DIR if name == "foundation" else TEST_PACKAGES_DIR / name
+        source = foundation_dir if name == "foundation" else TEST_PACKAGES_DIR / name
         if not (source / "Package.toml").is_file():
             raise FileNotFoundError(f"package '{name}' not found at {source}")
         shutil.copytree(source, packages_dir / name)
@@ -164,9 +166,11 @@ def parse_log(
         result.broken_sequence = sequence[position].pattern
 
 
-def run_suite(name: str, suite: dict, server_dir: Path, tracy: bool, keep: bool) -> SuiteResult:
+def run_suite(
+    name: str, suite: dict, server_dir: Path, tracy: bool, keep: bool, foundation_dir: Path = PACKAGE_DIR
+) -> SuiteResult:
     work_dir = WORK_ROOT / name
-    prepare_server(server_dir, work_dir, suite["packages"])
+    prepare_server(server_dir, work_dir, suite["packages"], foundation_dir)
     port = free_port_pair()
     command = server_executable(work_dir, tracy) + [
         "--ip", "127.0.0.1",
@@ -253,6 +257,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--tracy", action="store_true", help="use the Tracy-enabled server build")
     parser.add_argument("--keep", action="store_true", help="keep the disposable server folder after a passing run")
     parser.add_argument("--list", action="store_true", help="list suites and exit")
+    parser.add_argument("--foundation-dir", default=str(PACKAGE_DIR), help="Foundation package to install (default package/)")
     args = parser.parse_args(argv)
 
     suites = load_suites()
@@ -267,6 +272,10 @@ def main(argv: list[str]) -> int:
     if not executable.is_file():
         parser.error(f"server executable not found: {executable}")
 
+    foundation_dir = Path(args.foundation_dir)
+    if not (foundation_dir / "Package.toml").is_file():
+        parser.error(f"no Package.toml in {foundation_dir}")
+
     selected = args.suite or list(suites)
     unknown = [name for name in selected if name not in suites]
     if unknown:
@@ -274,7 +283,7 @@ def main(argv: list[str]) -> int:
 
     all_ok = True
     for name in selected:
-        result = run_suite(name, suites[name], server_dir, args.tracy, args.keep)
+        result = run_suite(name, suites[name], server_dir, args.tracy, args.keep, foundation_dir)
         report(result)
         all_ok = all_ok and result.ok
     return 0 if all_ok else 1

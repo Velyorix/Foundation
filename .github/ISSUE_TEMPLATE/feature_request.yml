@@ -1,6 +1,6 @@
 name: Feature or extension point
 description: Propose an addition to the Foundation platform
-labels: ["enhancement"]
+labels: ["type: feature", "status: triage"]
 body:
   - type: markdown
     attributes:

@@ -2,11 +2,13 @@
 
 ## Installer
 
-1. Téléchargez les sources du dépôt (jusqu'à la première version publiée, il n'existe pas
-   d'archive séparée).
-2. Copiez son dossier `package/` dans le dossier `Packages/` de votre serveur et renommez-le
-   `foundation`. Le nom du dossier est l'identifiant du package et doit être exactement
-   `foundation` :
+1. Téléchargez `foundation-<version>.zip` depuis les
+   [versions publiées](https://github.com/Velyorix/Foundation/releases). Chaque version
+   indique son [canal](compatibility.md#canaux-de-publication) ; utilisez une version stable
+   sur les serveurs avec des joueurs dès qu'il en existe une.
+2. Extrayez l'archive dans le dossier `Packages/` de votre serveur. Elle contient un dossier
+   nommé `foundation` ; le nom du dossier est l'identifiant du package et doit rester
+   exactement `foundation` :
 
    ```
    NanosWorldServer.exe

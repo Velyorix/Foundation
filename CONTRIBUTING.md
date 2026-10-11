@@ -201,6 +201,32 @@ One commit, one purpose: do not mix a refactor with a feature or unrelated fixes
 Branches are named `<type>/<short-topic>`, for example `feat/command-cooldowns` or
 `fix/scheduler-cancel-twice`.
 
+## Releases
+
+Versions follow [Semantic Versioning](https://semver.org/) and tags are the version with a
+`v` prefix. `package/Package.toml` holds the `X.Y.Z` being prepared; `version.lua` matches it
+(`scripts/check.py` checks both).
+
+| Channel | Tag | How it is made |
+| --- | --- | --- |
+| Nightly | `vX.Y.Z-nightly.YYYYMMDD` (`.2`, `.3` for more the same day) | The Nightly workflow, every day at 03:17 UTC when `main` changed, or started by hand |
+| Beta | `vX.Y.Z-beta.N` | A maintainer pushes an annotated tag on a commit of `main` |
+| Release candidate | `vX.Y.Z-rc.N` | Same |
+| Stable | `vX.Y.Z` | Same, after moving the `[Unreleased]` entries of `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD` |
+
+```bash
+git tag -a v0.2.0-beta.1 -m "Foundation 0.2.0-beta.1"
+git push origin v0.2.0-beta.1
+```
+
+The Release workflow runs the checks, builds `foundation-<version>.zip` with
+`scripts/release.py` (the version is written into the archive's `Package.toml` and
+`version.lua`), attests its build provenance and publishes the GitHub release, marked as a
+pre-release for every channel but stable. The notes come from the changelog: the `[X.Y.Z]`
+section, or `[Unreleased]` for a pre-release before it exists. Build the same files locally
+with `python scripts/release.py build <version>`, and test an archive on a server with
+`python scripts/integration.py --foundation-dir <extracted foundation folder>`.
+
 ## Pull requests
 
 Fill in the pull request template. A pull request is ready when the checks above pass,

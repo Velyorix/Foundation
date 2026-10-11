@@ -2,10 +2,12 @@
 
 ## Install
 
-1. Download the source of the repository (until the first release, there is no separate
-   archive).
-2. Copy its `package/` folder into your server's `Packages/` folder and rename it to
-   `foundation`. The folder name is the package identifier and must be exactly
+1. Download `foundation-<version>.zip` from the
+   [releases](https://github.com/Velyorix/Foundation/releases). Each release says its
+   [channel](compatibility.md#release-channels); use a stable release on servers with
+   players when one exists.
+2. Extract the archive into your server's `Packages/` folder. It contains a folder named
+   `foundation`; the folder name is the package identifier and must stay exactly
    `foundation`:
 
    ```

@@ -22,9 +22,12 @@ freely and replace any of them without touching the platform.
 
 ## Installation
 
-Copy the `package/` folder of this repository to your server as `Packages/foundation`, then
-either add `foundation` to `packages` in `Config.toml` or list it in the
-`packages_requirements` of the packages that use it.
+Download `foundation-<version>.zip` from the
+[releases](https://github.com/Velyorix/Foundation/releases) and extract it into your server's
+`Packages/` folder, then either add `foundation` to `packages` in `Config.toml` or list it in
+the `packages_requirements` of the packages that use it. Releases come in four channels
+(stable, release candidate, beta, nightly); until the first stable release, only pre-releases
+exist.
 
 Full instructions: [English](docs/en/installation.md) · [Français](docs/fr/installation.md)
 

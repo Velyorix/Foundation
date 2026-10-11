@@ -432,5 +432,24 @@
     "expected_log_lines": [
       "\\[foundation\\] INFO  foundation/storage: storage opened at foundation/data/foundation\\.db"
     ]
+  },
+  "core-migrations": {
+    "description": "Store migrations on the real SQLite database: applied once, failures leave data untouched and fail the package",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-migration-fixture",
+      "foundation-core-migrations-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: store_migration callback of foundation-migration-fixture failed",
+      "\\[foundation\\] ERROR foundation-migration-fixture/storage: the data of 'foundation-migration-fixture/bank' could not be migrated from version 2",
+      "\\[foundation\\] ERROR foundation/core: foundation-migration-fixture failed: "
+    ],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation-migration-fixture/storage: migrated 'foundation-migration-fixture/bank' from version 1 to 2 \\(4 change\\(s\\)\\)",
+      "\\[foundation\\] ERROR foundation-migration-fixture/storage: the data of 'foundation-migration-fixture/bank' could not be migrated from version 2 \\(the migration raised an error"
+    ]
   }
 }

@@ -72,6 +72,27 @@ function Memory:Sizes(namespace, callback)
 	callback(true, sizes)
 end
 
+function Memory:All(namespace, callback)
+	local values = {}
+	for key, value in pairs(self:space(namespace)) do
+		values[key] = value
+	end
+	callback(true, values)
+end
+
+-- operations carry their namespace: { namespace, op, key, value }.
+function Memory:Write(operations, callback)
+	for _, operation in ipairs(operations) do
+		local space = self:space(operation.namespace)
+		if operation.op == "set" then
+			space[operation.key] = operation.value
+		else
+			space[operation.key] = nil
+		end
+	end
+	callback(true)
+end
+
 function Memory:Flush(callback)
 	callback(true)
 end

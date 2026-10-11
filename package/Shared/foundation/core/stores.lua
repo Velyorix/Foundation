@@ -11,15 +11,18 @@ Stores.MAX_KEY_LENGTH = 256
 Stores.MAX_CACHED_VALUE = 4096
 Stores.MAX_CACHED_ENTRIES = 2000
 Stores.MAX_LIST = 10000
+-- Backend namespace holding the data version of each versioned store.
+Stores.VERSIONS = "foundation/versions"
 
 local NAME_PATTERN = "^[a-z0-9_-]+$"
+local OPTION_FIELDS = { version = true, migrations = true }
 
 local function valid_key(key)
 	return type(key) == "string" and key ~= "" and #key <= Stores.MAX_KEY_LENGTH and not key:find("%c")
 end
 
--- options: check, json, futures, backend (nil when storage is unavailable), log,
--- limits() returning { max_bytes, max_keys }
+-- options: check, json, futures, invoker, backend (nil when storage is unavailable), log,
+-- limits() returning { max_bytes, max_keys }, fail(owner, reason_key, params)
 function Stores.new(options)
 	return setmetatable({
 		check = options.check,
@@ -27,6 +30,8 @@ function Stores.new(options)
 		messages = options.check.errors.messages,
 		json = options.json,
 		futures = options.futures,
+		invoker = options.invoker,
+		fail = options.fail,
 		backend = options.backend,
 		log = options.log,
 		limits = options.limits,
@@ -34,8 +39,43 @@ function Stores.new(options)
 	}, Stores)
 end
 
--- Returns the store and, for a new one, a release function for the owner's tracking.
-function Stores:Open(owner, name, api, level)
+-- Returns the store and, for a new one, a release function for the owner's tracking and a
+-- start function that loads it (call it once the release function is tracked).
+function Stores:invalid(api, index, name, reason_key, params, level)
+	self.errors:Raise("invalid_value", {
+		api = api,
+		index = index,
+		name = name,
+		reason = self.messages:Format(reason_key, params),
+	}, level + 1)
+end
+
+-- Returns version and migrations from the store options.
+function Stores:check_options(api, options, level)
+	self.check:Argument(api, 2, "options", options, "table?", level + 1)
+	if options == nil then
+		return nil, nil
+	end
+	for field in pairs(options) do
+		if not OPTION_FIELDS[field] then
+			self:invalid(api, 2, "options", "reason.manifest_unknown_field", { field = tostring(field) }, level + 1)
+		end
+	end
+	self.check:Argument(api, 2, "options.version", options.version, "integer", level + 1)
+	if options.version < 1 then
+		self:invalid(api, 2, "options.version", "reason.config_version", nil, level + 1)
+	end
+	self.check:Argument(api, 2, "options.migrations", options.migrations, "table?", level + 1)
+	local migrations = options.migrations or {}
+	for from = 1, options.version - 1 do
+		if type(migrations[from]) ~= "function" then
+			self:invalid(api, 2, "options.migrations", "reason.store_migration_missing", { from = from }, level + 1)
+		end
+	end
+	return options.version, migrations
+end
+
+function Stores:Open(owner, name, options, api, level)
 	self.check:Argument(api, 1, "name", name, "string?", level)
 	if name ~= nil and not name:match(NAME_PATTERN) then
 		self.errors:Raise("invalid_value", {
@@ -45,9 +85,16 @@ function Stores:Open(owner, name, api, level)
 			reason = self.messages:Format("reason.store_name"),
 		}, level)
 	end
+	local version, migrations = self:check_options(api, options, level)
 	local namespace = name and (owner .. "/" .. name) or owner
 	local existing = self.stores[namespace]
 	if existing and existing.active then
+		if options ~= nil and existing.version ~= version then
+			self.errors:Raise("invalid_state", {
+				api = api,
+				reason = self.messages:Format("reason.store_reopened", { namespace = namespace }),
+			}, level)
+		end
 		return existing
 	end
 	local store = setmetatable({
@@ -62,15 +109,19 @@ function Stores:Open(owner, name, api, level)
 		bytes = 0,
 		cache = {},
 		cached = 0,
+		version = version,
+		migrations = migrations,
 	}, Store)
 	self.stores[namespace] = store
-	store:load()
 	return store,
 		function()
 			store.active = false
 			if self.stores[namespace] == store then
 				self.stores[namespace] = nil
 			end
+		end,
+		function()
+			store:load()
 		end
 end
 
@@ -85,22 +136,156 @@ function Store:load()
 		self:release_waiting()
 		return
 	end
+	if not self.version then
+		return self:load_sizes()
+	end
+	manager.backend:Get(Stores.VERSIONS, self.namespace, function(ok, text)
+		if not ok then
+			return self:fail_load("storage.load_failed", { namespace = self.namespace, reason = text })
+		end
+		local stored = text and tonumber(text)
+		if stored and stored > self.version then
+			return self:fail_load("storage.version_newer", {
+				namespace = self.namespace,
+				stored = stored,
+				version = self.version,
+			}, "reason.store_version_newer")
+		end
+		if stored == self.version then
+			return self:load_sizes()
+		end
+		self:migrate(stored)
+	end)
+end
+
+function Store:load_sizes()
+	local manager = self.manager
 	manager.backend:Sizes(self.namespace, function(ok, sizes)
 		if not ok then
-			self.unavailable = true
-			manager.log
-				:For(self.owner, "storage")
-				:Error("storage.load_failed", { namespace = self.namespace, reason = sizes })
-		else
-			for key, size in pairs(sizes) do
-				self.sizes[key] = size
-				self.count = self.count + 1
-				self.bytes = self.bytes + size
-			end
+			return self:fail_load("storage.load_failed", { namespace = self.namespace, reason = sizes })
 		end
+		self:set_sizes(sizes)
 		self.ready = true
 		self:release_waiting()
 	end)
+end
+
+function Store:set_sizes(sizes)
+	self.sizes, self.count, self.bytes = {}, 0, 0
+	for key, size in pairs(sizes) do
+		self.sizes[key] = size
+		self.count = self.count + 1
+		self.bytes = self.bytes + size
+	end
+end
+
+-- Logs, makes every operation fail and, with `fail_reason`, fails the owning package.
+function Store:fail_load(log_key, params, fail_reason)
+	local manager = self.manager
+	self.unavailable = true
+	manager.log:For(self.owner, "storage"):Error(log_key, params)
+	if fail_reason and manager.fail then
+		manager.fail(self.owner, fail_reason, params)
+	end
+	self:release_waiting()
+end
+
+-- Runs migrations from `stored` (nil means version 1 when data exists) up to self.version on
+-- every decoded value, then writes the differences and the new version in one transaction.
+function Store:migrate(stored)
+	local manager = self.manager
+	manager.backend:All(self.namespace, function(ok, texts)
+		if not ok then
+			return self:fail_load("storage.load_failed", { namespace = self.namespace, reason = texts })
+		end
+		local entries, empty = {}, next(texts) == nil
+		for key, text in pairs(texts) do
+			local decoded, value = manager.json.Decode(text)
+			if not decoded then
+				return self:fail_load("storage.migration_failed", {
+					namespace = self.namespace,
+					from = stored or 1,
+					reason = manager.messages:Format(
+						"error.storage_corrupt",
+						{ namespace = self.namespace, key = key }
+					),
+				}, "reason.store_migration_failed")
+			end
+			entries[key] = value
+		end
+		local from = stored or (empty and self.version or 1)
+		for version = from, self.version - 1 do
+			local info = {
+				owner = self.owner,
+				kind = "store_migration",
+				fields = { namespace = self.namespace, from = version },
+			}
+			local called, result = manager.invoker:Call(info, self.migrations[version], entries)
+			local reason = not called and manager.messages:Format("reason.migration_raised")
+				or self:check_entries(result)
+			if reason then
+				return self:fail_load("storage.migration_failed", {
+					namespace = self.namespace,
+					from = version,
+					reason = reason,
+				}, "reason.store_migration_failed")
+			end
+			entries = result
+		end
+		local operations, sizes = {}, {}
+		for key, value in pairs(entries) do
+			local text = manager.json.Encode(value)
+			sizes[key] = #key + #text
+			if texts[key] ~= text then
+				operations[#operations + 1] = { namespace = self.namespace, op = "set", key = key, value = text }
+			end
+		end
+		for key in pairs(texts) do
+			if entries[key] == nil then
+				operations[#operations + 1] = { namespace = self.namespace, op = "delete", key = key }
+			end
+		end
+		operations[#operations + 1] =
+			{ namespace = Stores.VERSIONS, op = "set", key = self.namespace, value = tostring(self.version) }
+		manager.backend:Write(operations, function(written, reason)
+			if not written then
+				return self:fail_load("storage.migration_failed", {
+					namespace = self.namespace,
+					from = from,
+					reason = tostring(reason),
+				}, "reason.store_migration_failed")
+			end
+			if from < self.version then
+				manager.log:For(self.owner, "storage"):Info("storage.migrated", {
+					namespace = self.namespace,
+					from = from,
+					to = self.version,
+					changes = #operations - 1,
+				})
+			end
+			self:set_sizes(sizes)
+			self.ready = true
+			self:release_waiting()
+		end)
+	end)
+end
+
+-- Returns nil when a migration result can be stored, or a reason text.
+function Store:check_entries(result)
+	local manager = self.manager
+	if type(result) ~= "table" then
+		return manager.messages:Format("reason.migration_result", { type = type(result) })
+	end
+	for key, value in pairs(result) do
+		if not valid_key(key) then
+			return manager.messages:Format("reason.migration_key", { key = tostring(key) })
+		end
+		local text, reason, params = manager.json.Encode(value)
+		if not text then
+			return manager.messages:Format(reason, params)
+		end
+	end
+	return nil
 end
 
 function Store:release_waiting()

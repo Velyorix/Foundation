@@ -473,7 +473,11 @@ local COMPONENTS = {
 				check = runtime.check,
 				json = Json,
 				futures = runtime.futures,
+				invoker = runtime.invoker,
 				backend = backend,
+				fail = function(owner, reason_key, params)
+					runtime.packages:Fail(owner, reason_key, params)
+				end,
 				log = runtime.log,
 				limits = function()
 					local storage = runtime.settings and runtime.settings.storage or {}
@@ -485,10 +489,11 @@ local COMPONENTS = {
 			})
 			runtime.stores = stores
 			runtime.storage_backend = backend
-			runtime.packages:ExtendContext("Store", function(context, entry, name)
-				local store, release = stores:Open(entry.id, name, "context:Store", 3)
+			runtime.packages:ExtendContext("Store", function(context, entry, name, options)
+				local store, release, start = stores:Open(entry.id, name, options, "context:Store", 3)
 				if release then
 					context:Track("store", release, { namespace = store.namespace })
+					start()
 				end
 				return store
 			end)

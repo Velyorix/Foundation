@@ -322,4 +322,15 @@ return {
 	["storage.load_failed"] = "the keys of '{namespace}' could not be read ({reason}); this store refuses every operation",
 	["config.template.storage_bytes"] = "Largest amount of data, in bytes, that one package can keep in its stores (keys and values).",
 	["config.template.storage_keys"] = "Largest number of keys that one package can keep in its stores.",
+
+	["reason.store_migration_missing"] = "no migration from version {from}; migrations[n] must convert version n to n + 1",
+	["reason.store_reopened"] = "'{namespace}' is already open with another version",
+	["reason.store_version_newer"] = "the data of '{namespace}' is version {stored}, newer than version {version} declared by this package",
+	["reason.store_migration_failed"] = "the data of '{namespace}' could not be migrated from version {from}: {reason}",
+	["reason.migration_raised"] = "the migration raised an error (see the log)",
+	["reason.migration_result"] = "the migration returned a {type} instead of the table of entries",
+	["reason.migration_key"] = "the migration returned the invalid key '{key}'",
+	["storage.version_newer"] = "the data of '{namespace}' is version {stored}, newer than version {version} declared by its package; it is left untouched",
+	["storage.migration_failed"] = "the data of '{namespace}' could not be migrated from version {from} ({reason}); nothing was changed",
+	["storage.migrated"] = "migrated '{namespace}' from version {from} to {to} ({changes} change(s))",
 }

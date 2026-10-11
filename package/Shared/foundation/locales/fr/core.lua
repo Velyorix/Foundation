@@ -322,4 +322,15 @@ return {
 	["storage.load_failed"] = "les clés de '{namespace}' n'ont pas pu être lues ({reason}) ; cet espace refuse toute opération",
 	["config.template.storage_bytes"] = "Quantité maximale de données, en octets, qu'un package peut garder dans ses espaces (clés et valeurs).",
 	["config.template.storage_keys"] = "Nombre maximal de clés qu'un package peut garder dans ses espaces.",
+
+	["reason.store_migration_missing"] = "aucune migration depuis la version {from} ; migrations[n] doit convertir la version n en n + 1",
+	["reason.store_reopened"] = "'{namespace}' est déjà ouvert avec une autre version",
+	["reason.store_version_newer"] = "les données de '{namespace}' sont en version {stored}, plus récente que la version {version} déclarée par ce package",
+	["reason.store_migration_failed"] = "les données de '{namespace}' n'ont pas pu être migrées depuis la version {from} : {reason}",
+	["reason.migration_raised"] = "la migration a levé une erreur (voir le journal)",
+	["reason.migration_result"] = "la migration a renvoyé un {type} au lieu de la table des entrées",
+	["reason.migration_key"] = "la migration a renvoyé la clé invalide '{key}'",
+	["storage.version_newer"] = "les données de '{namespace}' sont en version {stored}, plus récente que la version {version} déclarée par son package ; elles ne sont pas modifiées",
+	["storage.migration_failed"] = "les données de '{namespace}' n'ont pas pu être migrées depuis la version {from} ({reason}) ; rien n'a été modifié",
+	["storage.migrated"] = "'{namespace}' migré de la version {from} à {to} ({changes} changement(s))",
 }

@@ -24,7 +24,7 @@ local function setup(options)
 					control.reads = control.reads + 1
 					return memory:Get(...)
 				end
-			elseif name == "Set" or name == "Delete" or name == "Batch" then
+			elseif name == "Set" or name == "Delete" or name == "Batch" or name == "Write" then
 				return function(_, ...)
 					if control.fail_writes then
 						local callback = select(select("#", ...), ...)
@@ -38,12 +38,16 @@ local function setup(options)
 			end
 		end,
 	})
+	local lines = {}
+	control.lines = lines
 	local runtime = Runtime.new({
 		side = "server",
 		version = "0.1.0",
 		api_version = "0.1",
 		catalogs = { en = loader:require("foundation/locales/en/core.lua") },
-		sink = function() end,
+		sink = function(_, line)
+			lines[#lines + 1] = line
+		end,
 		clock = function()
 			return 0
 		end,
@@ -254,5 +258,207 @@ describe("Package stores", function()
 		local unavailable = unavailable_register("shop"):Store()
 		expect.equal(error_of(unavailable:Get("a")).code, "storage_unavailable")
 		expect.equal(unavailable_runtime.stores:Snapshot().available, false)
+	end)
+
+	describe("versions and migrations", function()
+		local function seed(namespace, values, version)
+			for key, value in pairs(values) do
+				memory:Set(namespace, key, value, function() end)
+			end
+			if version then
+				memory:Set("foundation/versions", namespace, tostring(version), function() end)
+			end
+		end
+
+		local function stored_version(namespace)
+			local version
+			memory:Get("foundation/versions", namespace, function(_, value)
+				version = value
+			end)
+			return version
+		end
+
+		local function output()
+			return table.concat(control.lines, "\n")
+		end
+
+		it("records the version of a new store without migrating", function()
+			local called = false
+			local fresh = register("fresh"):Store("data", {
+				version = 3,
+				migrations = {
+					function()
+						called = true
+					end,
+					function() end,
+				},
+			})
+			expect.truthy(value_of(fresh:Set("a", 1)))
+			expect.falsy(called)
+			expect.equal(stored_version("fresh/data"), "3")
+		end)
+
+		it("treats existing data without a version as version 1 and migrates it in order", function()
+			seed("bank", { ["alex"] = "10", ["sam"] = "3" })
+			local bank = register("bank"):Store(nil, {
+				version = 3,
+				migrations = {
+					[1] = function(entries)
+						local result = {}
+						for account, coins in pairs(entries) do
+							result["account:" .. account] = { coins = coins }
+						end
+						return result
+					end,
+					[2] = function(entries)
+						for _, account in pairs(entries) do
+							account.gems = 0
+						end
+						return entries
+					end,
+				},
+			})
+			expect.same(value_of(bank:Get("account:alex")), { coins = 10, gems = 0 })
+			expect.is_nil(value_of(bank:Get("alex")))
+			expect.same(value_of(bank:Keys()), { "account:alex", "account:sam" })
+			expect.equal(stored_version("bank"), "3")
+			expect.contains(output(), "migrated 'bank' from version 1 to 3 (4 change(s))")
+		end)
+
+		it("starts from the stored version", function()
+			seed("bank", { alex = '{"coins":10}', sam = '{"coins":5}' }, 2)
+			local first_called = false
+			local bank = register("bank"):Store(nil, {
+				version = 3,
+				migrations = {
+					function(entries)
+						first_called = true
+						return entries
+					end,
+					function(entries)
+						entries.alex.coins = entries.alex.coins * 100
+						return entries
+					end,
+				},
+			})
+			expect.same(value_of(bank:Get("alex")), { coins = 1000 })
+			expect.same(value_of(bank:Get("sam")), { coins = 5 })
+			expect.falsy(first_called)
+			expect.contains(output(), "migrated 'bank' from version 2 to 3 (1 change(s))")
+		end)
+
+		it("changes nothing and fails the package when a migration fails", function()
+			seed("bank", { alex = "10" })
+			local context = register("bank")
+			local bank = context:Store(nil, {
+				version = 2,
+				migrations = {
+					function()
+						error("bad migration")
+					end,
+				},
+			})
+			local raw
+			memory:Get("bank", "alex", function(_, value)
+				raw = value
+			end)
+			expect.equal(raw, "10")
+			expect.is_nil(stored_version("bank"))
+			expect.equal(context:GetState(), "failed")
+			expect.contains(
+				output(),
+				"the data of 'bank' could not be migrated from version 1 (the migration raised an error"
+			)
+			expect.contains(output(), "store_migration callback of bank failed")
+			expect.equal(bank.unavailable, true)
+		end)
+
+		it("refuses migration results that cannot be stored", function()
+			for _, case in ipairs({
+				{
+					function()
+						return "oops"
+					end,
+					"returned a string instead of the table of entries",
+				},
+				{
+					function()
+						return { [""] = 1 }
+					end,
+					"returned the invalid key ''",
+				},
+				{
+					function()
+						return { a = function() end }
+					end,
+					"unsupported type function",
+				},
+			}) do
+				runtime, register, memory, control = setup()
+				seed("bank", { alex = "10" })
+				local context = register("bank")
+				context:Store(nil, { version = 2, migrations = { case[1] } })
+				expect.equal(context:GetState(), "failed")
+				expect.contains(output(), case[2])
+			end
+		end)
+
+		it("refuses data newer than the declared version and leaves it untouched", function()
+			seed("bank", { alex = "10" }, 5)
+			local context = register("bank")
+			local bank = context:Store(nil, { version = 2, migrations = {
+				function(e)
+					return e
+				end,
+			} })
+			expect.equal(context:GetState(), "failed")
+			expect.raises(function()
+				bank:Get("alex")
+			end, "belongs to a package that stopped")
+			expect.equal(stored_version("bank"), "5")
+			expect.contains(output(), "the data of 'bank' is version 5, newer than version 2")
+		end)
+
+		it("keeps the old data when the migrated data cannot be written", function()
+			seed("bank", { alex = "10" })
+			control.fail_writes = true
+			local context = register("bank")
+			local options = {
+				version = 2,
+				migrations = {
+					function(entries)
+						entries.alex = 20
+						return entries
+					end,
+				},
+			}
+			context:Store(nil, options)
+			expect.equal(context:GetState(), "failed")
+			expect.is_nil(stored_version("bank"))
+		end)
+
+		it("validates the options at the caller's line", function()
+			local context = register("opts")
+			local cases = {
+				{ { version = 0 }, "must be at least 1" },
+				{ { version = 1.5 }, "'options.version' must be integer (got number)" },
+				{ { version = 3, migrations = { function() end } }, "no migration from version 2" },
+				{ { version = 1, schema = 1 }, "unknown field 'schema'" },
+			}
+			for _, case in ipairs(cases) do
+				local message = expect.raises(function()
+					context:Store("x", case[1])
+				end, case[2])
+				expect.truthy(tostring(message):find("stores_spec%.lua:%d+:"), tostring(message))
+			end
+			context:Store("y", { version = 1 })
+			expect.raises(function()
+				context:Store("y", { version = 2, migrations = {
+					function(e)
+						return e
+					end,
+				} })
+			end, "'opts/y' is already open with another version")
+		end)
 	end)
 end)

@@ -39,3 +39,5 @@ globals:
     any: true
   StorageFixture:
     any: true
+  MigrationFixture:
+    any: true

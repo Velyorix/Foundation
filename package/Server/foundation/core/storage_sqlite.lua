@@ -270,6 +270,40 @@ function Sqlite:Usage(namespace, callback)
 	})
 end
 
+-- Every key and value of a namespace.
+function Sqlite:All(namespace, callback)
+	self:enqueue({
+		steps = {
+			{
+				sql = "SELECT key, value FROM foundation_kv WHERE namespace = :0",
+				params = { namespace },
+				select = true,
+			},
+		},
+		finish = function(ok, rows)
+			if not ok then
+				return callback(false, rows)
+			end
+			local values = {}
+			for _, row in ipairs(rows) do
+				values[row.key] = row.value
+			end
+			callback(true, values)
+		end,
+	})
+end
+
+-- Applies operations of several namespaces ({ namespace, op, key, value }) together.
+function Sqlite:Write(operations, callback)
+	self:enqueue({
+		operations = operations,
+		alone = true,
+		finish = function(ok, err)
+			callback(ok, not ok and err or nil)
+		end,
+	})
+end
+
 -- Size (key + value bytes) of every key of a namespace.
 function Sqlite:Sizes(namespace, callback)
 	self:enqueue({

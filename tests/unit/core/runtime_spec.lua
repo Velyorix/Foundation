@@ -140,6 +140,33 @@ describe("Runtime", function()
 		end, "[foundation:invalid_state] Foundation.Register: Foundation could not start")
 	end)
 
+	it("writes pending storage operations when it stops, after the packages", function()
+		local order = {}
+		local runtime, _, lines = setup({
+			create_storage_backend = function()
+				return {
+					Drain = function()
+						order[#order + 1] = "drain"
+						return 3
+					end,
+				}
+			end,
+		})
+		runtime:Start()
+		local context = runtime.packages:Register({
+			GetName = function()
+				return "late"
+			end,
+			Subscribe = function() end,
+		}, { api = "0.1" })
+		context:OnDisable(function()
+			order[#order + 1] = "disable hook"
+		end)
+		runtime:Stop()
+		expect.same(order, { "disable hook", "drain" })
+		expect.contains(text(lines), "wrote 3 pending storage operation(s) before stopping")
+	end)
+
 	it("stops once, disabling packages and flushing the log", function()
 		local runtime, _, lines = setup()
 		runtime:Start()

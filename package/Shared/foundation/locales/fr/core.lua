@@ -339,4 +339,7 @@ return {
 	["reason.data_defined"] = "'{key}' est déjà défini",
 	["reason.data_closed"] = "'{key}' appartient à un package qui s'est arrêté",
 	["reason.data_value"] = "ne respecte pas le schéma de '{key}' : {problem}",
+
+	["storage.drained"] = "{count} opération(s) de stockage en attente écrite(s) avant l'arrêt",
+	["storage.drain_failed"] = "les opérations de stockage en attente n'ont pas pu être écrites avant l'arrêt : {reason}",
 }

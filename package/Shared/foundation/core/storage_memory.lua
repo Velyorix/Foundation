@@ -97,4 +97,8 @@ function Memory:Flush(callback)
 	callback(true)
 end
 
+function Memory:Drain()
+	return 0
+end
+
 return Memory

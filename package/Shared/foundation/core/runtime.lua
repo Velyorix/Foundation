@@ -666,6 +666,15 @@ function Runtime:Stop()
 	if self.packages then
 		self.packages:Shutdown()
 	end
+	local backend = self.storage_backend
+	if backend and backend.Drain then
+		local ok, result = pcall(backend.Drain, backend)
+		if not ok then
+			self.log:Error("storage.drain_failed", { reason = tostring(result) })
+		elseif result > 0 then
+			self.log:Info("storage.drained", { count = result })
+		end
+	end
 	if self.ownership then
 		self.ownership:ReleaseOwner("foundation", true)
 	end

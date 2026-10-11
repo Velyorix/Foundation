@@ -339,4 +339,7 @@ return {
 	["reason.data_defined"] = "'{key}' is already defined",
 	["reason.data_closed"] = "'{key}' belongs to a package that stopped",
 	["reason.data_value"] = "does not match the schema of '{key}': {problem}",
+
+	["storage.drained"] = "wrote {count} pending storage operation(s) before stopping",
+	["storage.drain_failed"] = "pending storage operations could not be written before stopping: {reason}",
 }

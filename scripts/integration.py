@@ -14,6 +14,7 @@ import random
 import re
 import shutil
 import socket
+import sqlite3
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -46,6 +47,7 @@ class SuiteResult:
     broken_sequence: str | None = None
     timed_out: bool = False
     exit_code: int | None = None
+    failed_checks: list[str] = field(default_factory=list)
     log_path: Path | None = None
 
     @property
@@ -58,6 +60,7 @@ class SuiteResult:
             and not self.missing_log_lines
             and self.broken_sequence is None
             and not self.timed_out
+            and not self.failed_checks
         )
 
 
@@ -192,9 +195,30 @@ def run_suite(name: str, suite: dict, server_dir: Path, tracy: bool, keep: bool)
         suite.get("expected_log_lines", []),
         suite.get("expected_log_sequence", []),
     )
+    run_post_checks(result, work_dir, suite.get("post_checks", []))
     if result.ok and not keep:
         shutil.rmtree(work_dir, ignore_errors=True)
     return result
+
+
+def run_post_checks(result: SuiteResult, work_dir: Path, checks: list[dict]) -> None:
+    """SQLite queries run on the server folder after the server exited (data written at shutdown)."""
+    for check in checks:
+        database = work_dir / check["database"]
+        label = f"{check['database']}: {check['query']}"
+        if not database.is_file():
+            result.failed_checks.append(f"{label} -> database file missing")
+            continue
+        connection = sqlite3.connect(database)
+        try:
+            rows = [list(row) for row in connection.execute(check["query"]).fetchall()]
+        except sqlite3.Error as error:
+            result.failed_checks.append(f"{label} -> {error}")
+            continue
+        finally:
+            connection.close()
+        if rows != check["expected"]:
+            result.failed_checks.append(f"{label} -> {rows}, expected {check['expected']}")
 
 
 def report(result: SuiteResult) -> None:
@@ -216,6 +240,8 @@ def report(result: SuiteResult) -> None:
         print(f"  expected log line not found: {pattern}")
     if result.broken_sequence is not None:
         print(f"  log sequence stops before: {result.broken_sequence}")
+    for check in result.failed_checks:
+        print(f"  post check failed: {check}")
     if not result.ok and result.log_path:
         print(f"  log: {result.log_path}")
 

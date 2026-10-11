@@ -1,7 +1,7 @@
 -- Fake native Database: async queries wait until the test answers them, so the spec can
 -- check that the backend never has two queries in flight.
 local function fake_database()
-	local database = { pending = {}, log = {}, max_in_flight = 0, sync = {} }
+	local database = { pending = {}, log = {}, max_in_flight = 0, sync = {}, sync_params = {}, sync_errors = {} }
 	local function submit(kind, sql, callback, ...)
 		database.log[#database.log + 1] = sql
 		database.pending[#database.pending + 1] = { kind = kind, sql = sql, callback = callback, params = { ... } }
@@ -10,14 +10,28 @@ local function fake_database()
 		end
 	end
 	function database:ExecuteAsync(sql, callback, ...)
+		if self.refuse_async then
+			error("Failed to Run Async Task 'Database Execute Async' as the package is unloading")
+		end
 		submit("execute", sql, callback, ...)
 	end
 	function database:SelectAsync(sql, callback, ...)
+		if self.refuse_async then
+			error("Failed to Run Async Task 'Database Select Async' as the package is unloading")
+		end
 		submit("select", sql, callback, ...)
 	end
-	function database:Execute(sql)
+	function database:Execute(sql, ...)
 		self.sync[#self.sync + 1] = sql
-		return 0, self.schema_error
+		self.sync_params[#self.sync_params + 1] = { ... }
+		if self.sync_errors[sql:sub(1, 6)] then
+			return 0, self.sync_errors[sql:sub(1, 6)]
+		end
+		return 1, self.schema_error
+	end
+	function database:Select(sql)
+		self.sync[#self.sync + 1] = sql
+		return self.select_rows or {}
 	end
 	-- Answers the oldest pending query.
 	function database:answer(result, err)
@@ -318,6 +332,82 @@ describe("SQLite storage backend", function()
 			expect.truthy(outcomes.good)
 			expect.same(outcomes.bad, { false, "SQL Error: bad value" })
 			expect.equal(database.max_in_flight, 1)
+		end)
+	end)
+
+	describe("shutdown", function()
+		local backend, database
+
+		before_each(function()
+			backend, database = setup()
+			backend:Open()
+			database.sync = {}
+			database.sync_params = {}
+		end)
+
+		it("switches to blocking queries when the engine refuses async ones", function()
+			database.refuse_async = true
+			local results = {}
+			backend:Set("shop", "a", "1", function(ok)
+				results[#results + 1] = "a:" .. tostring(ok)
+			end)
+			backend:Get("shop", "a", function(ok)
+				results[#results + 1] = "get:" .. tostring(ok)
+			end)
+			expect.same(results, { "a:true", "get:true" })
+			expect.contains(database.sync[1], "INSERT INTO foundation_kv")
+			expect.contains(database.sync[2], "SELECT value FROM foundation_kv")
+		end)
+
+		it("drains the queue and reruns the query in flight", function()
+			local done = {}
+			backend:Set("shop", "a", "1", function(ok)
+				done[#done + 1] = "a:" .. tostring(ok)
+			end)
+			backend:Set("shop", "b", "2", function(ok)
+				done[#done + 1] = "b:" .. tostring(ok)
+			end)
+			expect.equal(#database.pending, 1)
+			expect.equal(backend:Drain(), 2)
+			expect.same(done, { "a:true", "b:true" })
+			expect.equal(#database.sync, 2)
+			database:answer(1)
+			expect.same(done, { "a:true", "b:true" })
+		end)
+
+		it("rolls back a transaction caught halfway before running it again", function()
+			backend:Batch("shop", {
+				{ op = "set", key = "a", value = "1" },
+				{ op = "delete", key = "b" },
+			}, function() end)
+			database:answer(1)
+			backend:Drain()
+			expect.same(database.sync, {
+				"ROLLBACK",
+				"BEGIN IMMEDIATE",
+				database.sync[3],
+				database.sync[4],
+				"COMMIT",
+			})
+		end)
+
+		it("reports blocking errors and rolls back", function()
+			database.refuse_async = true
+			database.sync_errors["DELETE"] = "SQL Error: locked"
+			local outcome
+			backend:Batch("shop", {
+				{ op = "set", key = "a", value = "1" },
+				{ op = "delete", key = "b" },
+			}, function(ok, reason)
+				outcome = { ok, reason }
+			end)
+			expect.same(outcome, { false, "SQL Error: locked" })
+			expect.equal(database.sync[#database.sync], "ROLLBACK")
+		end)
+
+		it("does nothing when there is nothing to write", function()
+			expect.equal(backend:Drain(), 0)
+			expect.same(database.sync, {})
 		end)
 	end)
 end)

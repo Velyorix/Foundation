@@ -451,5 +451,44 @@
       "\\[foundation\\] INFO  foundation-migration-fixture/storage: migrated 'foundation-migration-fixture/bank' from version 1 to 2 \\(4 change\\(s\\)\\)",
       "\\[foundation\\] ERROR foundation-migration-fixture/storage: the data of 'foundation-migration-fixture/bank' could not be migrated from version 2 \\(the migration raised an error"
     ]
+  },
+  "core-storage-shutdown": {
+    "description": "Writes queued before and during the server stop (disable hooks) reach the SQLite database",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-storage-shutdown-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "post_checks": [
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT COUNT(*) FROM foundation_kv WHERE namespace = 'foundation-core-storage-shutdown-test' AND key LIKE 'k%'",
+        "expected": [
+          [
+            300
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT COUNT(*) FROM foundation_kv WHERE namespace = 'foundation-core-storage-shutdown-test' AND key LIKE 'hook%'",
+        "expected": [
+          [
+            100
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT value FROM foundation_kv WHERE key = 'from-disable-hook'",
+        "expected": [
+          [
+            "true"
+          ]
+        ]
+      }
+    ]
   }
 }

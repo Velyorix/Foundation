@@ -147,22 +147,78 @@ function Sqlite:take()
 end
 
 function Sqlite:pump()
-	if self.busy or #self.queue == 0 then
-		return
+	while not self.busy and #self.queue > 0 do
+		local job = self:take()
+		if not self.database then
+			pcall(job.finish, false, "storage is not open")
+		elseif self.sync then
+			self:run_sync(job)
+		else
+			self.busy = true
+			self.current = job
+			self:run_step(job, 1, nil)
+			return
+		end
 	end
-	local job = self:take()
-	if not self.database then
-		pcall(job.finish, false, "storage is not open")
-		return self:pump()
-	end
-	self.busy = true
-	self:run_step(job, 1, nil)
 end
 
 function Sqlite:complete(job, ok, result)
+	if self.current ~= job then
+		return
+	end
+	self.current = nil
 	self.busy = false
 	pcall(job.finish, ok, result)
 	self:pump()
+end
+
+-- Runs every step with the blocking API; used once async queries are no longer possible
+-- (the engine refuses them while Foundation unloads).
+function Sqlite:run_sync(job)
+	local database, last = self.database, nil
+	for index, step in ipairs(job.steps) do
+		local result, err
+		if step.select then
+			result, err = database:Select(step.sql, table.unpack(step.params or {}))
+		else
+			result, err = database:Execute(step.sql, table.unpack(step.params or {}))
+		end
+		if err then
+			if job.transaction and index > 1 then
+				database:Execute("ROLLBACK")
+			end
+			pcall(job.finish, false, err)
+			return
+		end
+		last = result
+	end
+	pcall(job.finish, true, last)
+end
+
+-- Restarts the job in flight synchronously: its async answer may never come. Writes set final
+-- states, so running them again is harmless; an open transaction is rolled back first.
+function Sqlite:abandon_current()
+	local job, index = self.current, self.current_index or 1
+	self.current, self.busy = nil, false
+	if not job then
+		return
+	end
+	if job.transaction and index > 1 then
+		self.database:Execute("ROLLBACK")
+	end
+	self:run_sync(job)
+end
+
+-- Switches to blocking queries and runs everything still queued. Called when Foundation stops.
+function Sqlite:Drain()
+	if not self.database then
+		return 0
+	end
+	local pending = #self.queue + (self.current and 1 or 0)
+	self.sync = true
+	self:abandon_current()
+	self:pump()
+	return pending
 end
 
 function Sqlite:run_step(job, index, last)
@@ -170,8 +226,12 @@ function Sqlite:run_step(job, index, last)
 	if not step then
 		return self:complete(job, true, last)
 	end
+	self.current_index = index
 	local method = step.select and "SelectAsync" or "ExecuteAsync"
-	self.database[method](self.database, step.sql, function(result, err)
+	local sent = pcall(self.database[method], self.database, step.sql, function(result, err)
+		if self.current ~= job then
+			return
+		end
 		if err then
 			if job.transaction and index > 1 then
 				self.database:ExecuteAsync("ROLLBACK", function()
@@ -183,6 +243,11 @@ function Sqlite:run_step(job, index, last)
 		end
 		self:run_step(job, index + 1, result)
 	end, table.unpack(step.params or {}))
+	if not sent then
+		self.sync = true
+		self:abandon_current()
+		self:pump()
+	end
 end
 
 function Sqlite:write(operations, callback)

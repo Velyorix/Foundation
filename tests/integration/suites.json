@@ -405,5 +405,18 @@
       "\\[foundation\\]   76561198000000002 Alex Doe \\(added by console\\)",
       "\\[foundation\\] 76561198000000002 is no longer an operator"
     ]
+  },
+  "core-storage": {
+    "description": "SQLite storage backend on the real Database class: ordering, round-trips, prefixes, transactions, usage",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-storage-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "Failed to execute Execute query: 'INSERT INTO foundation_kv",
+      "SQL Error: NOT NULL constraint failed: foundation_kv\\.value"
+    ]
   }
 }

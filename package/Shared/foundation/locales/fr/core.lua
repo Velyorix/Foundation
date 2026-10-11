@@ -333,4 +333,10 @@ return {
 	["storage.version_newer"] = "les données de '{namespace}' sont en version {stored}, plus récente que la version {version} déclarée par son package ; elles ne sont pas modifiées",
 	["storage.migration_failed"] = "les données de '{namespace}' n'ont pas pu être migrées depuis la version {from} ({reason}) ; rien n'a été modifié",
 	["storage.migrated"] = "'{namespace}' migré de la version {from} à {to} ({changes} changement(s))",
+
+	["reason.data_subject"] = "doit être un identifiant de compte ou un autre identifiant non vide de {max} caractères au plus sans caractère de contrôle, ou un expéditeur joueur",
+	["reason.data_name"] = "ne doit contenir que des lettres minuscules, des chiffres, '_', '-' et '.' ({max} caractères au plus)",
+	["reason.data_defined"] = "'{key}' est déjà défini",
+	["reason.data_closed"] = "'{key}' appartient à un package qui s'est arrêté",
+	["reason.data_value"] = "ne respecte pas le schéma de '{key}' : {problem}",
 }

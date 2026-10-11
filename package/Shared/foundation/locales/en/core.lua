@@ -333,4 +333,10 @@ return {
 	["storage.version_newer"] = "the data of '{namespace}' is version {stored}, newer than version {version} declared by its package; it is left untouched",
 	["storage.migration_failed"] = "the data of '{namespace}' could not be migrated from version {from} ({reason}); nothing was changed",
 	["storage.migrated"] = "migrated '{namespace}' from version {from} to {to} ({changes} change(s))",
+
+	["reason.data_subject"] = "must be an account id or another non-empty identifier of at most {max} characters without control characters, or a player sender",
+	["reason.data_name"] = "must contain only lowercase letters, digits, '_', '-' and '.' (at most {max} characters)",
+	["reason.data_defined"] = "'{key}' is already defined",
+	["reason.data_closed"] = "'{key}' belongs to a package that stopped",
+	["reason.data_value"] = "does not match the schema of '{key}': {problem}",
 }

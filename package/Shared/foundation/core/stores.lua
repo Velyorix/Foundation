@@ -97,6 +97,20 @@ function Stores:Open(owner, name, options, api, level)
 		end
 		return existing
 	end
+	return self:create(owner, namespace, version, migrations)
+end
+
+-- Store on a namespace chosen by Foundation (not a package store name), for example the
+-- persistent data of a package. Same results as Open.
+function Stores:OpenNamespace(owner, namespace)
+	local existing = self.stores[namespace]
+	if existing and existing.active then
+		return existing
+	end
+	return self:create(owner, namespace)
+end
+
+function Stores:create(owner, namespace, version, migrations)
 	local store = setmetatable({
 		manager = self,
 		owner = owner,

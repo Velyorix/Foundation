@@ -11,6 +11,7 @@ local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
 local Stores = Package.Require("stores.lua")
+local Data = Package.Require("data.lua")
 local Json = Package.Require("json.lua")
 local StorageMemory = Package.Require("storage_memory.lua")
 local Events = Package.Require("events.lua")
@@ -496,6 +497,30 @@ local COMPONENTS = {
 					start()
 				end
 				return store
+			end)
+			local data = Data.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				schema = runtime.schema,
+				stores = stores,
+				backend = backend,
+				futures = runtime.futures,
+				json = Json,
+			})
+			runtime.data = data
+			runtime.packages:ExtendContext("DefineData", function(context, entry, name, schema, options)
+				local key, release, store_release, start =
+					data:Define(entry.id, name, schema, options, "context:DefineData", 3)
+				if store_release then
+					context:Track("store", store_release, { namespace = key.store.namespace })
+					start()
+				end
+				context:Track("data_key", release, { key = key.full })
+				return key
+			end)
+			runtime.packages:ExtendContext("ReadData", function(_, entry, key)
+				local reader = data:Reader(entry.id, key, "context:ReadData", 3)
+				return reader
 			end)
 		end,
 	},

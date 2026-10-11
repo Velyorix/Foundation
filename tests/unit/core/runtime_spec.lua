@@ -80,6 +80,7 @@ describe("Runtime", function()
 			"config:absent",
 			"package_config:absent",
 			"operators:absent",
+			"storage:running",
 			"command_bridges:absent",
 			"audit:absent",
 		})
@@ -109,7 +110,7 @@ describe("Runtime", function()
 			end,
 		})
 		expect.truthy(runtime:Start())
-		local audit = runtime:Snapshot().components[18]
+		local audit = runtime:Snapshot().components[19]
 		expect.same(audit, { name = "audit", required = false, state = "unavailable" })
 		expect.contains(text(lines), "component 'audit' is unavailable")
 		expect.contains(text(lines), "disk unavailable")
@@ -137,6 +138,33 @@ describe("Runtime", function()
 		expect.raises(function()
 			runtime:RequireRunning("Foundation.Register")
 		end, "[foundation:invalid_state] Foundation.Register: Foundation could not start")
+	end)
+
+	it("writes pending storage operations when it stops, after the packages", function()
+		local order = {}
+		local runtime, _, lines = setup({
+			create_storage_backend = function()
+				return {
+					Drain = function()
+						order[#order + 1] = "drain"
+						return 3
+					end,
+				}
+			end,
+		})
+		runtime:Start()
+		local context = runtime.packages:Register({
+			GetName = function()
+				return "late"
+			end,
+			Subscribe = function() end,
+		}, { api = "0.1" })
+		context:OnDisable(function()
+			order[#order + 1] = "disable hook"
+		end)
+		runtime:Stop()
+		expect.same(order, { "disable hook", "drain" })
+		expect.contains(text(lines), "wrote 3 pending storage operation(s) before stopping")
 	end)
 
 	it("stops once, disabling packages and flushing the log", function()

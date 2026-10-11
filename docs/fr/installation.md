@@ -45,8 +45,8 @@
 
 Arrêtez le serveur, remplacez le dossier `Packages/foundation/` par la nouvelle version, puis
 redémarrez le serveur. Le dossier du package ne contient aucune donnée du serveur : le
-remplacer ne fait rien perdre. Les réglages sont conservés dans le dossier `foundation/` à côté
-de l'exécutable du serveur.
+remplacer ne fait rien perdre. Les réglages et les données enregistrées sont conservés dans le
+dossier `foundation/` à côté de l'exécutable du serveur.
 
 Lisez le [journal des modifications](../../CHANGELOG.md) avant chaque mise à jour : il indique
 les changements qui demandent une action aux administrateurs ou aux développeurs de packages.
@@ -55,5 +55,5 @@ les changements qui demandent une action aux administrateurs ou aux développeur
 
 Retirez `foundation` de `packages` dans `Config.toml` et supprimez `Packages/foundation/`. Les
 packages qui dépendent de Foundation ne se chargeront plus. Supprimez aussi le dossier
-`foundation/` à côté de l'exécutable du serveur si vous ne souhaitez pas conserver les
-réglages.
+`foundation/` à côté de l'exécutable du serveur si vous ne souhaitez conserver ni les réglages
+ni les données enregistrées.

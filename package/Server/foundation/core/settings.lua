@@ -42,6 +42,25 @@ return function(S, messages, is_locale)
 				},
 			},
 			{
+				name = "storage",
+				fields = {
+					{
+						key = "max_bytes_per_package",
+						schema = S:Integer({ min = 1024 }),
+						default = 52428800,
+						reload = "hot",
+						comment_key = "config.template.storage_bytes",
+					},
+					{
+						key = "max_keys_per_package",
+						schema = S:Integer({ min = 1 }),
+						default = 100000,
+						reload = "hot",
+						comment_key = "config.template.storage_keys",
+					},
+				},
+			},
+			{
 				name = "commands",
 				fields = {
 					{

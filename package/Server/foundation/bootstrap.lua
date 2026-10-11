@@ -12,6 +12,7 @@ local PackageConfigs = Package.Require("foundation/core/package_config.lua")
 local CommandBridges = Package.Require("foundation/core/command_bridges.lua")
 local Senders = Package.Require("foundation/core/senders.lua")
 local Operators = Package.Require("foundation/core/operators.lua")
+local StorageSqlite = Package.Require("foundation/core/storage_sqlite.lua")
 local version = Package.Require("foundation/version.lua")
 
 local Bootstrap = {}
@@ -70,6 +71,24 @@ function Bootstrap.Start()
 				log = rt.log,
 				invoker = rt.invoker,
 			})
+		end,
+		create_storage_backend = function(rt)
+			local backend = StorageSqlite.new({
+				open = function(path)
+					return Database(DatabaseEngine.SQLite, "db=" .. path .. " timeout=2", 1)
+				end,
+				files = engine_files(),
+				now = now,
+			})
+			local ok, reason = backend:Open()
+			if not ok then
+				rt.log
+					:For("foundation", "storage")
+					:Error("storage.open_failed", { path = backend.path, reason = reason })
+				return nil
+			end
+			rt.log:For("foundation", "storage"):Info("storage.opened", { path = backend.path })
+			return backend
 		end,
 		create_operators = function(rt)
 			return Operators.new({

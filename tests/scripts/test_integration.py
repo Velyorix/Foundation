@@ -1,4 +1,5 @@
 import socket
+import sqlite3
 import sys
 import tempfile
 import unittest
@@ -21,6 +22,43 @@ SAMPLE_LOG = """\
 2026-10-04 21:01:52 WARNING  Found Package file with wrong casing. This will not work under Unix (Linux) systems!
 2026-10-04 21:01:53  SCRIPT  [foundation-test-harness] [FOUNDATION-TEST] demo DONE passed=1 failed=1
 """
+
+
+class PostChecksTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        (self.root / "data").mkdir()
+        connection = sqlite3.connect(self.root / "data" / "test.db")
+        connection.execute("CREATE TABLE t (n INTEGER)")
+        connection.executemany("INSERT INTO t VALUES (?)", [(1,), (2,)])
+        connection.commit()
+        connection.close()
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def run_checks(self, checks):
+        result = integration.SuiteResult(name="s", passed=["x"], done=True)
+        integration.run_post_checks(result, self.root, checks)
+        return result
+
+    def test_passes_when_rows_match(self):
+        result = self.run_checks([{"database": "data/test.db", "query": "SELECT COUNT(*) FROM t", "expected": [[2]]}])
+        self.assertEqual(result.failed_checks, [])
+        self.assertTrue(result.ok)
+
+    def test_reports_mismatch_missing_file_and_bad_sql(self):
+        result = self.run_checks([
+            {"database": "data/test.db", "query": "SELECT COUNT(*) FROM t", "expected": [[3]]},
+            {"database": "data/missing.db", "query": "SELECT 1", "expected": [[1]]},
+            {"database": "data/test.db", "query": "SELECT nope FROM t", "expected": []},
+        ])
+        self.assertEqual(len(result.failed_checks), 3)
+        self.assertIn("[[2]], expected [[3]]", result.failed_checks[0])
+        self.assertIn("database file missing", result.failed_checks[1])
+        self.assertIn("no such column", result.failed_checks[2])
+        self.assertFalse(result.ok)
 
 
 class ParseLogTest(unittest.TestCase):

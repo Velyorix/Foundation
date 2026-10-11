@@ -150,6 +150,9 @@
       "foundation-example-salary",
       "foundation-example-arena",
       "foundation-example-ranks",
+      "foundation-example-warps",
+      "foundation-example-profiles",
+      "foundation-example-nametags",
       "foundation-docs-examples-test"
     ],
     "timeout_seconds": 90,
@@ -165,7 +168,7 @@
       "\\[foundation\\] <item> must be one of apple, sword",
       "\\[foundation\\] Usage: buy <item> \\[amount\\]",
       "\\[foundation\\] buy <item> \\[amount\\] - Buy an item",
-      "\\[foundation\\] Packages \\(12\\):",
+      "\\[foundation\\] Packages \\(15\\):",
       "\\[foundation\\] Services \\(2\\):",
       "\\[foundation\\] economy:bank",
       "\\[foundation\\]   provided by: foundation-example-coins 1\\.0 \\(priority 0\\)",
@@ -204,7 +207,49 @@
       "saved 3 change\\(s\\)",
       "salaries are paid through foundation-example-coins",
       "paid 100 to alex, balance 100",
-      "offline players are paid too"
+      "offline players are paid too",
+      "\\[foundation\\] warp spawn saved",
+      "\\[foundation\\] warp arena saved",
+      "\\[foundation\\] 2 warp\\(s\\): arena, spawn",
+      "\\[foundation\\] arena: 1200\\.5 -40 100 on default",
+      "\\[foundation\\] warp spawn deleted",
+      "\\[foundation\\] no warp named spawn",
+      "\\[foundation\\] profile of 76561198000000021 saved",
+      "\\[foundation\\] Alex \\(green\\), 0 visit\\(s\\)",
+      "\\[foundation\\] 76561198000000022 has no profile, 0 visit\\(s\\)",
+      "\\[foundation\\] 76561198000000021: \\[green\\] Alex",
+      "\\[foundation\\] 76561198000000022: no name tag"
+    ],
+    "post_checks": [
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT value FROM foundation_kv WHERE namespace = 'foundation/versions' AND key = 'foundation-example-warps/warps'",
+        "expected": [
+          [
+            "2"
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT key, value FROM foundation_kv WHERE namespace = 'foundation-example-warps/warps'",
+        "expected": [
+          [
+            "arena",
+            "{\"map\":\"default\",\"position\":[1200.5,-40,100]}"
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT key, value FROM foundation_kv WHERE namespace = 'data:foundation-example-profiles'",
+        "expected": [
+          [
+            "profile|76561198000000021",
+            "{\"color\":\"green\",\"nickname\":\"Alex\"}"
+          ]
+        ]
+      }
     ]
   },
   "core-json": {
@@ -404,6 +449,91 @@
       "\\[foundation\\]   76561198000000001 Sam O'Neil \\(added by console\\)",
       "\\[foundation\\]   76561198000000002 Alex Doe \\(added by console\\)",
       "\\[foundation\\] 76561198000000002 is no longer an operator"
+    ]
+  },
+  "core-storage": {
+    "description": "SQLite storage backend on the real Database class: ordering, round-trips, prefixes, transactions, usage",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-storage-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "Failed to execute Execute query: 'INSERT INTO foundation_kv",
+      "SQL Error: NOT NULL constraint failed: foundation_kv\\.value"
+    ]
+  },
+  "core-stores": {
+    "description": "Package stores on Foundation's SQLite database: round-trip and data kept across a package reload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-storage-fixture",
+      "foundation-core-stores-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/storage: storage opened at foundation/data/foundation\\.db"
+    ]
+  },
+  "core-migrations": {
+    "description": "Store migrations on the real SQLite database: applied once, failures leave data untouched and fail the package",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-migration-fixture",
+      "foundation-core-migrations-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [
+      "\\[foundation\\] ERROR foundation/core: store_migration callback of foundation-migration-fixture failed",
+      "\\[foundation\\] ERROR foundation-migration-fixture/storage: the data of 'foundation-migration-fixture/bank' could not be migrated from version 2",
+      "\\[foundation\\] ERROR foundation/core: foundation-migration-fixture failed: "
+    ],
+    "expected_log_sequence": [
+      "\\[foundation\\] INFO  foundation-migration-fixture/storage: migrated 'foundation-migration-fixture/bank' from version 1 to 2 \\(4 change\\(s\\)\\)",
+      "\\[foundation\\] ERROR foundation-migration-fixture/storage: the data of 'foundation-migration-fixture/bank' could not be migrated from version 2 \\(the migration raised an error"
+    ]
+  },
+  "core-storage-shutdown": {
+    "description": "Writes queued before and during the server stop (disable hooks) reach the SQLite database",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-storage-shutdown-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "post_checks": [
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT COUNT(*) FROM foundation_kv WHERE namespace = 'foundation-core-storage-shutdown-test' AND key LIKE 'k%'",
+        "expected": [
+          [
+            300
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT COUNT(*) FROM foundation_kv WHERE namespace = 'foundation-core-storage-shutdown-test' AND key LIKE 'hook%'",
+        "expected": [
+          [
+            100
+          ]
+        ]
+      },
+      {
+        "database": "foundation/data/foundation.db",
+        "query": "SELECT value FROM foundation_kv WHERE key = 'from-disable-hook'",
+        "expected": [
+          [
+            "true"
+          ]
+        ]
+      }
     ]
   }
 }

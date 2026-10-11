@@ -10,6 +10,10 @@ local Schema = Package.Require("schema.lua")
 local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
+local Stores = Package.Require("stores.lua")
+local Data = Package.Require("data.lua")
+local Json = Package.Require("json.lua")
+local StorageMemory = Package.Require("storage_memory.lua")
 local Events = Package.Require("events.lua")
 local Services = Package.Require("services.lua")
 local Capabilities = Package.Require("capabilities.lua")
@@ -457,6 +461,70 @@ local COMPONENTS = {
 		end,
 	},
 	{
+		name = "storage",
+		required = true,
+		create = function(runtime)
+			local backend
+			if runtime.env.create_storage_backend then
+				backend = runtime.env.create_storage_backend(runtime)
+			else
+				backend = StorageMemory.new()
+			end
+			local stores = Stores.new({
+				check = runtime.check,
+				json = Json,
+				futures = runtime.futures,
+				invoker = runtime.invoker,
+				backend = backend,
+				fail = function(owner, reason_key, params)
+					runtime.packages:Fail(owner, reason_key, params)
+				end,
+				log = runtime.log,
+				limits = function()
+					local storage = runtime.settings and runtime.settings.storage or {}
+					return {
+						max_bytes = storage.max_bytes_per_package or 52428800,
+						max_keys = storage.max_keys_per_package or 100000,
+					}
+				end,
+			})
+			runtime.stores = stores
+			runtime.storage_backend = backend
+			runtime.packages:ExtendContext("Store", function(context, entry, name, options)
+				local store, release, start = stores:Open(entry.id, name, options, "context:Store", 3)
+				if release then
+					context:Track("store", release, { namespace = store.namespace })
+					start()
+				end
+				return store
+			end)
+			local data = Data.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				schema = runtime.schema,
+				stores = stores,
+				backend = backend,
+				futures = runtime.futures,
+				json = Json,
+			})
+			runtime.data = data
+			runtime.packages:ExtendContext("DefineData", function(context, entry, name, schema, options)
+				local key, release, store_release, start =
+					data:Define(entry.id, name, schema, options, "context:DefineData", 3)
+				if store_release then
+					context:Track("store", store_release, { namespace = key.store.namespace })
+					start()
+				end
+				context:Track("data_key", release, { key = key.full })
+				return key
+			end)
+			runtime.packages:ExtendContext("ReadData", function(_, entry, key)
+				local reader = data:Reader(entry.id, key, "context:ReadData", 3)
+				return reader
+			end)
+		end,
+	},
+	{
 		name = "command_bridges",
 		required = false,
 		create = function(runtime)
@@ -597,6 +665,15 @@ function Runtime:Stop()
 	self.state = "stopping"
 	if self.packages then
 		self.packages:Shutdown()
+	end
+	local backend = self.storage_backend
+	if backend and backend.Drain then
+		local ok, result = pcall(backend.Drain, backend)
+		if not ok then
+			self.log:Error("storage.drain_failed", { reason = tostring(result) })
+		elseif result > 0 then
+			self.log:Info("storage.drained", { count = result })
+		end
 	end
 	if self.ownership then
 		self.ownership:ReleaseOwner("foundation", true)

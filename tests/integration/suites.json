@@ -418,5 +418,19 @@
       "Failed to execute Execute query: 'INSERT INTO foundation_kv",
       "SQL Error: NOT NULL constraint failed: foundation_kv\\.value"
     ]
+  },
+  "core-stores": {
+    "description": "Package stores on Foundation's SQLite database: round-trip and data kept across a package reload",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-storage-fixture",
+      "foundation-core-stores-test"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] INFO  foundation/storage: storage opened at foundation/data/foundation\\.db"
+    ]
   }
 }

@@ -308,4 +308,18 @@ return {
 	["admin.permission_undeclared"] = "non déclarée : seuls les opérateurs l'ont",
 	["admin.permissions_none"] = "Aucune permission n'est déclarée.",
 	["admin.permissions_header"] = "Permissions ({count}) :",
+
+	["reason.store_name"] = "ne doit contenir que des lettres minuscules, des chiffres, '_' et '-'",
+	["reason.store_key"] = "doit être une chaîne non vide de {max} caractères au plus, sans caractère de contrôle",
+	["reason.store_operation"] = "doit être { op = 'set', key = ..., value = ... } ou { op = 'delete', key = ... } avec une clé valide ({max} caractères au plus)",
+	["reason.store_closed"] = "l'espace '{namespace}' appartient à un package qui s'est arrêté",
+	["error.storage_unavailable"] = "le stockage n'est pas disponible, '{namespace}' ne peut donc pas être utilisé",
+	["error.storage_failed"] = "l'opération de stockage sur '{namespace}' a échoué",
+	["error.storage_corrupt"] = "la valeur enregistrée de '{key}' dans '{namespace}' n'est pas du JSON valide",
+	["error.storage_quota"] = "'{namespace}' dépasserait son quota ({max_keys} clés, {max_bytes} octets)",
+	["storage.opened"] = "stockage ouvert dans {path}",
+	["storage.open_failed"] = "le stockage n'a pas pu être ouvert dans {path} ({reason}) ; les espaces des packages refuseront toute opération",
+	["storage.load_failed"] = "les clés de '{namespace}' n'ont pas pu être lues ({reason}) ; cet espace refuse toute opération",
+	["config.template.storage_bytes"] = "Quantité maximale de données, en octets, qu'un package peut garder dans ses espaces (clés et valeurs).",
+	["config.template.storage_keys"] = "Nombre maximal de clés qu'un package peut garder dans ses espaces.",
 }

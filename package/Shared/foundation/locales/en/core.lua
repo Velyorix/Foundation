@@ -308,4 +308,18 @@ return {
 	["admin.permission_undeclared"] = "not declared: only operators have it",
 	["admin.permissions_none"] = "No permission is declared.",
 	["admin.permissions_header"] = "Permissions ({count}):",
+
+	["reason.store_name"] = "must contain only lowercase letters, digits, '_' and '-'",
+	["reason.store_key"] = "must be a non-empty string of at most {max} characters, without control characters",
+	["reason.store_operation"] = "must be { op = 'set', key = ..., value = ... } or { op = 'delete', key = ... } with a valid key (at most {max} characters)",
+	["reason.store_closed"] = "the store '{namespace}' belongs to a package that stopped",
+	["error.storage_unavailable"] = "storage is not available, so '{namespace}' cannot be used",
+	["error.storage_failed"] = "the storage operation on '{namespace}' failed",
+	["error.storage_corrupt"] = "the stored value of '{key}' in '{namespace}' is not valid JSON",
+	["error.storage_quota"] = "'{namespace}' would exceed its quota ({max_keys} keys, {max_bytes} bytes)",
+	["storage.opened"] = "storage opened at {path}",
+	["storage.open_failed"] = "storage could not be opened at {path} ({reason}); package stores will refuse every operation",
+	["storage.load_failed"] = "the keys of '{namespace}' could not be read ({reason}); this store refuses every operation",
+	["config.template.storage_bytes"] = "Largest amount of data, in bytes, that one package can keep in its stores (keys and values).",
+	["config.template.storage_keys"] = "Largest number of keys that one package can keep in its stores.",
 }

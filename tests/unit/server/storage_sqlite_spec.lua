@@ -137,6 +137,16 @@ describe("SQLite storage backend", function()
 			expect.same(usage, { count = 3, bytes = 42 })
 		end)
 
+		it("reads the size of every key of a namespace", function()
+			local sizes
+			backend:Sizes("shop", function(_, value)
+				sizes = value
+			end)
+			local query = database:answer({ { key = "a", size = "7" }, { key = "b", size = "12" } })
+			expect.same(query.params, { "shop" })
+			expect.same(sizes, { a = 7, b = 12 })
+		end)
+
 		it("escapes LIKE wildcards in key prefixes", function()
 			backend:Keys("shop", "50%_off\\", 10, function() end)
 			local query = database:answer({ { key = "50%_off\\x" } })

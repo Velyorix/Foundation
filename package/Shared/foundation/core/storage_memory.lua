@@ -64,6 +64,14 @@ function Memory:Usage(namespace, callback)
 	callback(true, { count = count, bytes = bytes })
 end
 
+function Memory:Sizes(namespace, callback)
+	local sizes = {}
+	for key, value in pairs(self:space(namespace)) do
+		sizes[key] = #key + #value
+	end
+	callback(true, sizes)
+end
+
 function Memory:Flush(callback)
 	callback(true)
 end

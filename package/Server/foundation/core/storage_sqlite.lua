@@ -270,6 +270,29 @@ function Sqlite:Usage(namespace, callback)
 	})
 end
 
+-- Size (key + value bytes) of every key of a namespace.
+function Sqlite:Sizes(namespace, callback)
+	self:enqueue({
+		steps = {
+			{
+				sql = "SELECT key, LENGTH(key) + LENGTH(value) AS size FROM foundation_kv WHERE namespace = :0",
+				params = { namespace },
+				select = true,
+			},
+		},
+		finish = function(ok, rows)
+			if not ok then
+				return callback(false, rows)
+			end
+			local sizes = {}
+			for _, row in ipairs(rows) do
+				sizes[row.key] = tonumber(row.size) or 0
+			end
+			callback(true, sizes)
+		end,
+	})
+end
+
 -- Calls back once every operation queued before it has finished.
 function Sqlite:Flush(callback)
 	self:enqueue({ steps = {}, finish = callback })

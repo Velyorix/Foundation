@@ -37,6 +37,13 @@ level = "info"
 # Parts of Foundation whose debug lines are written even when the level is above 'debug', for example ['config'].
 debug_categories = []
 
+[storage]
+# Largest amount of data, in bytes, that one package can keep in its stores (keys and values).
+max_bytes_per_package = 52428800
+
+# Largest number of keys that one package can keep in its stores.
+max_keys_per_package = 100000
+
 [commands]
 # Chat messages starting with '/' that are not commands: 'reply' answers "unknown command" and hides the message, 'pass' leaves them to other packages.
 unknown_in_chat = "reply"
@@ -47,6 +54,8 @@ unknown_in_chat = "reply"
 | `language` | Locale code: `en`, `fr`, or a regional code such as `fr_CA` | `"en"` | Language of Foundation's log messages and the default language of package translations (see [Localization](localization.md)). Foundation ships English and French; other languages fall back to English. |
 | `log.level` | `"debug"`, `"info"`, `"warning"`, `"error"` | `"info"` | Lines below this level are not written. See [Logging](logging.md). |
 | `log.debug_categories` | List of domains, for example `["config"]` | `[]` | Domains (the part after `/` in a log line) whose debug lines are written whatever `log.level` is. |
+| `storage.max_bytes_per_package` | Integer, 1024 or more | `52428800` (50 MB) | Largest amount of data one package can keep in its stores |
+| `storage.max_keys_per_package` | Integer, 1 or more | `100000` | Largest number of keys one package can keep in its stores |
 | `commands.unknown_in_chat` | `"reply"`, `"pass"` | `"reply"` | Chat messages starting with `/` that are not commands: `reply` answers "unknown command" and hides the message; `pass` lets other packages handle it, for example a package with its own chat commands. |
 
 This file is always created in English. Changing `language` changes the messages, not the

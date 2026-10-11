@@ -21,6 +21,10 @@ Errors.CODES = {
 	async_failed = "developer",
 	timeout = "infrastructure",
 	command_usage = "user",
+	storage_unavailable = "infrastructure",
+	storage_failed = "infrastructure",
+	storage_corrupt = "infrastructure",
+	storage_quota = "developer",
 }
 
 local ErrorValue = {}

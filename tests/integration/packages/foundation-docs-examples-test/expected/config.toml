@@ -14,6 +14,13 @@ level = "info"
 # Parts of Foundation whose debug lines are written even when the level is above 'debug', for example ['config'].
 debug_categories = []
 
+[storage]
+# Largest amount of data, in bytes, that one package can keep in its stores (keys and values).
+max_bytes_per_package = 52428800
+
+# Largest number of keys that one package can keep in its stores.
+max_keys_per_package = 100000
+
 [commands]
 # Chat messages starting with '/' that are not commands: 'reply' answers "unknown command" and hides the message, 'pass' leaves them to other packages.
 unknown_in_chat = "reply"

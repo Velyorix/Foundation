@@ -10,6 +10,9 @@ local Schema = Package.Require("schema.lua")
 local I18n = Package.Require("i18n.lua")
 local Scheduler = Package.Require("scheduler.lua")
 local Futures = Package.Require("future.lua")
+local Stores = Package.Require("stores.lua")
+local Json = Package.Require("json.lua")
+local StorageMemory = Package.Require("storage_memory.lua")
 local Events = Package.Require("events.lua")
 local Services = Package.Require("services.lua")
 local Capabilities = Package.Require("capabilities.lua")
@@ -454,6 +457,41 @@ local COMPONENTS = {
 			runtime.permissions.is_operator = function(id)
 				return operators:IsOperator(id)
 			end
+		end,
+	},
+	{
+		name = "storage",
+		required = true,
+		create = function(runtime)
+			local backend
+			if runtime.env.create_storage_backend then
+				backend = runtime.env.create_storage_backend(runtime)
+			else
+				backend = StorageMemory.new()
+			end
+			local stores = Stores.new({
+				check = runtime.check,
+				json = Json,
+				futures = runtime.futures,
+				backend = backend,
+				log = runtime.log,
+				limits = function()
+					local storage = runtime.settings and runtime.settings.storage or {}
+					return {
+						max_bytes = storage.max_bytes_per_package or 52428800,
+						max_keys = storage.max_keys_per_package or 100000,
+					}
+				end,
+			})
+			runtime.stores = stores
+			runtime.storage_backend = backend
+			runtime.packages:ExtendContext("Store", function(context, entry, name)
+				local store, release = stores:Open(entry.id, name, "context:Store", 3)
+				if release then
+					context:Track("store", release, { namespace = store.namespace })
+				end
+				return store
+			end)
 		end,
 	},
 	{

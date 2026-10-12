@@ -8,12 +8,13 @@ local View = {}
 View.__index = View
 
 local DEFINE_OPTIONS = { schema = true, contributions = true, enumerable = true }
-local REGISTER_OPTIONS = { replace = true }
+local REGISTER_OPTIONS = { replace = true, deprecated = true }
 local CONTRIBUTIONS = { owner = true, open = true }
 
--- options: check, keys, schema, ownership, invoker
+-- options: check, keys, schema, ownership, invoker, log
 function Registries.new(options)
 	return setmetatable({
+		log = options.log,
 		check = options.check,
 		errors = options.check.errors,
 		messages = options.check.errors.messages,
@@ -89,6 +90,7 @@ function Registries:Define(owner, name, options, api, level)
 		open = options.contributions == "open",
 		enumerable = options.enumerable ~= false,
 		entries = {},
+		aliases = {},
 		count = 0,
 		listeners = {},
 		active = true,
@@ -106,13 +108,16 @@ function Registries:remove_registry(registry)
 	if self.registries[registry.key] == registry then
 		self.registries[registry.key] = nil
 	end
-	local listeners, entries = registry.listeners, registry.entries
-	registry.entries, registry.count, registry.listeners = {}, 0, {}
+	local listeners, entries, aliases = registry.listeners, registry.entries, registry.aliases
+	registry.entries, registry.aliases, registry.count, registry.listeners = {}, {}, 0, {}
 	for _, listener in ipairs(listeners) do
 		listener.handle:Release()
 	end
 	for _, entry in pairs(entries) do
 		entry.handle:Release()
+	end
+	for _, alias in pairs(aliases) do
+		alias.handle:Release()
 	end
 	self:notify_watchers(registry.key)
 end
@@ -178,15 +183,21 @@ function View:GetName()
 	return self.registry.key
 end
 
-function View:Register(key, value, options)
-	local manager, viewer = self.manager, self.viewer
-	local registry = self:guard("registry:Register", 2)
-	if not registry.open and viewer ~= registry.owner then
-		manager:state_error("registry:Register", "reason.registry_closed", {
+-- Raises unless the viewing package may add entries or aliases to the registry.
+function View:writable(api)
+	local registry = self:guard(api, 3)
+	if not registry.open and self.viewer ~= registry.owner then
+		self.manager:state_error(api, "reason.registry_closed", {
 			registry = registry.key,
 			owner = registry.owner,
-		}, 2)
+		}, 3)
 	end
+	return registry
+end
+
+function View:Register(key, value, options)
+	local manager, viewer = self.manager, self.viewer
+	local registry = self:writable("registry:Register")
 	key = manager.keys:Check("registry:Register", 1, "key", key, { default_namespace = viewer, owner = viewer }, 2)
 	if value == nil then
 		manager.errors:Raise("invalid_argument", {
@@ -199,6 +210,22 @@ function View:Register(key, value, options)
 	end
 	options = manager:check_options("registry:Register", 3, options, REGISTER_OPTIONS, 2)
 	manager.check:Argument("registry:Register", 3, "options.replace", options.replace, "boolean?", 2)
+	local deprecated = options.deprecated
+	if deprecated ~= nil and deprecated ~= true and type(deprecated) ~= "string" then
+		manager.errors:Raise("invalid_argument", {
+			api = "registry:Register",
+			index = 3,
+			name = "options.deprecated",
+			expected = "string|true|nil",
+			actual = type(deprecated),
+		}, 2)
+	end
+	if registry.aliases[key] then
+		manager:state_error("registry:Register", "reason.registry_alias_taken", {
+			key = key,
+			registry = registry.key,
+		}, 2)
+	end
 	if registry.schema then
 		local checked, err = manager.S:Validate(registry.schema, value)
 		if err then
@@ -217,7 +244,7 @@ function View:Register(key, value, options)
 		previous.replaced = true
 		previous.handle:Release()
 	end
-	local entry = { key = key, value = value, owner = viewer, active = true }
+	local entry = { key = key, value = value, owner = viewer, deprecated = deprecated, active = true }
 	entry.handle = manager.ownership:Track(viewer, "registry_entry", function()
 		if not entry.active then
 			return
@@ -237,29 +264,118 @@ function View:Register(key, value, options)
 	return entry.handle
 end
 
+-- Warns once per reading package about a deprecated entry or an old name.
+function Registries:warn(registry, viewer, item, log_key, params)
+	local warned = item.warned or {}
+	item.warned = warned
+	if warned[viewer] then
+		return
+	end
+	warned[viewer] = true
+	params.registry = registry.key
+	self.log:For(viewer, "registries"):Warning(log_key, params)
+end
+
+function Registries:deprecated(registry, viewer, entry)
+	self:warn(registry, viewer, entry, "registries.deprecated", {
+		key = entry.key,
+		note = entry.deprecated == true and "" or entry.deprecated,
+	})
+end
+
 -- Direct lookup first: only unknown keys are parsed, so hot paths stay one table access.
+-- Old names (aliases) resolve to the entry of the current key.
 function View:lookup(api, key)
 	local registry = self:guard(api, 3)
 	local entry = registry.entries[key]
-	if entry then
-		return entry
+	local alias
+	if not entry then
+		alias = registry.aliases[key]
+		if not alias then
+			key = self.manager.keys:Check(api, 1, "key", key, nil, 3)
+			entry = registry.entries[key]
+			alias = not entry and registry.aliases[key]
+		end
+		if alias then
+			self.manager:warn(
+				registry,
+				self.viewer,
+				alias,
+				"registries.alias_used",
+				{ alias = alias.key, key = alias.target }
+			)
+			entry = registry.entries[alias.target]
+		end
 	end
-	local parsed = self.manager.keys:Check(api, 1, "key", key, nil, 3)
-	return registry.entries[parsed]
+	if entry and entry.deprecated then
+		self.manager:deprecated(registry, self.viewer, entry)
+	end
+	return entry
 end
 
 function View:Get(key)
-	local entry = self:lookup("registry:Get", key)
+	local registry = self.registry
+	local entry = registry.active and registry.entries[key]
+	if entry and not entry.deprecated then
+		return entry.value
+	end
+	entry = self:lookup("registry:Get", key)
 	return entry and entry.value
 end
 
 function View:Has(key)
+	local registry = self.registry
+	local entry = registry.active and registry.entries[key]
+	if entry and not entry.deprecated then
+		return true
+	end
 	return self:lookup("registry:Has", key) ~= nil
 end
 
 function View:GetEntry(key)
 	local entry = self:lookup("registry:GetEntry", key)
-	return entry and { key = entry.key, value = entry.value, owner = entry.owner }
+	return entry and { key = entry.key, value = entry.value, owner = entry.owner, deprecated = entry.deprecated }
+end
+
+-- The current key of an entry, following an old name; nil when there is no such entry.
+function View:Resolve(key)
+	local registry = self:guard("registry:Resolve", 2)
+	key = self.manager.keys:Check("registry:Resolve", 1, "key", key, nil, 2)
+	local alias = registry.aliases[key]
+	if alias then
+		key = alias.target
+	end
+	return registry.entries[key] and key or nil
+end
+
+-- Keeps `old` (a key of the viewing package) working as another name of `new`, for renamed
+-- entries. Readers using the old name get a warning once.
+function View:Alias(old, new)
+	local manager, viewer = self.manager, self.viewer
+	local registry = self:writable("registry:Alias")
+	old = manager.keys:Check("registry:Alias", 1, "old", old, { default_namespace = viewer, owner = viewer }, 2)
+	new = manager.keys:Check("registry:Alias", 2, "new", new, { default_namespace = viewer }, 2)
+	if old == new then
+		manager:invalid("registry:Alias", 2, "new", "reason.registry_alias_same", nil, 2)
+	end
+	if registry.entries[old] or registry.aliases[old] then
+		manager:state_error("registry:Alias", "reason.registry_alias_taken", { key = old, registry = registry.key }, 2)
+	end
+	local chained = registry.aliases[new] ~= nil
+	for _, other in pairs(registry.aliases) do
+		chained = chained or other.target == old
+	end
+	if chained then
+		manager:state_error("registry:Alias", "reason.registry_alias_chain", { registry = registry.key }, 2)
+	end
+	local alias = { key = old, target = new }
+	registry.aliases[old] = alias
+	alias.handle = manager.ownership:Track(viewer, "registry_alias", function()
+		if registry.aliases[old] == alias then
+			registry.aliases[old] = nil
+		end
+	end, { registry = registry.key, alias = old, key = new })
+	return alias.handle
 end
 
 function View:Count()

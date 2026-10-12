@@ -351,4 +351,9 @@ return {
 	["reason.registry_value"] = "does not match the schema of '{registry}': {problem}",
 	["reason.registry_taken"] = "'{key}' is already registered in '{registry}'; pass replace = true to replace your own entry",
 	["reason.registry_not_enumerable"] = "the entries of '{registry}' cannot be listed by other packages",
+	["reason.registry_alias_taken"] = "'{key}' is already used in '{registry}'",
+	["reason.registry_alias_same"] = "an old name cannot point to itself",
+	["reason.registry_alias_chain"] = "old names in '{registry}' must point to current keys, not to other old names",
+	["registries.deprecated"] = "the deprecated entry '{key}' of '{registry}' was used {note}",
+	["registries.alias_used"] = "'{alias}' is an old name of '{key}' in '{registry}'; use '{key}'",
 }

@@ -6,3 +6,5 @@ local weapons = context:DefineRegistry("weapons", {
 	schema = S.Record({ damage = S.Integer({ min = 1 }), slot = S.Optional(S.String(), "primary") }),
 })
 weapons:Register("rifle", { damage = 30 })
+weapons:Register("musket", { damage = 12 }, { deprecated = "use foundation-registries-fixture:rifle" })
+weapons:Alias("gun", "rifle")

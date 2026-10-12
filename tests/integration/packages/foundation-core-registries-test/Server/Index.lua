@@ -7,7 +7,9 @@ context:OnRegistry("foundation-registries-fixture:weapons", function(weapons)
 	if weapons then
 		weapons:Register("laser", { damage = 50, slot = "heavy" })
 		weapons:OnChange(function(action, key)
-			changes[#changes + 1] = action .. " " .. key
+			if key == "foundation-registries-fixture:rifle" then
+				changes[#changes + 1] = action
+			end
 		end)
 	end
 end)
@@ -22,13 +24,19 @@ end)
 
 suite:Test("entries of both packages are read with the schema defaults applied", function()
 	held = context:Registry("foundation-registries-fixture:weapons")
-	FoundationTest.Equal(held:Count(), 2)
+	FoundationTest.Equal(held:Count(), 3)
 	FoundationTest.Equal(held:Get("foundation-registries-fixture:rifle").slot, "primary")
 	FoundationTest.Equal(held:Get("foundation-core-registries-test:laser").damage, 50)
 	FoundationTest.Equal(
 		table.concat(held:Keys(), ","),
-		"foundation-core-registries-test:laser,foundation-registries-fixture:rifle"
+		"foundation-core-registries-test:laser,foundation-registries-fixture:musket,foundation-registries-fixture:rifle"
 	)
+end)
+
+suite:Test("old names and deprecated entries still resolve", function()
+	FoundationTest.Equal(held:Get("foundation-registries-fixture:gun").damage, 30)
+	FoundationTest.Equal(held:Resolve("foundation-registries-fixture:gun"), "foundation-registries-fixture:rifle")
+	FoundationTest.Equal(held:Get("foundation-registries-fixture:musket").damage, 12)
 end)
 
 suite:Test("a taken key and invalid values are refused", function()
@@ -61,13 +69,9 @@ suite:Wait(300)
 suite:Test("contributions come back when the package defines it again", function()
 	FoundationTest.Equal(#seen, 3)
 	local weapons = context:Registry("foundation-registries-fixture:weapons")
-	FoundationTest.Equal(weapons:Count(), 2)
+	FoundationTest.Equal(weapons:Count(), 3)
 	FoundationTest.Equal(weapons:Get("foundation-core-registries-test:laser").slot, "heavy")
-	FoundationTest.Equal(
-		table.concat(changes, ","),
-		"added foundation-registries-fixture:rifle,removed foundation-registries-fixture:rifle,"
-			.. "added foundation-registries-fixture:rifle"
-	)
+	FoundationTest.Equal(table.concat(changes, ","), "added,removed,added")
 end)
 
 suite:Run()

@@ -545,6 +545,10 @@
       "foundation-registries-fixture"
     ],
     "timeout_seconds": 90,
-    "allowed_errors": []
+    "allowed_errors": [],
+    "expected_log_lines": [
+      "\\[foundation\\] WARN  foundation-core-registries-test/registries: 'foundation-registries-fixture:gun' is an old name of 'foundation-registries-fixture:rifle' in 'foundation-registries-fixture:weapons'; use 'foundation-registries-fixture:rifle'",
+      "\\[foundation\\] WARN  foundation-core-registries-test/registries: the deprecated entry 'foundation-registries-fixture:musket' of 'foundation-registries-fixture:weapons' was used use foundation-registries-fixture:rifle"
+    ]
   }
 }

@@ -306,6 +306,7 @@ local COMPONENTS = {
 				schema = runtime.schema,
 				ownership = runtime.ownership,
 				invoker = runtime.invoker,
+				log = runtime.log,
 			})
 			runtime.registries = registries
 			local packages = runtime.packages

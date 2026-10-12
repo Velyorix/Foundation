@@ -351,4 +351,9 @@ return {
 	["reason.registry_value"] = "ne respecte pas le schéma de '{registry}' : {problem}",
 	["reason.registry_taken"] = "'{key}' est déjà enregistré dans '{registry}' ; passez replace = true pour remplacer votre propre entrée",
 	["reason.registry_not_enumerable"] = "les entrées de '{registry}' ne peuvent pas être listées par les autres packages",
+	["reason.registry_alias_taken"] = "'{key}' est déjà utilisé dans '{registry}'",
+	["reason.registry_alias_same"] = "un ancien nom ne peut pas désigner lui-même",
+	["reason.registry_alias_chain"] = "les anciens noms de '{registry}' doivent désigner des clés actuelles, pas d'autres anciens noms",
+	["registries.deprecated"] = "l'entrée dépréciée '{key}' de '{registry}' a été utilisée {note}",
+	["registries.alias_used"] = "'{alias}' est un ancien nom de '{key}' dans '{registry}' ; utilisez '{key}'",
 }

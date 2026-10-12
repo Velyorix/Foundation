@@ -2,6 +2,7 @@ local function setup()
 	local loader = Loader.new()
 	local Runtime = loader:require("foundation/core/runtime.lua")
 	local lines = {}
+	local time = { now = 0 }
 	local runtime = Runtime.new({
 		side = "server",
 		version = "0.1.0",
@@ -11,7 +12,7 @@ local function setup()
 			lines[#lines + 1] = line
 		end,
 		clock = function()
-			return 0
+			return time.now
 		end,
 		now = function()
 			return 0
@@ -26,7 +27,7 @@ local function setup()
 			Subscribe = function() end,
 		}, { api = "0.1" })
 	end
-	return runtime, register, lines
+	return runtime, register, lines, time
 end
 
 local function at_caller(fn, expected)
@@ -35,10 +36,10 @@ local function at_caller(fn, expected)
 end
 
 describe("Registries", function()
-	local runtime, register, lines, shooter, S
+	local runtime, register, lines, time, shooter, S
 
 	before_each(function()
-		runtime, register, lines = setup()
+		runtime, register, lines, time = setup()
 		shooter = register("shooter")
 		S = runtime.schema
 	end)
@@ -191,6 +192,9 @@ describe("Registries", function()
 			weapons:Register("rifle", 1, { force = true })
 		end, "unknown field 'force'")
 		at_caller(function()
+			weapons:Register("rifle", 1, { deprecated = 3 })
+		end, "'options.deprecated' must be string|true|nil (got number)")
+		at_caller(function()
 			weapons:Get("Bad Key")
 		end, "'key' is invalid")
 		at_caller(function()
@@ -202,6 +206,69 @@ describe("Registries", function()
 		at_caller(function()
 			shooter:OnRegistry("shooter:weapons")
 		end, "'fn' must be function (got nil)")
+	end)
+
+	it("warns each reading package once about a deprecated entry", function()
+		local weapons = shooter:DefineRegistry("weapons", { contributions = "open" })
+		weapons:Register("musket", 1, { deprecated = "use shooter:rifle" })
+		local view = register("arena"):Registry("shooter:weapons")
+		expect.equal(view:Get("shooter:musket"), 1)
+		expect.truthy(view:Has("shooter:musket"))
+		expect.equal(view:GetEntry("shooter:musket").deprecated, "use shooter:rifle")
+		weapons:Get("shooter:musket")
+		time.now = 60
+		view:Get("shooter:musket")
+		weapons:Get("shooter:musket")
+		local output = table.concat(lines, "\n")
+		local _, count = output:gsub("the deprecated entry 'shooter:musket' of 'shooter:weapons' was used", "")
+		expect.equal(count, 2)
+		expect.contains(
+			output,
+			"arena/registries: the deprecated entry 'shooter:musket' of 'shooter:weapons' was used use shooter:rifle"
+		)
+	end)
+
+	it("keeps old names working for renamed entries", function()
+		local weapons = shooter:DefineRegistry("weapons")
+		local rifle = { damage = 30 }
+		weapons:Register("assault-rifle", rifle)
+		local alias = weapons:Alias("rifle", "assault-rifle")
+		local view = register("arena"):Registry("shooter:weapons")
+		expect.equal(view:Get("shooter:rifle"), rifle)
+		expect.equal(view:Get("Shooter:Rifle"), rifle)
+		expect.equal(view:GetEntry("shooter:rifle").key, "shooter:assault-rifle")
+		expect.equal(view:Resolve("shooter:rifle"), "shooter:assault-rifle")
+		expect.equal(view:Resolve("shooter:assault-rifle"), "shooter:assault-rifle")
+		expect.is_nil(view:Resolve("shooter:bow"))
+		expect.same(view:Keys(), { "shooter:assault-rifle" })
+		local _, count =
+			table.concat(lines, "\n"):gsub("'shooter:rifle' is an old name of 'shooter:assault%-rifle'", "")
+		expect.equal(count, 1)
+		at_caller(function()
+			weapons:Register("rifle", 1)
+		end, "'shooter:rifle' is already used in 'shooter:weapons'")
+		at_caller(function()
+			weapons:Alias("assault-rifle", "laser")
+		end, "'shooter:assault-rifle' is already used in 'shooter:weapons'")
+		at_caller(function()
+			weapons:Alias("carbine", "rifle")
+		end, "must point to current keys")
+		at_caller(function()
+			weapons:Alias("old-rifle", "shooter:old-rifle")
+		end, "an old name cannot point to itself")
+		at_caller(function()
+			weapons:Alias("assault", "rifle2")
+			weapons:Alias("rifle2", "x")
+		end, "must point to current keys")
+		alias:Release()
+		expect.is_nil(view:Get("shooter:rifle"))
+	end)
+
+	it("refuses old names from packages that cannot contribute", function()
+		shooter:DefineRegistry("weapons")
+		at_caller(function()
+			register("arena"):Registry("shooter:weapons"):Alias("rifle", "shooter:rifle")
+		end, "only shooter can register entries in 'shooter:weapons'")
 	end)
 
 	it("runs watcher and listener errors guarded", function()

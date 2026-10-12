@@ -17,6 +17,7 @@ local StorageMemory = Package.Require("storage_memory.lua")
 local Events = Package.Require("events.lua")
 local Services = Package.Require("services.lua")
 local Capabilities = Package.Require("capabilities.lua")
+local Registries = Package.Require("registries.lua")
 local Permissions = Package.Require("permissions.lua")
 local Commands = Package.Require("commands.lua")
 local Arguments = Package.Require("arguments.lua")
@@ -292,6 +293,33 @@ local COMPONENTS = {
 			end)
 			runtime.packages:Observe(function(kind, entry)
 				capabilities:Observe(kind, entry)
+			end)
+		end,
+	},
+	{
+		name = "registries",
+		required = true,
+		create = function(runtime)
+			local registries = Registries.new({
+				check = runtime.check,
+				keys = runtime.keys,
+				schema = runtime.schema,
+				ownership = runtime.ownership,
+				invoker = runtime.invoker,
+			})
+			runtime.registries = registries
+			local packages = runtime.packages
+			packages:ExtendContext("DefineRegistry", function(_, entry, name, options)
+				local registry = registries:Define(entry.id, name, options, "context:DefineRegistry", 3)
+				return registry
+			end)
+			packages:ExtendContext("Registry", function(_, entry, key)
+				local registry = registries:Find(entry.id, key, "context:Registry", 3)
+				return registry
+			end)
+			packages:ExtendContext("OnRegistry", function(_, entry, key, fn)
+				local handle = registries:Watch(entry.id, key, fn, "context:OnRegistry", 3)
+				return handle
 			end)
 		end,
 	},

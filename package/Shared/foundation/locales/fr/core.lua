@@ -343,4 +343,12 @@ return {
 
 	["storage.drained"] = "{count} opération(s) de stockage en attente écrite(s) avant l'arrêt",
 	["storage.drain_failed"] = "les opérations de stockage en attente n'ont pas pu être écrites avant l'arrêt : {reason}",
+
+	["reason.registry_contributions"] = "doit valoir 'owner' ou 'open'",
+	["reason.registry_defined"] = "'{registry}' est déjà défini",
+	["reason.registry_removed"] = "'{registry}' a été retiré car le package qui le définissait s'est arrêté",
+	["reason.registry_closed"] = "seul {owner} peut enregistrer des entrées dans '{registry}'",
+	["reason.registry_value"] = "ne respecte pas le schéma de '{registry}' : {problem}",
+	["reason.registry_taken"] = "'{key}' est déjà enregistré dans '{registry}' ; passez replace = true pour remplacer votre propre entrée",
+	["reason.registry_not_enumerable"] = "les entrées de '{registry}' ne peuvent pas être listées par les autres packages",
 }

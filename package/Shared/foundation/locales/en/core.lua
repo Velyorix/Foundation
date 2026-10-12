@@ -343,4 +343,12 @@ return {
 
 	["storage.drained"] = "wrote {count} pending storage operation(s) before stopping",
 	["storage.drain_failed"] = "pending storage operations could not be written before stopping: {reason}",
+
+	["reason.registry_contributions"] = "must be 'owner' or 'open'",
+	["reason.registry_defined"] = "'{registry}' is already defined",
+	["reason.registry_removed"] = "'{registry}' was removed because the package that defined it stopped",
+	["reason.registry_closed"] = "only {owner} can register entries in '{registry}'",
+	["reason.registry_value"] = "does not match the schema of '{registry}': {problem}",
+	["reason.registry_taken"] = "'{key}' is already registered in '{registry}'; pass replace = true to replace your own entry",
+	["reason.registry_not_enumerable"] = "the entries of '{registry}' cannot be listed by other packages",
 }

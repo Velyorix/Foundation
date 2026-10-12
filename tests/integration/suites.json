@@ -535,5 +535,16 @@
         ]
       }
     ]
+  },
+  "core-registries": {
+    "description": "Registries defined and contributed across packages on a real server, removed and restored with their package",
+    "packages": [
+      "foundation",
+      "foundation-test-harness",
+      "foundation-core-registries-test",
+      "foundation-registries-fixture"
+    ],
+    "timeout_seconds": 90,
+    "allowed_errors": []
   }
 }

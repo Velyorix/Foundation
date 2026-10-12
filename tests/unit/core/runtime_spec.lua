@@ -75,6 +75,7 @@ describe("Runtime", function()
 			"events:running",
 			"services:running",
 			"capabilities:running",
+			"registries:running",
 			"permissions:running",
 			"commands:running",
 			"config:absent",
@@ -110,7 +111,7 @@ describe("Runtime", function()
 			end,
 		})
 		expect.truthy(runtime:Start())
-		local audit = runtime:Snapshot().components[19]
+		local audit = runtime:Snapshot().components[20]
 		expect.same(audit, { name = "audit", required = false, state = "unavailable" })
 		expect.contains(text(lines), "component 'audit' is unavailable")
 		expect.contains(text(lines), "disk unavailable")
